@@ -424,7 +424,7 @@ export const MANUAL: ManualChapter[] = [
         ],
         notes: [
           { kind: "info", text: "Solo el perfil de TI puede guardar o borrar credenciales. Cada cambio queda en la auditoría, sin los valores secretos." },
-          { kind: "info", text: "La API de A3ERP está dentro de la red de MANSERA: las credenciales quedan guardadas, pero solo se podrán comprobar cuando exista el gateway." },
+          { kind: "info", text: "A3ERP está dentro de la red de MANSERA: sus credenciales no se escriben en la plataforma, se introducen al instalar el gateway y no salen de esa red." },
         ],
       },
       {

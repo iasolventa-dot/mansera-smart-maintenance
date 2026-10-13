@@ -262,14 +262,14 @@ describe("connections + Vault (credenciales)", () => {
     const call = (app: string, config: unknown, secrets: string) =>
       asUser(ids.ti1, () => db.query("select public.connection_save($1, $2, $3::jsonb, $4)", [ids.org1, app, JSON.stringify(config), secrets]));
     const ok = JSON.stringify({ username: "u", ["pass" + "word"]: "p" });
-    await expect(call("a3erp", { baseUrl: "https://srv:8443" }, ok)).resolves.toBeDefined();
-    for (const baseUrl of ["https://srv:8443/", "https://srv/api", "https://u:p@srv", "https://srv?x=1", "file:///etc"]) {
-      await expect(call("a3erp", { baseUrl }, ok), baseUrl).rejects.toThrow(/no válidos/);
+    // ADR-0012: A3ERP ya no se guarda en la nube, ni siquiera con datos válidos.
+    await expect(call("a3erp", { baseUrl: "https://srv:8443" }, ok)).rejects.toThrow(/no configurable/);
+    for (const region of ["eu1.evil.com", "-eu1", "EU1"]) {
+      await expect(call("sesame", { region }, JSON.stringify({ token: "t" })), region).rejects.toThrow(/no válidos/);
     }
-    await expect(call("a3erp", { baseUrl: "https://srv:8443", extra: "x" }, ok)).rejects.toThrow(/no válidos/);
+    await expect(call("sesame", { region: "eu1", extra: "x" }, JSON.stringify({ token: "t" }))).rejects.toThrow(/no válidos/);
     await expect(call("trello", { apiKey: "a".repeat(32) }, JSON.stringify({ token: "t", otro: "x" }))).rejects.toThrow(/no válidos/);
     await expect(call("trello", { apiKey: "a".repeat(32) }, "{no es json")).rejects.toThrow(/secretos no válidos/);
-    await asUser(ids.ti1, () => db.query("select public.connection_delete($1, 'a3erp')", [ids.org1]));
   });
   it("no se puede anotar una comprobación de una conexión que no existe", async () => {
     await expect(asUser(ids.ti1, () => db.query("select public.connection_record_test($1, 'sesame', 'verificada', 'x')", [ids.org1]))).rejects.toThrow(/no existe/);

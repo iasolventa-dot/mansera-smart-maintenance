@@ -10,7 +10,7 @@
 - `packages/connectors`: sondeo de credenciales de solo lectura (Trello, Sésame) y protocolo del gateway (trabajos firmados, lista blanca).
 - `apps/gateway`: ejecutor puro de trabajos (solo `a3erp.health` y `a3erp.login_check`). Sin transporte ni servicio de Windows.
 - 7 paneles por rol y 17 secciones (detalle en `docs/02`): alertas, órdenes (+«Nueva OT» → propuesta), mantenimiento, activos, clientes, comercial, facturación, compras, personal, PRL/CAE, propuestas, informes, copiloto, **conexiones**, usuarios y auditoría, manual.
-- **Conexiones → Credenciales de acceso** (ADR-0010): Trello, Sésame y A3ERP según documentación oficial; PGMWin «Pendiente de documentar». Secretos en Supabase Vault, solo TI, auditoría sin valores, validación en servidor Y en SQL. En demostración local el formulario funciona pero no guarda nada.
+- **Conexiones → Credenciales de acceso** (ADR-0010): Trello y Sésame se guardan aquí; A3ERP «Se configura en el gateway» (ADR-0012); PGMWin «Pendiente de documentar». Secretos en Supabase Vault, solo TI, auditoría sin valores, validación en servidor Y en SQL. En demostración local el formulario funciona pero no guarda nada.
 - Ayuda (ADR-0009): manual `/manual`, asistente con IA (modo guía sin `ANTHROPIC_API_KEY`) y tooltips centralizados.
 
 ## Infraestructura
@@ -30,7 +30,7 @@
 3. Con respuestas: spikes (`scripts/spikes/`) → M1; luego M2 (`LiveDataProvider`, transporte del gateway).
 
 ## Decisiones abiertas
-- Dueño de las credenciales de A3ERP: Vault en la nube (hoy) o solo en el gateway local (recomendado; ADR-0011 §Abierto).
+- (Resuelto, ADR-0012) Credenciales de A3ERP/PGMWin: solo en el gateway; en la nube solo Trello y Sésame. 7 migraciones aplicadas.
 - A3ERP por `http` en la LAN enviaría usuario/contraseña sin cifrar (R-18): exigir https si el servicio lo admite (Q3).
 
 ## Bloqueos / pendientes de terceros

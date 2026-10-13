@@ -36,6 +36,7 @@ const input = "min-h-12 w-full rounded-[10px] border border-border bg-bg px-4 te
 
 export function ConnectionCard({ spec, stored, canEdit, readOnlyReason, save, remove }: Props) {
   const pending = spec.status === "pendiente_documentar";
+  const inGateway = !pending && spec.credentialsIn === "gateway";
   const [values, setValues] = useState<Record<string, string>>({});
   const [result, setResult] = useState<ConnectionResult | null>(null);
   const [busy, start] = useTransition();
@@ -66,6 +67,8 @@ export function ConnectionCard({ spec, stored, canEdit, readOnlyReason, save, re
         </div>
         {pending ? (
           <Badge tone="warn">Pendiente de documentar</Badge>
+        ) : inGateway ? (
+          <Badge tone="info">Se configura en el gateway</Badge>
         ) : st ? (
           <span className={cn("inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[14px] font-bold", st.cls)}><st.Icon className="size-4" aria-hidden="true" />{st.label}</span>
         ) : (
@@ -89,14 +92,24 @@ export function ConnectionCard({ spec, stored, canEdit, readOnlyReason, save, re
             {spec.limits.length ? <ul className="mt-2 list-disc pl-5 text-muted">{spec.limits.map((l) => <li key={l}>{l}</li>)}</ul> : null}
           </details>
 
-          {stored ? (
+          {inGateway ? (
+            <div className="mt-4 rounded-xl border border-border bg-bg p-3 text-[15px]">
+              <p className="font-bold">Estas credenciales no se escriben aquí.</p>
+              <p className="mt-1">Por seguridad se introducen al instalar el gateway en la red de MANSERA y quedan cifradas en ese equipo: nunca pasan por Internet ni se guardan en la nube. Datos que se pedirán:</p>
+              <ul className="mt-2 list-disc pl-5">
+                {spec.fields.map((f) => <li key={f.key}><strong>{f.label}</strong>{f.secret ? " (secreto)" : ""}: {f.help}</li>)}
+              </ul>
+            </div>
+          ) : null}
+
+          {!inGateway && stored ? (
             <p className="mt-3 text-[14px] text-muted">
               Guardada el {new Date(stored.updatedAt).toLocaleString("es-ES")}. {stored.lastCheckMessage ?? ""}
               {Object.entries(stored.config).length ? <> · Datos visibles: {Object.entries(stored.config).map(([k, v]) => `${spec.fields.find((f) => f.key === k)?.label ?? k}: ${v}`).join(" · ")}</> : null}
             </p>
           ) : null}
 
-          {canEdit ? (
+          {inGateway ? null : canEdit ? (
             <form onSubmit={submit} className="mt-4 grid gap-3" autoComplete="off">
               {spec.fields.map((f) => (
                 <label key={f.key} className="grid gap-1">

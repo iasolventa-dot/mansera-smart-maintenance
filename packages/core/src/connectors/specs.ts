@@ -29,6 +29,12 @@ export type ConnectorSpec = {
   /** `documentado` = hay documentación oficial de la autenticación; `pendiente_documentar` = no se ha encontrado. */
   status: "documentado" | "pendiente_documentar";
   transport: "cloud" | "gateway";
+  /**
+   * Dónde se introducen y guardan las credenciales (ADR-0012):
+   * `plataforma` = en Conexiones (cifradas en Supabase Vault); `gateway` = SOLO en el gateway de la red de MANSERA,
+   * nunca salen de esa red ni pasan por la nube. Los campos describen lo que el gateway pedirá al instalarlo.
+   */
+  credentialsIn: "plataforma" | "gateway";
   /** Cómo sabemos que se llega al sistema (la API de A3ERP es un servicio dentro de la red de MANSERA). */
   transportNote: string;
   authSummary: string;
@@ -51,6 +57,7 @@ export const CONNECTOR_SPECS: Record<ConnectorApp, ConnectorSpec> = {
     name: "Trello",
     status: "documentado",
     transport: "cloud",
+    credentialsIn: "plataforma",
     transportNote: "API en la nube: se llama directamente desde el servidor de la aplicación.",
     authSummary: "Clave de API (key) + token de usuario (token), enviados en cada petición. OAuth 1.0 es una alternativa.",
     howTo: [
@@ -74,6 +81,7 @@ export const CONNECTOR_SPECS: Record<ConnectorApp, ConnectorSpec> = {
     name: "Sésame HR",
     status: "documentado",
     transport: "cloud",
+    credentialsIn: "plataforma",
     transportNote: "API en la nube: se llama directamente desde el servidor de la aplicación.",
     authSummary: "Token Bearer en la cabecera Authorization. La URL base depende de la región de la cuenta.",
     howTo: [
@@ -101,6 +109,7 @@ export const CONNECTOR_SPECS: Record<ConnectorApp, ConnectorSpec> = {
     name: "A3ERP",
     status: "documentado",
     transport: "gateway",
+    credentialsIn: "gateway",
     transportNote: "La API es un servicio de Windows instalado dentro de la red de MANSERA (escucha en el puerto de su Config.ini): no es accesible desde Internet, así que se alcanza a través del gateway.",
     authSummary: "POST /api/login con la cabecera Authorization: Basic base64(usuario:contraseña) → devuelve un token JWT, que se envía como Authorization: Bearer en el resto de peticiones.",
     howTo: [
@@ -108,11 +117,12 @@ export const CONNECTOR_SPECS: Record<ConnectorApp, ConnectorSpec> = {
       "Verifica que el servicio de la API está registrado en Windows y responde: GET /api debe devolver 401 (eso indica que está bien instalado).",
       "Pide un usuario de A3ERP dedicado a la integración, con los mínimos permisos (lectura primero).",
       "Anota la dirección y el puerto del servicio (están en su fichero Config.ini).",
+      "Estos datos NO se escriben en la plataforma: se introducen al instalar el gateway en la red de MANSERA y quedan cifrados en ese equipo.",
     ],
     fields: [
       { key: "baseUrl", label: "Dirección del servicio de la API", secret: false, required: true, placeholder: "https://servidor-a3:puerto", help: "Servidor y puerto del servicio (Config.ini). No incluyas usuario ni contraseña.", rule: { min: 8, max: 200, url: true } },
-      { key: "username", label: "Usuario de A3ERP", secret: true, required: true, help: "Usuario de integración. Se guarda cifrado.", rule: { min: 1, max: 100 } },
-      { key: "password", label: "Contraseña", secret: true, required: true, help: "Se guarda cifrada y no se vuelve a mostrar.", rule: { min: 1, max: 200 } },
+      { key: "username", label: "Usuario de A3ERP", secret: true, required: true, help: "Usuario de integración. Se guarda cifrado en el gateway.", rule: { min: 1, max: 100 } },
+      { key: "password", label: "Contraseña", secret: true, required: true, help: "Se guarda cifrada en el gateway y no sale de la red de MANSERA.", rule: { min: 1, max: 200 } },
     ],
     docs: [
       { label: "A3ERP API · Introducción", url: "https://a3erpapi.appcloud.es/introduccion.md", checkedAt: D },
@@ -130,6 +140,7 @@ export const CONNECTOR_SPECS: Record<ConnectorApp, ConnectorSpec> = {
     name: "PGMWin",
     status: "pendiente_documentar",
     transport: "gateway",
+    credentialsIn: "gateway",
     transportNote: "Previsiblemente en la red local de MANSERA (por confirmar, Q1), por lo que se alcanzaría a través del gateway.",
     authSummary: "Pendiente de documentar: no se ha encontrado ninguna documentación pública de API, webservice ni integración de PGMWin (búsquedas del 2026-10-13).",
     howTo: [
@@ -172,8 +183,22 @@ export type CredentialResult =
   | { ok: true; config: Record<string, string>; secrets: Record<string, string> }
   | { ok: false; errors: string[] };
 
-/** Valida lo que llega del formulario y lo separa en configuración visible y secretos cifrados. */
+/** Valida lo que llega del formulario de la plataforma y lo separa en configuración visible y secretos cifrados. */
 export function validateCredentials(app: ConnectorApp, input: CredentialInput): CredentialResult {
+  const spec = CONNECTOR_SPECS[app];
+  if (spec.credentialsIn === "gateway" && spec.status === "documentado") {
+    return { ok: false, errors: [`Las credenciales de ${spec.name} se configuran solo en el gateway de la red de MANSERA, nunca en la plataforma.`] };
+  }
+  return validateFields(app, input);
+}
+
+/** Validación para el gateway (mismas reglas), usada al instalarlo con la configuración local. */
+export function validateGatewayCredentials(app: ConnectorApp, input: CredentialInput): CredentialResult {
+  if (CONNECTOR_SPECS[app].credentialsIn !== "gateway") return { ok: false, errors: [`${CONNECTOR_SPECS[app].name} no se configura en el gateway.`] };
+  return validateFields(app, input);
+}
+
+function validateFields(app: ConnectorApp, input: CredentialInput): CredentialResult {
   const spec = CONNECTOR_SPECS[app];
   if (spec.status === "pendiente_documentar" || spec.fields.length === 0) {
     return { ok: false, errors: [`${spec.name} está pendiente de documentar: todavía no se pueden guardar credenciales.`] };
@@ -195,7 +220,10 @@ export function validateCredentials(app: ConnectorApp, input: CredentialInput): 
   return errors.length ? { ok: false, errors } : { ok: true, config, secrets };
 }
 
-/** Un conector solo admite guardar si está documentado y tiene campos. */
-export const isConfigurable = (app: ConnectorApp): boolean => CONNECTOR_SPECS[app].status === "documentado" && CONNECTOR_SPECS[app].fields.length > 0;
+/** Se puede guardar en la plataforma si está documentado, tiene campos y sus credenciales no son del gateway. */
+export const isConfigurable = (app: ConnectorApp): boolean => {
+  const s = CONNECTOR_SPECS[app];
+  return s.status === "documentado" && s.fields.length > 0 && s.credentialsIn === "plataforma";
+};
 
 export const ConnectorAppSchema = z.enum(CONNECTOR_APPS);

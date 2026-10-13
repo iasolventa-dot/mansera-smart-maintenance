@@ -18,3 +18,6 @@ El usuario pidió una sección para introducir las credenciales de cada aplicaci
 - **No verificado** contra las APIs reales hasta M1 (credenciales de prueba). Las fichas indican qué es hecho documentado y qué es incógnita.
 - Al reemplazar hay que reescribir todos los campos (no se pueden recuperar).
 - Pendiente: rotación/caducidad de tokens, varias organizaciones (R-14), mover la comprobación de A3ERP al gateway.
+
+## Actualización (ADR-0012)
+A3ERP (y PGMWin) quedan fuera de este almacén: sus credenciales viven solo en el gateway. Aquí solo Trello y Sésame.

@@ -16,6 +16,6 @@ Túnel (Cloudflare/Tailscale) o VPN sitio-a-sitio: más simples de operar pero e
 La clave de firma por organización debe generarse, repartirse y rotarse (pendiente; irá en Vault y en el almacén local del gateway).
 
 ## Abierto (auditoría n.º 2, 2026-10-13)
-- **Dueño de las credenciales de A3ERP:** hoy se pueden guardar en el Vault de la nube (ADR-0010) y el ejecutor las lee de su configuración local. Recomendación: que vivan SOLO en el gateway (nunca salen de la red de MANSERA) y que la tarjeta de A3ERP en Conexiones pase a registrar únicamente la dirección y el estado. Decisión del usuario.
+- **[RESUELTO por ADR-0012: solo en el gateway]** Dueño de las credenciales de A3ERP: hoy se pueden guardar en el Vault de la nube (ADR-0010) y el ejecutor las lee de su configuración local. Recomendación: que vivan SOLO en el gateway (nunca salen de la red de MANSERA) y que la tarjeta de A3ERP en Conexiones pase a registrar únicamente la dirección y el estado. Decisión del usuario.
 - Los trabajos van firmados, no cifrados: nunca deben llevar credenciales en `params` (la lista blanca actual no lo permite).
 - Corregido: firma inválida ya no lanza excepción; separación de dominio trabajo/resultado; `undefined` no altera la firma.

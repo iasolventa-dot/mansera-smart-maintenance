@@ -74,7 +74,7 @@ export async function probeConnection(app: ConnectorApp, config: Values, secrets
   switch (app) {
     case "trello": return probeTrello(config, secrets, fetchImpl);
     case "sesame": return probeSesame(config, secrets, fetchImpl);
-    case "a3erp": return { status: "no_probable", message: "La API de A3ERP está dentro de la red de MANSERA: solo se podrá comprobar desde el gateway (pendiente de M2). Las credenciales quedan guardadas." };
+    case "a3erp": return { status: "no_probable", message: "A3ERP se comprueba desde el gateway de la red de MANSERA, donde viven sus credenciales (ADR-0012)." };
     case "pgmwin": return { status: "no_probable", message: "PGMWin está pendiente de documentar: no hay nada que comprobar todavía." };
   }
 }

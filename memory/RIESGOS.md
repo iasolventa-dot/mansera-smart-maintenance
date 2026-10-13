@@ -21,4 +21,4 @@ Probabilidad/Impacto: B/M/A. Revisar al cierre de cada hito.
 | R-16 | Credenciales de producción de MANSERA guardadas en Vault antes de verificar el formato contra las APIs reales | M | A | Probar primero con credenciales de solo lectura/sandbox (M1); cuenta de servicio con mínimos permisos; rotación; solo TI | Abierto |
 | R-17 | El Vault simulado de los tests no valida el cifrado real; la comprobación (sondeo) está probada solo con respuestas simuladas | B | M | Verificar en Supabase real al subir credenciales de prueba; spike M1 | Abierto |
 | R-18 | La API de A3ERP por http en la LAN enviaría usuario y contraseña en claro (Basic) | M | A | Exigir https si el servicio lo admite (Q3); si no, red segmentada y usuario de solo lectura | Abierto |
-| R-19 | Dos posibles dueños de las credenciales de A3ERP (Vault en la nube o almacén local del gateway) | M | M | Decidir en ADR antes de M2; recomendación: solo en el gateway | Abierto |
+| R-19 | Dos posibles dueños de las credenciales de A3ERP (Vault en la nube o almacén local del gateway) | M | M | ADR-0012: solo en el gateway; la plataforma y la BD las rechazan | Cerrado |

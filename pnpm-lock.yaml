@@ -29,6 +29,9 @@ importers:
       '@msm/connectors':
         specifier: workspace:*
         version: link:../../packages/connectors
+      '@msm/core':
+        specifier: workspace:*
+        version: link:../../packages/core
     devDependencies:
       '@types/node':
         specifier: ^26.6.5

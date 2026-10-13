@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CONNECTOR_APPS, CONNECTOR_SPECS, connectorList, isConfigurable, validateCredentials } from "./specs";
+import { CONNECTOR_APPS, CONNECTOR_SPECS, connectorList, isConfigurable, validateCredentials, validateGatewayCredentials } from "./specs";
 
 // Valores de relleno generados: no son credenciales reales.
 const KEY = "a".repeat(32);
@@ -12,6 +12,13 @@ describe("especificaciones de conectores", () => {
     expect(CONNECTOR_SPECS.pgmwin.status).toBe("pendiente_documentar");
     expect(isConfigurable("pgmwin")).toBe(false);
     expect(isConfigurable("trello")).toBe(true);
+    expect(isConfigurable("a3erp")).toBe(false); // ADR-0012: sus credenciales viven solo en el gateway
+  });
+  it("A3ERP: la plataforma se niega a recibir sus credenciales", () => {
+    const r = validateCredentials("a3erp", { baseUrl: "https://servidor:8443", username: FILL, ["pass" + "word"]: FILL });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errors[0]).toContain("solo en el gateway");
+    expect(validateGatewayCredentials("trello", { apiKey: KEY, token: TOKEN }).ok).toBe(false);
   });
   it("lo documentado cita su fuente https", () => {
     for (const s of connectorList().filter((x) => x.status === "documentado")) {
@@ -27,7 +34,7 @@ describe("validación de credenciales", () => {
     expect(r).toMatchObject({ ok: true, config: { apiKey: KEY }, secrets: { token: TOKEN } });
   });
   it("los campos secretos nunca acaban en la configuración visible", () => {
-    const r = validateCredentials("a3erp", { baseUrl: "https://servidor:8443", username: FILL, ["pass" + "word"]: FILL });
+    const r = validateGatewayCredentials("a3erp", { baseUrl: "https://servidor:8443", username: FILL, ["pass" + "word"]: FILL });
     expect(r.ok).toBe(true);
     if (r.ok) {
       expect(Object.keys(r.config)).toEqual(["baseUrl"]);
@@ -47,13 +54,13 @@ describe("validación de credenciales", () => {
   });
   it("A3ERP: la URL solo admite servidor y puerto, sin credenciales ni ruta", () => {
     const base = { username: FILL, ["pass" + "word"]: FILL };
-    expect(validateCredentials("a3erp", { ...base, baseUrl: "https://servidor:8443" }).ok).toBe(true);
+    expect(validateGatewayCredentials("a3erp", { ...base, baseUrl: "https://servidor:8443" }).ok).toBe(true);
     for (const baseUrl of ["https://u:p@servidor", "https://servidor/api", "https://servidor?x=1", "ftp://servidor", "servidor"]) {
-      expect(validateCredentials("a3erp", { ...base, baseUrl }).ok, baseUrl).toBe(false);
+      expect(validateGatewayCredentials("a3erp", { ...base, baseUrl }).ok, baseUrl).toBe(false);
     }
   });
   it("A3ERP: guarda la dirección normalizada, sin barra final", () => {
-    const r = validateCredentials("a3erp", { baseUrl: "https://Servidor:8443/", username: FILL, ["pass" + "word"]: FILL });
+    const r = validateGatewayCredentials("a3erp", { baseUrl: "https://Servidor:8443/", username: FILL, ["pass" + "word"]: FILL });
     expect(r.ok && r.config.baseUrl).toBe("https://servidor:8443");
   });
   it("PGMWin: se niega a guardar nada", () => {
