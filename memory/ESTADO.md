@@ -1,39 +1,36 @@
 # ESTADO ACTUAL DEL PROYECTO  (se imprime al iniciar/compactar sesión — mantener < 80 líneas)
 
-**Última actualización:** 2026-10-13 · por: construcción de la interfaz (decisión del usuario: UI primero por estrategia de venta, ADR-0008)
-**Fase/hito en curso:** M0 · Cimientos — **parcial**: UI + núcleo hechos; faltan Supabase/Auth real, RLS, CI, Vercel
+**Última actualización:** 2026-10-13 · demo completa de la interfaz (ADR-0008) desplegada en Vercel
+**Fase/hito en curso:** M0 · Cimientos — UI, núcleo, Auth y Supabase hechos; faltan axe/Lighthouse, `/revision` y G0
 **Puerta superada:** ninguna (G0 pendiente)
 
-## Qué existe (verificado: `pnpm build` y `pnpm -r typecheck` OK; rutas probadas por rol con curl y en navegador)
-- Monorepo pnpm + Turborepo: `apps/web` (Next 16, React 19, Tailwind 4, Motion), `packages/core`, `packages/ui`.
-- `packages/core`: esquemas Zod (modelo canónico mínimo), `DataProvider` (contrato de datos), permisos por rol (`access.ts`), `demo/` (datos FICTICIOS que cumplen el contrato).
-- `packages/ui`: tokens en `apps/web/src/app/globals.css` (claro/oscuro), Button, Card, StatCard (contador animado), StatusPill, SourceChip, charts SVG, Reveal/Stagger, tokens de movimiento.
-- Pantallas: login (perfil demo), panel por rol, órdenes (filtros), activos + ficha 360 con timeline, mi día (campo), propuestas (diff + aprobar/rechazar), copiloto (respuestas con fuentes y "ver cálculo"), informes, conexiones (TI). Barra lateral, barra inferior móvil, hoja "Más", paleta Ctrl+K, tema claro/oscuro, PWA manifest.
-- Cómo se enchufa lo real: `apps/web/src/lib/data.ts` (elegir proveedor) y `lib/session.ts` (sustituir por Supabase Auth). Con `MSM_DATA_MODE=live` el login demo se desactiva.
+## Qué existe (verificado: lint, typecheck, 40 tests, `pnpm build` de 22 rutas; recorrido por rol en navegador)
+- Monorepo pnpm + Turborepo: `apps/web` (Next 16, React 19, Tailwind 4, Motion), `packages/core`, `packages/ui`, `supabase/`.
+- `packages/core`: esquemas Zod (`schemas.ts` + `modules.ts`), contrato `DataProvider`, permisos por rol (`access.ts`: 7 roles, 17 secciones agrupadas), `demo/` con datos FICTICIOS (fechas relativas a hoy). Sin estado: las escrituras devuelven resultado.
+- `packages/ui`: Button, Card, StatCard (contador), StatusPill, SourceChip, LineChart/BarList/Donut (SVG, al ancho real), Reveal/Stagger.
+- 7 paneles por rol (Dirección, TI, Oficina técnica, Administración, Compras, RR. HH., Campo) con KPIs trazables, gráficos y alertas.
+- Secciones: Alertas (evidencia), Órdenes (+acción rápida "Nueva OT" → propuesta), Mantenimiento, Activos (ficha 360), Clientes (vista 360), Comercial (kanban Trello), Facturación, Compras y almacén, Personal, PRL y CAE (preview pack Mi PRL), Propuestas (diff + aprobar), Informes, Copiloto (7 temas, siempre con fuente), Conexiones, Usuarios y auditoría (matriz de permisos).
+- Transversal: notificaciones, búsqueda global Ctrl+K (server action sobre `DataProvider.search`), tema claro/oscuro, PWA con iconos PNG/maskable (`apps/web/scripts/generate-icons.mjs`).
+- Estado de la demo (propuestas creadas/decididas) en cookie `msm_demo_state` (`lib/demo-state.ts`); desaparece con datos reales.
+
+## Infraestructura
+- Supabase **Mansera** (ref synwtbopxwvggicrfjjj, eu-central-1): 3 migraciones aplicadas (núcleo, audit_log inmutable, roles compras/rrhh); org `mansera-demo`. Advisor: solo `public.rls_auto_enable()` (la activó el usuario; se mantiene). RLS probada con PGlite (20 tests).
+- Vercel: proyecto `mansera` (equipo solventa-ia) → https://mansera-indol.vercel.app; lo gestiona el usuario. Valores públicos de Supabase por defecto en `next.config.mjs`. La conexión MCP de Vercel no tiene acceso a ese equipo.
+- Usuarios: `demo@solventa.com` (rol Dirección, "Demo SOLVENTA", para la demo) y `iasolventa@gmail.com` (TI, administración). Rol real desde `memberships`; TI/Dirección pueden previsualizar otros paneles mientras los datos sean de ejemplo.
+- CI GitHub Actions (lint, typecheck, test, build, gitleaks). Git: el usuario autorizó commit/push.
 
 ## Siguiente paso concreto
-1. Usuario: revisar la UI (`pnpm dev` → http://localhost:3000) y dar feedback visual; commit con los comandos del chat.
-2. Hecho tras la UI: ESLint, 11 tests (vitest en `packages/core`), CI en `.github/workflows/ci.yml` (lint, typecheck, test, build, gitleaks; aún sin ejecutar en GitHub), TypeScript fijado a 6.x (typescript-eslint no soporta 7). Permisos: el usuario autorizó git add/commit/push (se retiró el deny de `git push`).
-   Supabase: migraciones `orgs/profiles/memberships/audit_log` con RLS y 19 tests (PGlite, sin Docker). Docker NO está instalado: `supabase start` aún no se ha podido probar; las migraciones son las mismas para local y web (`supabase link` + `db push`).
-   Pendiente de M0: crear proyecto Supabase (local con Docker o en la nube) y sustituir `session.ts` por Auth; iconos PNG maskable; tests de componentes/axe/Lighthouse; `/revision`.
-3. M1 (spikes) ajustará los esquemas canónicos a lo que las APIs ofrezcan realmente.
+1. Usuario: revisar la demo en producción con `demo@solventa.com` y dar feedback.
+2. M0 pendiente: axe + Lighthouse sobre la URL real, `/revision` independiente, tests de componentes, aceptar ADR-0002/0004 (siguen "propuestos").
+3. Luego M1 (spikes de API) y M2 (conectores → `LiveDataProvider` + tablas `sync_proposals`, `entities`, etc.). Los esquemas de `modules.ts` son hipótesis hasta los spikes.
 
 ## Bloqueos / pendientes de terceros
 - Q1–Q7 de `docs/12-preguntas-abiertas.md` (Cristina/proveedores) — no bloquean la UI, sí M1.
 
-## Infraestructura (2026-10-13)
-- Supabase **Mansera** (ref synwtbopxwvggicrfjjj, eu-central-1): migraciones orgs/profiles/memberships/audit_log aplicadas; org `mansera-demo` creada. Advisors: solo `public.rls_auto_enable()` (la activó el usuario; se mantiene).
-- Vercel: proyecto `mansera` en equipo solventa-ia (https://mansera-indol.vercel.app); lo gestiona el usuario (la conexión MCP de Vercel no tiene acceso a ese equipo).
-- Auth real: `lib/session.ts` usa Supabase Auth si hay `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; rol desde `memberships`. El login demo solo existe en local sin Supabase y fuera de producción. TI/Dirección pueden previsualizar otros paneles mientras los datos sean de ejemplo.
-- Para entrar: crear usuario en Supabase Auth y añadir fila en `memberships` (org mansera-demo + rol).
-
 ## Avisos
-- El login demo ya no se expone en producción. Los datos demo son ficticios (nombres de cliente inventados).
-- ADR-0002 (stack) y ADR-0004 (multi-tenant) siguen "propuestos" aunque ya se construye sobre ellos: pedir aceptación al usuario.
-- `AGENTS.md` lo genera turbo; mantenerlo versionado.
-
-## Decisiones vigentes (detalle en `DECISIONES.md`)
-ADR-0001 API-first · 0005 humano en el circuito · 0006 IA trazable · 0008 UI primero sobre `DataProvider` (aceptados) · 0002, 0003, 0004, 0007 (propuestos).
+- Datos demo ficticios (nombres de cliente inventados). El login demo local solo existe sin Supabase y fuera de producción.
+- No hay entorno de pruebas verificado de PGMWin/A3: las propuestas dicen "entorno de pruebas" por diseño (ADR-0005), no por hecho.
+- `AGENTS.md` lo genera turbo; mantenerlo versionado. Docker no instalado (no se ha probado `supabase start`).
 
 ## Riesgos activos top-3
 R-02 PGMWin sin API utilizable · R-01 presupuesto remanente < propuesta · R-04 informe de ciberseguridad pendiente.
