@@ -12,8 +12,18 @@ for (const role of ROLES) {
         await page.setViewportSize({ width: w, height: h });
         await page.goto(route);
         await settle(page);
-        const { scrollWidth, innerWidth } = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth }));
-        expect(scrollWidth, `la página mide ${scrollWidth}px en una pantalla de ${innerWidth}px`).toBeLessThanOrEqual(innerWidth);
+        const { scrollWidth, innerWidth, culprits } = await page.evaluate(() => {
+          const vw = document.documentElement.clientWidth;
+          return {
+            scrollWidth: document.documentElement.scrollWidth,
+            innerWidth: window.innerWidth,
+            // Qué elementos se salen (para poder corregirlo sin adivinar, sobre todo en la CI).
+            culprits: [...document.querySelectorAll("body *")]
+              .filter((e) => { const b = e.getBoundingClientRect(); return b.right > vw + 0.5 && b.width > 0 && getComputedStyle(e).position !== "fixed"; })
+              .slice(0, 4).map((e) => `${e.tagName.toLowerCase()}.${String(e.className).slice(0, 60)} → ${Math.round(e.getBoundingClientRect().right)}px`),
+          };
+        });
+        expect(scrollWidth, `la página mide ${scrollWidth}px en una pantalla de ${innerWidth}px. Se salen: ${culprits.join(" | ")}`).toBeLessThanOrEqual(innerWidth);
       });
     }
   }

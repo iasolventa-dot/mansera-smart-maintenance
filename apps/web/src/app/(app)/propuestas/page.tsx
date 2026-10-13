@@ -73,8 +73,8 @@ function ProposalCard({ p }: { p: Proposal }) {
       {p.status === "pendiente" ? (
         <form action={decideProposal} className="mt-4 grid grid-cols-2 gap-3">
           <input type="hidden" name="id" value={p.id} />
-          <Button type="submit" name="decision" value="rechazada" variant="secondary" size="lg" hint={HINT.reject}><X className="size-5" aria-hidden="true" />Rechazar</Button>
-          <Button type="submit" name="decision" value="aprobada" size="lg" hint={HINT.approve}><Check className="size-5" aria-hidden="true" />Aprobar</Button>
+          <Button type="submit" name="decision" value="rechazada" variant="secondary" size="lg" hint={HINT.reject} className="min-w-0 !px-3"><X className="size-5" aria-hidden="true" />Rechazar</Button>
+          <Button type="submit" name="decision" value="aprobada" size="lg" hint={HINT.approve} className="min-w-0 !px-3"><Check className="size-5" aria-hidden="true" />Aprobar</Button>
         </form>
       ) : null}
     </Card>

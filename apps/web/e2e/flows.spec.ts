@@ -143,6 +143,7 @@ test.describe("ayuda contextual (tooltips)", () => {
     await page.getByRole("link", { name: "Saltar al contenido" }).focus();
     for (let i = 0; i < 30; i++) {
       await page.keyboard.press("Tab");
+      await page.waitForTimeout(300); // el texto de ayuda aparece tras una breve espera al enfocar
       if (await page.getByRole("tooltip").isVisible()) break;
     }
     await expect(page.getByRole("tooltip")).toBeVisible();

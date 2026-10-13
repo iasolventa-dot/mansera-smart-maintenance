@@ -26,10 +26,12 @@ export async function settle(page: Page) {
   // Un tiempo fijo falla en máquinas lentas (CI): axe vería elementos a medio aparecer como «poco contrastados».
   let previous = "";
   for (let i = 0; i < 40; i++) {
-    const now = await page.evaluate(() =>
-      [...document.querySelectorAll("main *")].map((e) => { const s = getComputedStyle(e); return s.opacity + s.transform; }).join("|"),
-    );
-    if (now === previous) return;
+    const { now, hidden } = await page.evaluate(() => ({
+      now: [...document.querySelectorAll("main *")].map((e) => { const s = getComputedStyle(e); return s.opacity + s.transform; }).join("|"),
+      // Elementos que Motion mantiene con opacidad inline < 1: su animación de entrada no ha terminado (o ni ha empezado).
+      hidden: [...document.querySelectorAll<HTMLElement>("main [style]")].some((e) => e.style.opacity !== "" && Number.parseFloat(e.style.opacity) < 0.99),
+    }));
+    if (now === previous && !hidden) return;
     previous = now;
     await page.waitForTimeout(250);
   }
