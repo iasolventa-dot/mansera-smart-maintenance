@@ -7,7 +7,7 @@ Principio: **solo lo que no existe en las apps.** Todo con `org_id` (multi-tenan
 |---|---|
 | `orgs` | Organización (MANSERA = la primera) |
 | `profiles` | Usuario (extiende `auth.users`): nombre, avatar, preferencias de UI |
-| `memberships` | Usuario↔org + `role` (`admin`,`direccion`,`tecnico`,`compras`,`admin_fin`,`rrhh`,`campo`) |
+| `memberships` | Usuario↔org + `role` (`direccion`,`ti`,`oficina_tecnica`,`administracion`,`campo`; alineados con la UI. `compras` y `rrhh` se añaden con `alter type app_role add value` cuando existan sus paneles) |
 | `departments`, `app_permissions` | Qué panel ve cada rol y qué operaciones por conector (lectura/propuesta/aprobar) |
 | `connections` | Una por app y org: tipo, transporte (`cloud`/`gateway`), estado, versión de la app probada, `secret_ref` (Vault) |
 | `connector_runs` | Latencia/errores por llamada agregada (observabilidad, retención corta) |
@@ -47,3 +47,6 @@ Principio: **solo lo que no existe en las apps.** Todo con `org_id` (multi-tenan
 
 ## Reglas de migración
 Una migración = un cambio; reversible o documentada; nombre `YYYYMMDDHHMM_descripcion.sql`; sin datos reales; ejecutar `supabase db lint` y advisors de seguridad antes de dar por buena.
+
+## Estado de implementación
+Migraciones aplicadas en `supabase/migrations`: `orgs`, `profiles`, `memberships`, `audit_log` (RLS + tests en `supabase/tests`, motor PGlite; `pnpm test`). Funciones auxiliares en el esquema `private` (no expuesto por la API). El resto de tablas se añaden por hito.
