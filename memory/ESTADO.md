@@ -33,6 +33,9 @@
 2. M0 pendiente: axe + Lighthouse sobre la URL real, `/revision` independiente, tests de componentes, confirmar ADR-0002/0004 (aceptados de hecho).
 3. Luego M1 (spikes de API) y M2 (conectores → `LiveDataProvider` + tablas `sync_proposals`, `entities`, etc.). Los esquemas de `modules.ts` son hipótesis hasta los spikes.
 
+## Preparado para M1/M2
+- `scripts/spikes/` (Trello, Sésame, A3ERP; solo lectura, credenciales por variables de entorno). `apps/gateway` + `gateway-protocol.ts`: firma, caducidad, nonce y lista blanca probados (ADR-0011). Falta transporte real e instalación.
+
 ## Pendiente tras «Conexiones»
 - Probar el guardado real con una cuenta TI y credenciales de PRUEBA (no se ha hecho: no se introducen credenciales por el navegador). Documentar PGMWin cuando EGEOtec responda (Q2). Probar A3ERP desde el gateway (M2).
 
