@@ -11,5 +11,6 @@ Formato de cada ADR en `memory/adr/NNNN-titulo.md`: Contexto · Decisión · Alt
 | 0005 | Escrituras como propuesta con aprobación humana | Aceptado |
 | 0006 | IA solo en servidor, con citas obligatorias y permisos heredados | Aceptado |
 | 0007 | n8n solo para orquestación auxiliar no crítica | Propuesto |
+| 0008 | Interfaz primero sobre contrato de datos `DataProvider` (reutilizable, no maqueta) | Aceptado |
 
 Para crear uno nuevo: copiar `adr/0000-plantilla.md`.
