@@ -13,7 +13,8 @@
 
 ## Siguiente paso concreto
 1. Usuario: revisar la UI (`pnpm dev` → http://localhost:3000) y dar feedback visual; commit con los comandos del chat.
-2. Pendiente de M0: Supabase local (orgs/profiles/memberships/audit_log + RLS + tests) y sustituir `session.ts` por Auth; CI (lint, typecheck, test, gitleaks); iconos PNG maskable; tests de componentes/axe/Lighthouse; ESLint; `/revision`.
+2. Hecho tras la UI: ESLint, 11 tests (vitest en `packages/core`), CI en `.github/workflows/ci.yml` (lint, typecheck, test, build, gitleaks; aún sin ejecutar en GitHub), TypeScript fijado a 6.x (typescript-eslint no soporta 7). Permisos: el usuario autorizó git add/commit/push (se retiró el deny de `git push`).
+   Pendiente de M0: Supabase local (orgs/profiles/memberships/audit_log + RLS + tests) y sustituir `session.ts` por Auth; iconos PNG maskable; tests de componentes/axe/Lighthouse; `/revision`.
 3. M1 (spikes) ajustará los esquemas canónicos a lo que las APIs ofrezcan realmente.
 
 ## Bloqueos / pendientes de terceros

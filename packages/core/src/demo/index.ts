@@ -179,5 +179,6 @@ export class DemoDataProvider implements DataProvider {
   }
   async getConnections() { return CONNECTIONS.map((c) => Connection.parse(c)); }
   async listReports() { return REPORTS.map((r) => Report.parse(r)); }
-  async askCopilot(question: string) { await delay(700); return answer(question); }
+  // El rol se usará para heredar permisos cuando el copiloto sea real (ADR-0006).
+  async askCopilot(question: string, _role: Role) { await delay(700); return answer(question); }
 }

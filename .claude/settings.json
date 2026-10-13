@@ -15,14 +15,26 @@
       "Bash(supabase *)",
       "Bash(git status)",
       "Bash(git diff *)",
-      "Bash(git log *)"
+      "Bash(git log *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git pull *)",
+      "Bash(git branch *)",
+      "Bash(git checkout *)",
+      "Bash(git switch *)",
+      "Bash(git stash *)",
+      "Bash(git fetch *)",
+      "Bash(git remote -v)",
+      "Bash(gh *)",
+      "Bash(curl localhost:*)",
+      "Bash(curl http://localhost:*)"
     ],
     "deny": [
       "Read(./.env)",
       "Read(./.env.local)",
       "Read(./.env.production)",
       "Read(./.env.staging)",
-      "Bash(git push *)",
       "Bash(rm -rf *)"
     ]
   }

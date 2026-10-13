@@ -34,10 +34,11 @@ export function AppShell({ nav, user, roles, demo, switchRole, signOut, children
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
+    // Sincroniza con el DOM/preferencia del sistema (no existe en el servidor).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDark(document.documentElement.dataset.theme === "dark" ||
       (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches));
   }, []);
-  useEffect(() => { setMore(false); }, [pathname]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setPalette((p) => !p); }
@@ -142,7 +143,7 @@ export function AppShell({ nav, user, roles, demo, switchRole, signOut, children
             <ul className="grid gap-1">
               {overflow.map((n) => {
                 const Icon = ICONS[n.id] ?? LayoutDashboard;
-                return <li key={n.id}><Link href={n.href} className="flex min-h-14 items-center gap-3 rounded-xl px-3 text-[17px] font-bold hover:bg-primary-soft"><Icon className="size-5 text-primary" aria-hidden="true" />{n.label}</Link></li>;
+                return <li key={n.id}><Link href={n.href} onClick={() => setMore(false)} className="flex min-h-14 items-center gap-3 rounded-xl px-3 text-[17px] font-bold hover:bg-primary-soft"><Icon className="size-5 text-primary" aria-hidden="true" />{n.label}</Link></li>;
               })}
             </ul>
             {demo ? <div className="mt-4 border-t border-border pt-4"><RoleSwitcher roles={roles} switchRole={switchRole} /></div> : null}
