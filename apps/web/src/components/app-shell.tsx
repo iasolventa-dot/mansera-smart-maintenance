@@ -177,7 +177,7 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
               </Link>
             </Tooltip>
             <Tooltip hint={{ ...HINT.theme, title: dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro" }} side="bottom">
-              <button onClick={toggleTheme} aria-label={dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"} className="grid size-11 place-items-center rounded-xl text-muted hover:bg-primary-soft">
+              <button onClick={toggleTheme} aria-label={dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"} className="hidden size-11 place-items-center rounded-xl text-muted hover:bg-primary-soft sm:grid">
                 {dark ? <Sun className="size-5" /> : <Moon className="size-5" />}
               </button>
             </Tooltip>
@@ -230,6 +230,7 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
               </div>
             ))}
             {demo && canPreview ? <div className="mt-3 border-t border-border pt-4"><RoleSwitcher roles={roles} switchRole={switchRole} /></div> : null}
+            <button onClick={toggleTheme} className="mt-1 flex min-h-14 w-full items-center gap-3 rounded-xl px-3 text-[17px] font-bold hover:bg-primary-soft">{dark ? <Sun className="size-5 text-primary" aria-hidden="true" /> : <Moon className="size-5 text-primary" aria-hidden="true" />}{dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}</button>
             <form action={signOut} className="mt-2"><button className="flex min-h-14 w-full items-center gap-3 rounded-xl px-3 text-[17px] font-bold text-bad-text hover:bg-bad-soft"><LogOut className="size-5" aria-hidden="true" />Cerrar sesión</button></form>
           </Sheet>
         ) : null}

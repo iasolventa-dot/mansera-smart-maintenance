@@ -22,7 +22,17 @@ export const ROLES: Role[] = ROLE_ORDER;
 export async function settle(page: Page) {
   await page.waitForLoadState("load");
   await page.locator("main h1, main h2").first().waitFor();
-  await page.waitForTimeout(700);
+  // Espera a que dejen de cambiar la opacidad y la posición de los elementos (animaciones de entrada).
+  // Un tiempo fijo falla en máquinas lentas (CI): axe vería elementos a medio aparecer como «poco contrastados».
+  let previous = "";
+  for (let i = 0; i < 40; i++) {
+    const now = await page.evaluate(() =>
+      [...document.querySelectorAll("main *")].map((e) => { const s = getComputedStyle(e); return s.opacity + s.transform; }).join("|"),
+    );
+    if (now === previous) return;
+    previous = now;
+    await page.waitForTimeout(250);
+  }
 }
 
 /** Violaciones graves de accesibilidad (WCAG 2.1 A/AA). Excluye el indicador del servidor de desarrollo de Next. */
