@@ -16,6 +16,7 @@ type Props = {
   user: { name: string; roleLabel: string };
   roles: { value: string; label: string; current: boolean }[];
   demo: boolean;
+  canPreview: boolean;
   switchRole: (formData: FormData) => Promise<void>;
   signOut: () => Promise<void>;
   children: ReactNode;
@@ -26,7 +27,7 @@ const ICONS: Record<string, LucideIcon> = {
   copiloto: Sparkles, informes: FileText, conexiones: Plug, campo: CalendarCheck,
 };
 
-export function AppShell({ nav, user, roles, demo, switchRole, signOut, children }: Props) {
+export function AppShell({ nav, user, roles, demo, canPreview, switchRole, signOut, children }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const [more, setMore] = useState(false);
@@ -81,7 +82,7 @@ export function AppShell({ nav, user, roles, demo, switchRole, signOut, children
           })}
         </nav>
         <div className="mt-auto grid gap-3">
-          {demo ? <RoleSwitcher roles={roles} switchRole={switchRole} dark /> : null}
+          {demo && canPreview ? <RoleSwitcher roles={roles} switchRole={switchRole} dark /> : null}
           <form action={signOut}>
             <button className="flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-[15px] font-semibold text-white/75 hover:bg-white/8 hover:text-white">
               <LogOut className="size-5" aria-hidden="true" /> Cerrar sesión
@@ -146,7 +147,7 @@ export function AppShell({ nav, user, roles, demo, switchRole, signOut, children
                 return <li key={n.id}><Link href={n.href} onClick={() => setMore(false)} className="flex min-h-14 items-center gap-3 rounded-xl px-3 text-[17px] font-bold hover:bg-primary-soft"><Icon className="size-5 text-primary" aria-hidden="true" />{n.label}</Link></li>;
               })}
             </ul>
-            {demo ? <div className="mt-4 border-t border-border pt-4"><RoleSwitcher roles={roles} switchRole={switchRole} /></div> : null}
+            {demo && canPreview ? <div className="mt-4 border-t border-border pt-4"><RoleSwitcher roles={roles} switchRole={switchRole} /></div> : null}
             <form action={signOut} className="mt-2"><button className="flex min-h-14 w-full items-center gap-3 rounded-xl px-3 text-[17px] font-bold text-bad-text hover:bg-bad-soft"><LogOut className="size-5" aria-hidden="true" />Cerrar sesión</button></form>
           </Sheet>
         ) : null}
@@ -159,7 +160,7 @@ export function AppShell({ nav, user, roles, demo, switchRole, signOut, children
 function RoleSwitcher({ roles, switchRole, dark }: { roles: Props["roles"]; switchRole: Props["switchRole"]; dark?: boolean }) {
   return (
     <form action={switchRole} className="grid gap-1.5 px-1">
-      <label htmlFor={dark ? "role-d" : "role-m"} className={cn("text-xs font-bold uppercase tracking-wider", dark ? "text-cyan" : "text-muted")}>Ver como (demo)</label>
+      <label htmlFor={dark ? "role-d" : "role-m"} className={cn("text-xs font-bold uppercase tracking-wider", dark ? "text-cyan" : "text-muted")}>Vista previa como</label>
       <select id={dark ? "role-d" : "role-m"} name="role" defaultValue={roles.find((r) => r.current)?.value}
         onChange={(e) => e.currentTarget.form?.requestSubmit()}
         className={cn("min-h-12 rounded-xl border px-3 text-[15px] font-semibold", dark ? "border-white/20 bg-white/10 text-white [&>option]:text-black" : "border-border bg-bg text-text")}>

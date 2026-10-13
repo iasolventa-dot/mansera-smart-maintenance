@@ -3,17 +3,19 @@ import { redirect } from "next/navigation";
 import { Check } from "lucide-react";
 import { homeFor, ROLE_ACCESS, Role } from "@msm/core";
 import { Button, Logo, Reveal } from "@msm/ui";
-import { signInDemo } from "../actions";
-import { demoAuthEnabled, getSession } from "@/lib/session";
+import { signInDemo, signInWithPassword, signOut } from "../actions";
+import { demoAuthEnabled, getSessionState, realAuthEnabled } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Acceder" };
 
 const POINTS = ["Un panel para cada departamento", "Datos de todas las aplicaciones, conectados", "Copiloto de IA con respuestas trazables"];
 
-export default async function LoginPage() {
-  const session = await getSession();
-  if (session) redirect(homeFor(session.role));
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const state = await getSessionState();
+  if (state.state === "ok") redirect(homeFor(state.session.role));
   const demo = demoAuthEnabled();
+  const real = realAuthEnabled();
+  const failed = (await searchParams).error === "credenciales";
 
   return (
     <main className="grid min-h-dvh lg:grid-cols-[1.05fr_1fr]">
@@ -51,7 +53,29 @@ export default async function LoginPage() {
             <h2 className="mt-8 text-[30px] font-extrabold tracking-tight">Acceder</h2>
             <p className="mt-1 text-muted">Introduce tus credenciales para continuar.</p>
 
-            {demo ? (
+            {state.state === "no-membership" ? (
+              <div className="mt-7 grid gap-4">
+                <p role="status" className="rounded-xl bg-warn-soft px-4 py-3 text-[15px] font-semibold text-warn-text">
+                  Has iniciado sesión como {state.email}, pero tu cuenta todavía no tiene acceso asignado. Pide a TI que te dé de alta en MANSERA.
+                </p>
+                <form action={signOut}><Button type="submit" variant="secondary" size="lg" className="w-full">Cerrar sesión</Button></form>
+              </div>
+            ) : real ? (
+              <form action={signInWithPassword} className="mt-7 grid gap-4">
+                {failed ? <p role="alert" className="rounded-xl bg-bad-soft px-4 py-3 text-[15px] font-semibold text-bad-text">Correo o contraseña incorrectos.</p> : null}
+                <div className="grid gap-1.5">
+                  <label htmlFor="email" className="text-[15px] font-bold">Correo electrónico</label>
+                  <input id="email" name="email" type="email" autoComplete="username" required placeholder="nombre@mansera.es"
+                    className="min-h-14 rounded-[10px] border border-border bg-bg px-4 text-[17px] outline-none focus:border-primary" />
+                </div>
+                <div className="grid gap-1.5">
+                  <label htmlFor="password" className="text-[15px] font-bold">Contraseña</label>
+                  <input id="password" name="password" type="password" autoComplete="current-password" required
+                    className="min-h-14 rounded-[10px] border border-border bg-bg px-4 text-[17px] outline-none focus:border-primary" />
+                </div>
+                <Button type="submit" size="lg" className="mt-1 w-full">Entrar</Button>
+              </form>
+            ) : demo ? (
               <form action={signInDemo} className="mt-7 grid gap-5">
                 <p className="rounded-xl bg-warn-soft px-4 py-3 text-[14.5px] font-semibold text-warn-text">
                   Modo demostración: elige un perfil para ver la aplicación tal y como la vería cada departamento. Datos de ejemplo.
@@ -66,7 +90,7 @@ export default async function LoginPage() {
                 </div>
               </form>
             ) : (
-              <p className="mt-7 rounded-xl bg-bg px-4 py-3 text-muted">El acceso con credenciales se activará con la conexión a Supabase Auth.</p>
+              <p role="status" className="mt-7 rounded-xl bg-bg px-4 py-3 text-muted">El acceso no está configurado en este entorno.</p>
             )}
 
             <p className="mt-6 text-[13.5px] leading-snug text-muted">

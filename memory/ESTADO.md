@@ -21,8 +21,14 @@
 ## Bloqueos / pendientes de terceros
 - Q1–Q7 de `docs/12-preguntas-abiertas.md` (Cristina/proveedores) — no bloquean la UI, sí M1.
 
+## Infraestructura (2026-10-13)
+- Supabase **Mansera** (ref synwtbopxwvggicrfjjj, eu-central-1): migraciones orgs/profiles/memberships/audit_log aplicadas; org `mansera-demo` creada. Advisors: solo `public.rls_auto_enable()` (la activó el usuario; se mantiene).
+- Vercel: proyecto `mansera` en equipo solventa-ia (https://mansera-indol.vercel.app); lo gestiona el usuario (la conexión MCP de Vercel no tiene acceso a ese equipo).
+- Auth real: `lib/session.ts` usa Supabase Auth si hay `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; rol desde `memberships`. El login demo solo existe en local sin Supabase y fuera de producción. TI/Dirección pueden previsualizar otros paneles mientras los datos sean de ejemplo.
+- Para entrar: crear usuario en Supabase Auth y añadir fila en `memberships` (org mansera-demo + rol).
+
 ## Avisos
-- NO desplegar públicamente con el login demo: no es seguridad. Los datos demo son ficticios (nombres de cliente inventados).
+- El login demo ya no se expone en producción. Los datos demo son ficticios (nombres de cliente inventados).
 - ADR-0002 (stack) y ADR-0004 (multi-tenant) siguen "propuestos" aunque ya se construye sobre ellos: pedir aceptación al usuario.
 - `AGENTS.md` lo genera turbo; mantenerlo versionado.
 

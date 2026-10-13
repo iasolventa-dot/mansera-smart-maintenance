@@ -11,7 +11,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const roles = Role.options.map((r) => ({ value: r, label: ROLE_ACCESS[r].label, current: r === session.role }));
 
   return (
-    <AppShell nav={nav} user={{ name: session.name, roleLabel: access.label }} roles={roles} demo={getProvider().mode === "demo"} switchRole={switchRole} signOut={signOut}>
+    <AppShell nav={nav} user={{ name: session.name, roleLabel: access.label }} roles={roles} demo={getProvider().mode === "demo"} canPreview={session.canPreview} switchRole={switchRole} signOut={signOut}>
       {children}
     </AppShell>
   );

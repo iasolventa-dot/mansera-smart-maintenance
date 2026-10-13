@@ -2,10 +2,28 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { homeFor, Role, type CopilotAnswer } from "@msm/core";
 import { getProvider } from "@/lib/data";
-import { DEMO_USERS, endSession, requireSession, startDemoSession } from "@/lib/session";
+import { createClient } from "@/lib/supabase/server";
+import {
+  endSession, realAuthEnabled, requireSession, setPreviewRole, startDemoSession,
+} from "@/lib/session";
 
+const Credentials = z.object({ email: z.email().max(200), password: z.string().min(1).max(200) });
+
+/** Login real con Supabase Auth. Mensaje de error genérico (no revela si el correo existe). */
+export async function signInWithPassword(formData: FormData): Promise<void> {
+  if (!realAuthEnabled()) redirect("/login");
+  const parsed = Credentials.safeParse({ email: formData.get("email"), password: formData.get("password") });
+  if (!parsed.success) redirect("/login?error=credenciales");
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  if (error) redirect("/login?error=credenciales");
+  redirect("/");
+}
+
+/** Acceso de demostración local (deshabilitado con Supabase y en producción). */
 export async function signInDemo(formData: FormData): Promise<void> {
   const role = Role.safeParse(formData.get("role") ?? "direccion");
   if (!role.success) redirect("/login");
@@ -13,10 +31,11 @@ export async function signInDemo(formData: FormData): Promise<void> {
   redirect(homeFor(role.data));
 }
 
+/** Previsualizar el panel de otro rol (solo TI/Dirección y datos de ejemplo). */
 export async function switchRole(formData: FormData): Promise<void> {
   const role = Role.safeParse(formData.get("role"));
   if (!role.success) return;
-  await startDemoSession(role.data);
+  await setPreviewRole(role.data);
   redirect(homeFor(role.data));
 }
 
@@ -29,7 +48,7 @@ export async function decideProposal(formData: FormData): Promise<void> {
   const session = await requireSession();
   const id = String(formData.get("id") ?? "");
   const decision = formData.get("decision") === "aprobada" ? "aprobada" : "rechazada";
-  await getProvider().decideProposal(id, decision, DEMO_USERS[session.role].name);
+  await getProvider().decideProposal(id, decision, session.name);
   revalidatePath("/propuestas");
 }
 
