@@ -89,6 +89,18 @@ export const MANUAL: ManualChapter[] = [
         ],
       },
       {
+        id: "ayuda-contextual",
+        title: "Saber qué es un elemento y para qué sirve (ayuda al pasar el ratón)",
+        panel: null,
+        keywords: ["tooltip", "pasar el ratón", "ratón", "qué es esto", "para qué sirve", "descripción", "ayuda contextual", "globo", "explicación", "significa"],
+        steps: [
+          "Pasa el **ratón** por encima de un elemento (una sección del menú, un botón, una tarjeta de indicadores, una etiqueta de color, un filtro…) y espera un instante.",
+          "Aparece un recuadro oscuro con **qué es** y **para qué sirve**. En las tarjetas del panel explica además cómo se calcula la cifra y de qué aplicación sale.",
+          "Con el **teclado**, el mismo texto aparece al enfocar el elemento con la tecla **Tab**. Con **Esc** desaparece.",
+        ],
+        notes: [{ kind: "info", text: "En el móvil o la tableta no existe «pasar por encima». Allí tienes el **manual** y el **asistente de ayuda**, que explican lo mismo." }],
+      },
+      {
         id: "asistente",
         title: "Pedir ayuda al asistente",
         panel: null,

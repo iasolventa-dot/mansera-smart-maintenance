@@ -19,8 +19,8 @@ export function FinanceView({ docs }: { docs: FinanceDoc[] }) {
   return (
     <div>
       <FilterTabs id="fin" label="Filtrar documentos" value={f} onChange={setF} options={[
-        { id: "pendiente_facturar", label: "Sin facturar", count: n("pendiente_facturar") }, { id: "vencida", label: "Vencidas", count: n("vencida") },
-        { id: "emitida", label: "Emitidas", count: n("emitida") }, { id: "cobrada", label: "Cobradas", count: n("cobrada") }, { id: "todos", label: "Todos", count: docs.length },
+        { id: "pendiente_facturar", label: "Sin facturar", count: n("pendiente_facturar"), hint: "Albaranes de PGMWin que aún no tienen factura en A3ERP." }, { id: "vencida", label: "Vencidas", count: n("vencida"), hint: "Facturas cuyo vencimiento ya pasó y siguen sin cobrarse." },
+        { id: "emitida", label: "Emitidas", count: n("emitida"), hint: "Facturas en plazo, pendientes de cobro." }, { id: "cobrada", label: "Cobradas", count: n("cobrada"), hint: "Facturas ya cobradas." }, { id: "todos", label: "Todos", count: docs.length, hint: "Todos los albaranes y facturas, sin filtrar." },
       ]} />
       {list.length === 0 ? <EmptyState title="Nada en este filtro" description="Los documentos aparecerán aquí desde A3ERP y PGMWin." /> : (
         <ul className="grid gap-3">

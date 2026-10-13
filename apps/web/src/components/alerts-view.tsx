@@ -29,10 +29,10 @@ export function AlertsView({ alerts }: { alerts: AlertItem[] }) {
   return (
     <div>
       <FilterTabs id="alerts" label="Filtrar alertas" value={f} onChange={setF} options={[
-        { id: "activas", label: "Activas", count: alerts.filter((a) => a.status !== "resuelta").length },
-        { id: "alta", label: "Prioridad alta", count: alerts.filter((a) => a.severity === "alta" && a.status !== "resuelta").length },
-        { id: "anomalias", label: "Anomalías" },
-        { id: "resueltas", label: "Resueltas" },
+        { id: "activas", label: "Activas", count: alerts.filter((a) => a.status !== "resuelta").length, hint: "Alertas nuevas o en revisión, es decir, las que aún requieren atención." },
+        { id: "alta", label: "Prioridad alta", count: alerts.filter((a) => a.severity === "alta" && a.status !== "resuelta").length, hint: "Solo las activas más importantes: atiéndelas primero." },
+        { id: "anomalias", label: "Anomalías", hint: "Cosas que se apartan de lo normal con datos que lo demuestran. No son predicciones." },
+        { id: "resueltas", label: "Resueltas", hint: "Alertas ya tratadas, por si necesitas consultar el historial." },
       ]} />
       {list.length === 0 ? <EmptyState title="Sin alertas en este filtro" description="Cuando el sistema detecte algo, aparecerá aquí con su evidencia." /> : (
         <ul className="grid gap-3">

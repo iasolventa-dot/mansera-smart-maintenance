@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { PackageCheck, Truck } from "lucide-react";
-import type { PurchaseOrder, StockItem } from "@msm/core";
+import { HINT, type PurchaseOrder, type StockItem } from "@msm/core";
 import { Badge, ProgressBar, StatusPill, fmt } from "@msm/ui";
 import { FilterTabs } from "./filter-tabs";
 
@@ -16,7 +16,7 @@ export function PurchasingView({ orders, stock }: { orders: PurchaseOrder[]; sto
   return (
     <div>
       <FilterTabs id="pur" label="Compras y almacén" value={tab} onChange={setTab} options={[
-        { id: "pedidos", label: "Pedidos", count: orders.length }, { id: "stock", label: "Existencias", count: stock.length },
+        { id: "pedidos", label: "Pedidos", count: orders.length, hint: "Pedidos a proveedores con su estado y la orden de trabajo para la que son." }, { id: "stock", label: "Existencias", count: stock.length, hint: "Repuestos en almacén frente a su stock mínimo." },
       ]} />
       {tab === "pedidos" ? (
         <ul className="grid gap-3">
@@ -41,7 +41,7 @@ export function PurchasingView({ orders, stock }: { orders: PurchaseOrder[]; sto
             <li key={s.ref} className="rounded-2xl border border-border bg-surface p-5">
               <div className="mb-2 flex items-start justify-between gap-3"><div><p className="text-sm font-bold tabular-nums text-muted">{s.ref} · {s.location}</p><h3 className="text-[17.5px] font-extrabold leading-snug">{s.name}</h3></div><StatusPill status={s.status} label={STOCK_LABEL[s.status]} className="!text-xs" /></div>
               <div className="mb-1.5 flex justify-between text-[14.5px] font-semibold"><span className="text-muted">Existencias / mínimo</span><span className="tabular-nums">{s.stock} / {s.min}</span></div>
-              <ProgressBar value={s.stock} max={Math.max(s.min * 2, s.stock)} tone={s.status === "ok" ? "ok" : s.status} label={`Existencias de ${s.name}`} />
+              <ProgressBar value={s.stock} max={Math.max(s.min * 2, s.stock)} tone={s.status === "ok" ? "ok" : s.status} label={`Existencias de ${s.name}`} hint={HINT.stockBar} />
               <p className="mt-2 text-[14px] text-muted">Proveedor: {s.supplier}</p>
             </li>
           ))}

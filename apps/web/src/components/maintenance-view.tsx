@@ -26,8 +26,8 @@ export function MaintenanceView({ tasks }: { tasks: PreventiveTask[] }) {
   return (
     <div>
       <FilterTabs id="prev" label="Filtrar preventivos" value={f} onChange={setF} options={[
-        { id: "todas", label: "Todos", count: tasks.length }, { id: "vencido", label: "Vencidos", count: count("vencido") },
-        { id: "proximo", label: "Próximos", count: count("proximo") }, { id: "al_dia", label: "Al día", count: count("al_dia") },
+        { id: "todas", label: "Todos", count: tasks.length, hint: "Todos los preventivos, ordenados por fecha." }, { id: "vencido", label: "Vencidos", count: count("vencido"), hint: "Pasó su fecha y no se hicieron. Son los que pueden acabar en avería." },
+        { id: "proximo", label: "Próximos", count: count("proximo"), hint: "Tocan en los próximos días: conviene planificar técnico y material." }, { id: "al_dia", label: "Al día", count: count("al_dia"), hint: "Sin urgencia: su fecha está lejos." },
       ]} />
       {list.length === 0 ? <EmptyState title="Nada en este filtro" description="Los preventivos aparecerán aquí según su plan." /> : (
         <ul className="grid gap-3">

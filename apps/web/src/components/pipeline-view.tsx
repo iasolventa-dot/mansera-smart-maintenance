@@ -14,6 +14,14 @@ const STAGES: { id: OfferStage; label: string; tone: "neutral" | "info" | "warn"
   { id: "perdida", label: "Perdida", tone: "bad" },
 ];
 
+const STAGE_HINT: Record<OfferStage, string> = {
+  borrador: "Ofertas que aún se están preparando.",
+  enviada: "Ofertas ya enviadas al cliente, a la espera de respuesta.",
+  negociacion: "Ofertas en conversación con el cliente: las más cercanas a cerrarse.",
+  ganada: "Ofertas aceptadas. Cada una genera una propuesta de orden de trabajo.",
+  perdida: "Ofertas rechazadas o caducadas.",
+};
+
 function OfferCard({ o }: { o: Offer }) {
   const due = new Date(o.dueDate).toLocaleDateString("es-ES", { day: "numeric", month: "short" });
   return (
@@ -39,7 +47,7 @@ export function PipelineView({ offers }: { offers: Offer[] }) {
   return (
     <>
       <div className="lg:hidden">
-        <FilterTabs id="stages" label="Etapa de la oferta" value={stage} onChange={setStage} options={STAGES.map((s) => ({ id: s.id, label: s.label, count: by(s.id).length }))} />
+        <FilterTabs id="stages" label="Etapa de la oferta" value={stage} onChange={setStage} options={STAGES.map((s) => ({ id: s.id, label: s.label, count: by(s.id).length, hint: STAGE_HINT[s.id] }))} />
         <div className="grid gap-3">{by(stage).length === 0 ? <p className="rounded-xl border border-dashed border-border p-8 text-center text-muted">Sin ofertas en esta etapa.</p> : by(stage).map((o) => <OfferCard key={o.id} o={o} />)}</div>
       </div>
       <div className="hidden gap-4 lg:grid lg:grid-cols-5">

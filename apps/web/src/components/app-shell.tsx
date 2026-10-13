@@ -9,9 +9,9 @@ import {
   Menu, Moon, Plug, Search, ShieldCheck, ShoppingCart, Sparkles, Sun, TriangleAlert, UserCog, Users, Wrench, X, Wrench as Tool, type LucideIcon,
 } from "lucide-react";
 import type { CreateOrderResult } from "@/app/actions";
-import { anchorFor, type NavId, type NewWorkOrderInput, type SearchHit } from "@msm/core";
+import { HINT, NAV_HINT, anchorFor, type NavId, type NewWorkOrderInput, type SearchHit } from "@msm/core";
 import type { AssistantResult } from "@/lib/assistant";
-import { Avatar, Badge, Logo, cn, spring } from "@msm/ui";
+import { Avatar, Badge, Logo, Tooltip, cn, spring } from "@msm/ui";
 import { HELP_ASK_EVENT, HelpAssistant } from "./help-assistant";
 import { QuickOrderDialog } from "./quick-order-dialog";
 
@@ -120,13 +120,15 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
                   const Icon = ICONS[n.id] ?? LayoutDashboard;
                   const active = isActive(n.href);
                   return (
-                    <Link key={n.id} href={n.href} aria-current={active ? "page" : undefined}
-                      className={cn("relative flex min-h-11 items-center gap-3 rounded-xl px-3 text-[15px] font-bold transition-colors", active ? "text-white" : "text-white/75 hover:bg-white/8 hover:text-white")}>
-                      {active ? <motion.span layoutId="side-active" transition={spring} className="absolute inset-0 rounded-xl bg-white/14 ring-1 ring-white/10" /> : null}
-                      <Icon className="relative size-[18px]" aria-hidden="true" />
-                      <span className="relative">{n.label}</span>
-                      {n.id === "copiloto" ? <Badge tone="info" className="relative ml-auto !bg-cyan/25 !text-cyan">IA</Badge> : null}
-                    </Link>
+                    <Tooltip key={n.id} hint={NAV_HINT[n.id as NavId]} side="right">
+                      <Link href={n.href} aria-current={active ? "page" : undefined}
+                        className={cn("relative flex min-h-11 items-center gap-3 rounded-xl px-3 text-[15px] font-bold transition-colors", active ? "text-white" : "text-white/75 hover:bg-white/8 hover:text-white")}>
+                        {active ? <motion.span layoutId="side-active" transition={spring} className="absolute inset-0 rounded-xl bg-white/14 ring-1 ring-white/10" /> : null}
+                        <Icon className="relative size-[18px]" aria-hidden="true" />
+                        <span className="relative">{n.label}</span>
+                        {n.id === "copiloto" ? <Badge tone="info" className="relative ml-auto !bg-cyan/25 !text-cyan">IA</Badge> : null}
+                      </Link>
+                    </Tooltip>
                   );
                 })}
               </div>
@@ -136,9 +138,11 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
         <div className="grid gap-2 pt-3">
           {demo && canPreview ? <RoleSwitcher roles={roles} switchRole={switchRole} dark /> : null}
           <form action={signOut}>
-            <button className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-[15px] font-semibold text-white/75 hover:bg-white/8 hover:text-white">
-              <LogOut className="size-[18px]" aria-hidden="true" /> Cerrar sesión
-            </button>
+            <Tooltip hint={HINT.signOut} side="right">
+              <button className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-[15px] font-semibold text-white/75 hover:bg-white/8 hover:text-white">
+                <LogOut className="size-[18px]" aria-hidden="true" /> Cerrar sesión
+              </button>
+            </Tooltip>
           </form>
           <p className="px-3 text-xs text-white/50">Desarrollado por SOLVENTA IA</p>
         </div>
@@ -148,31 +152,41 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
         {/* Cabecera */}
         <header className="print:hidden sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-border bg-surface/85 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
           <div className="lg:hidden"><Logo /></div>
-          <button onClick={() => setPalette(true)} className="hidden min-h-11 w-full max-w-sm items-center gap-2 rounded-xl border border-border bg-bg px-3.5 text-muted hover:border-primary/50 sm:flex" aria-label="Buscar o ir a… (Ctrl+K)">
-            <Search className="size-[18px]" aria-hidden="true" /> <span className="text-[15px]">Buscar o ir a…</span>
-            <kbd className="ml-auto rounded-md border border-border bg-surface px-1.5 text-xs font-bold">Ctrl K</kbd>
-          </button>
+          <Tooltip hint={HINT.search} side="bottom">
+            <button onClick={() => setPalette(true)} className="hidden min-h-11 w-full max-w-sm items-center gap-2 rounded-xl border border-border bg-bg px-3.5 text-muted hover:border-primary/50 sm:flex" aria-label="Buscar o ir a… (Ctrl+K)">
+              <Search className="size-[18px]" aria-hidden="true" /> <span className="text-[15px]">Buscar o ir a…</span>
+              <kbd className="ml-auto rounded-md border border-border bg-surface px-1.5 text-xs font-bold">Ctrl K</kbd>
+            </button>
+          </Tooltip>
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
-            {demo ? <Badge tone="warn" className="whitespace-nowrap uppercase tracking-wide"><span className="sm:hidden">Demo</span><span className="hidden sm:inline">Datos de ejemplo</span></Badge> : null}
+            {demo ? <Badge tone="warn" hint={HINT.demo} className="whitespace-nowrap uppercase tracking-wide"><span className="sm:hidden">Demo</span><span className="hidden sm:inline">Datos de ejemplo</span></Badge> : null}
             <button onClick={() => setPalette(true)} aria-label="Buscar" className="grid size-11 place-items-center rounded-xl text-muted hover:bg-primary-soft sm:hidden"><Search className="size-5" /></button>
             <div className="relative">
-              <button onClick={() => setBell((b) => !b)} aria-label={`Notificaciones${unread ? `, ${unread} sin leer` : ""}`} aria-expanded={bell}
-                className="relative grid size-11 place-items-center rounded-xl text-muted hover:bg-primary-soft">
-                {unread ? <BellRing className="size-5" /> : <Bell className="size-5" />}
-                {unread ? <span className="absolute right-2 top-2 grid size-4 place-items-center rounded-full bg-bad text-[10px] font-extrabold text-white">{unread}</span> : null}
-              </button>
+              <Tooltip hint={bell ? null : { ...HINT.bell, text: unread ? `Tienes ${unread} sin leer. ${HINT.bell.text}` : HINT.bell.text }} side="bottom">
+                <button onClick={() => setBell((b) => !b)} aria-label={`Notificaciones${unread ? `, ${unread} sin leer` : ""}`} aria-expanded={bell}
+                  className="relative grid size-11 place-items-center rounded-xl text-muted hover:bg-primary-soft">
+                  {unread ? <BellRing className="size-5" /> : <Bell className="size-5" />}
+                  {unread ? <span className="absolute right-2 top-2 grid size-4 place-items-center rounded-full bg-bad text-[10px] font-extrabold text-white">{unread}</span> : null}
+                </button>
+              </Tooltip>
               <AnimatePresence>{bell ? <NotificationsPanel items={notifications} onClose={() => setBell(false)} /> : null}</AnimatePresence>
             </div>
-            <Link href={helpAnchor ? `/manual#${helpAnchor}` : "/manual"} aria-label="Ayuda de esta pantalla (manual)" title="Ayuda de esta pantalla" className="hidden size-11 place-items-center rounded-xl text-muted hover:bg-primary-soft sm:grid">
-              <CircleHelp className="size-5" aria-hidden="true" />
-            </Link>
-            <button onClick={toggleTheme} aria-label={dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"} className="grid size-11 place-items-center rounded-xl text-muted hover:bg-primary-soft">
-              {dark ? <Sun className="size-5" /> : <Moon className="size-5" />}
-            </button>
-            <div className="hidden items-center gap-3 pl-2 md:flex">
-              <Avatar name={user.name} />
-              <div className="leading-tight"><div className="text-[15px] font-bold">{user.name}</div><div className="text-[13px] text-muted">{user.roleLabel}</div></div>
-            </div>
+            <Tooltip hint={HINT.helpHere} side="bottom">
+              <Link href={helpAnchor ? `/manual#${helpAnchor}` : "/manual"} aria-label="Ayuda de esta pantalla (manual)" className="hidden size-11 place-items-center rounded-xl text-muted hover:bg-primary-soft sm:grid">
+                <CircleHelp className="size-5" aria-hidden="true" />
+              </Link>
+            </Tooltip>
+            <Tooltip hint={{ ...HINT.theme, title: dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro" }} side="bottom">
+              <button onClick={toggleTheme} aria-label={dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"} className="grid size-11 place-items-center rounded-xl text-muted hover:bg-primary-soft">
+                {dark ? <Sun className="size-5" /> : <Moon className="size-5" />}
+              </button>
+            </Tooltip>
+            <Tooltip hint={HINT.user} side="bottom">
+              <div className="hidden items-center gap-3 pl-2 md:flex">
+                <Avatar name={user.name} />
+                <div className="leading-tight"><div className="text-[15px] font-bold">{user.name}</div><div className="text-[13px] text-muted">{user.roleLabel}</div></div>
+              </div>
+            </Tooltip>
           </div>
         </header>
 
@@ -262,11 +276,13 @@ function RoleSwitcher({ roles, switchRole, dark }: { roles: Props["roles"]; swit
   return (
     <form action={switchRole} className="grid min-w-0 gap-1.5">
       <label htmlFor={dark ? "role-d" : "role-m"} className={cn("text-xs font-bold uppercase tracking-wider", dark ? "text-cyan" : "text-muted")}>Vista previa como</label>
-      <select id={dark ? "role-d" : "role-m"} name="role" defaultValue={roles.find((r) => r.current)?.value}
-        onChange={(e) => e.currentTarget.form?.requestSubmit()}
-        className={cn("min-h-11 w-full min-w-0 truncate rounded-xl border px-3 text-[15px] font-semibold", dark ? "border-white/20 bg-white/10 text-white [&>option]:text-black" : "border-border bg-bg text-text")}>
-        {roles.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
-      </select>
+      <Tooltip hint={HINT.roleSwitch} side={dark ? "right" : "top"}>
+        <select id={dark ? "role-d" : "role-m"} name="role" defaultValue={roles.find((r) => r.current)?.value}
+          onChange={(e) => e.currentTarget.form?.requestSubmit()}
+          className={cn("min-h-11 w-full min-w-0 truncate rounded-xl border px-3 text-[15px] font-semibold", dark ? "border-white/20 bg-white/10 text-white [&>option]:text-black" : "border-border bg-bg text-text")}>
+          {roles.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+        </select>
+      </Tooltip>
     </form>
   );
 }

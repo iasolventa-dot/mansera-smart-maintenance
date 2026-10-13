@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ArrowRight, Check, ShieldCheck, X } from "lucide-react";
-import type { Proposal } from "@msm/core";
+import { HINT, type Proposal } from "@msm/core";
 import { Badge, Button, Card, EmptyState, Item, Stagger } from "@msm/ui";
 import { PageHeader, ago } from "@/components/page-header";
 import { SOURCE_LABEL } from "@/components/labels";
@@ -45,7 +45,7 @@ function ProposalCard({ p }: { p: Proposal }) {
     <Card className="h-full">
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <Badge tone="info">{SOURCE_LABEL[p.from]}</Badge><ArrowRight className="size-4 text-muted" aria-hidden="true" /><Badge tone="info">{SOURCE_LABEL[p.to]}</Badge>
-        <Badge tone={p.environment === "pruebas" ? "warn" : "bad"}>Entorno de {p.environment}</Badge>
+        <Badge tone={p.environment === "pruebas" ? "warn" : "bad"} hint={p.environment === "pruebas" ? HINT.environment : { title: "Entorno de producción", text: "El cambio se ejecutará en el sistema real de la empresa: revisa con cuidado." }}>Entorno de {p.environment}</Badge>
         {p.status !== "pendiente" ? <Badge tone={p.status === "aprobada" ? "ok" : "bad"}>{p.status === "aprobada" ? "Aprobada" : "Rechazada"}</Badge> : null}
       </div>
       <h3 className="text-[18px] font-extrabold leading-snug">{p.title}</h3>
@@ -73,8 +73,8 @@ function ProposalCard({ p }: { p: Proposal }) {
       {p.status === "pendiente" ? (
         <form action={decideProposal} className="mt-4 grid grid-cols-2 gap-3">
           <input type="hidden" name="id" value={p.id} />
-          <Button type="submit" name="decision" value="rechazada" variant="secondary" size="lg"><X className="size-5" aria-hidden="true" />Rechazar</Button>
-          <Button type="submit" name="decision" value="aprobada" size="lg"><Check className="size-5" aria-hidden="true" />Aprobar</Button>
+          <Button type="submit" name="decision" value="rechazada" variant="secondary" size="lg" hint={HINT.reject}><X className="size-5" aria-hidden="true" />Rechazar</Button>
+          <Button type="submit" name="decision" value="aprobada" size="lg" hint={HINT.approve}><Check className="size-5" aria-hidden="true" />Aprobar</Button>
         </form>
       ) : null}
     </Card>

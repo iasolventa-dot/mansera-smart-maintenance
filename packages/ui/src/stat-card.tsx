@@ -6,6 +6,7 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 import { cn, fmt } from "./cn";
 import { riseIn } from "./motion";
 import { StatusPill } from "./primitives";
+import { Tooltip, type Hint } from "./tooltip";
 
 /** Contador animado; con reduced-motion muestra el valor final directamente. */
 export function AnimatedNumber({ value, decimals = 0, className }: { value: number; decimals?: number; className?: string }) {
@@ -37,19 +38,21 @@ type Props = {
   trend?: { delta: number; unit: string; label: string; goodWhen: "up" | "down" };
   /** Acción al tocar la tarjeta: abre la fuente del dato. */
   footer?: React.ReactNode;
+  /** Qué mide el indicador y de dónde sale. */
+  hint?: Hint | string;
 };
 
-export function StatCard({ label, value, unit = "", decimals = 0, status, note, trend, footer }: Props) {
+export function StatCard({ label, value, unit = "", decimals = 0, status, note, trend, footer, hint }: Props) {
   const good = trend ? (trend.delta >= 0) === (trend.goodWhen === "up") : true;
   const Arrow = trend && trend.delta >= 0 ? ArrowUp : ArrowDown;
-  return (
+  const card = (
     <motion.article
       variants={riseIn}
       className="flex min-h-[148px] flex-col rounded-2xl border border-border bg-surface p-5 shadow-[0_1px_2px_rgba(16,36,70,0.04),0_8px_24px_-12px_rgba(16,36,70,0.10)]"
     >
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-[15px] font-semibold text-muted">{label}</h3>
-        {status && status !== "ok" ? <StatusPill status={status} className="!px-2 !py-0.5 !text-xs" /> : null}
+        {status && status !== "ok" ? <StatusPill status={status} className="!px-2 !py-0.5 !text-xs" hint={false} /> : null}
       </div>
       <p className="mt-2 text-[34px] font-extrabold leading-none tracking-tight text-text">
         <AnimatedNumber value={value} decimals={decimals} />
@@ -68,4 +71,5 @@ export function StatCard({ label, value, unit = "", decimals = 0, status, note, 
       {footer ? <div className="mt-auto pt-3">{footer}</div> : null}
     </motion.article>
   );
+  return hint ? <Tooltip hint={hint} side="bottom">{card}</Tooltip> : card;
 }

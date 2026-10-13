@@ -4,13 +4,14 @@
 **Fase/hito en curso:** M0 · Cimientos — UI, núcleo, Auth y Supabase hechos; faltan axe/Lighthouse, `/revision` y G0
 **Puerta superada:** ninguna (G0 pendiente)
 
-## Qué existe (verificado: lint, typecheck, 76 tests, `pnpm build` de 22 rutas; recorrido por rol en navegador)
+## Qué existe (verificado: lint, typecheck, 81 tests, `pnpm build` de 22 rutas; recorrido por rol en navegador)
 - Monorepo pnpm + Turborepo: `apps/web` (Next 16, React 19, Tailwind 4, Motion), `packages/core`, `packages/ui`, `supabase/`.
 - `packages/core`: esquemas Zod (`schemas.ts` + `modules.ts`), contrato `DataProvider`, permisos por rol (`access.ts`: 7 roles, 17 secciones agrupadas), `demo/` con datos FICTICIOS (fechas relativas a hoy). Sin estado: las escrituras devuelven resultado.
 - `packages/ui`: Button, Card, StatCard (contador), StatusPill, SourceChip, LineChart/BarList/Donut (SVG, al ancho real), Reveal/Stagger.
 - 7 paneles por rol (Dirección, TI, Oficina técnica, Administración, Compras, RR. HH., Campo) con KPIs trazables, gráficos y alertas.
 - Secciones: Alertas (evidencia), Órdenes (+acción rápida "Nueva OT" → propuesta), Mantenimiento, Activos (ficha 360), Clientes (vista 360), Comercial (kanban Trello), Facturación, Compras y almacén, Personal, PRL y CAE (preview pack Mi PRL), Propuestas (diff + aprobar), Informes, Copiloto (7 temas, siempre con fuente), Conexiones, Usuarios y auditoría (matriz de permisos).
 - Ayuda (ADR-0009): manual de usuario `/manual` (índice, búsqueda con resaltado, imprimir, icono ? por pantalla) y asistente de ayuda flotante con IA de Claude (servidor, caché de prompt, modo guía sin clave, límite diario en `assistant_usage`, citas al manual). Fuente única: `packages/core/src/help/content.ts`. Activar la IA = variable `ANTHROPIC_API_KEY` en Vercel (sin ella funciona en modo guía).
+- Ayuda contextual al pasar el ratón: componente `Tooltip` (ui) + textos centralizados en `packages/core/src/help/tooltips.ts` (menú, cabecera, indicadores con cálculo y fuente, etiquetas, filtros, propuestas). Documentada en el manual.
 - Transversal: notificaciones, búsqueda global Ctrl+K (server action sobre `DataProvider.search`), tema claro/oscuro, PWA con iconos PNG/maskable (`apps/web/scripts/generate-icons.mjs`).
 - Estado de la demo (propuestas creadas/decididas) en cookie `msm_demo_state` (`lib/demo-state.ts`); desaparece con datos reales.
 

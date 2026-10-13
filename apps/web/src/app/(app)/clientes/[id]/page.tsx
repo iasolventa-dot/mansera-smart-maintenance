@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink, Lightbulb, MapPin, UserRound } from "lucide-react";
+import { HINT } from "@msm/core";
 import { Badge, BarList, Card, CardTitle, ProgressBar, SourceChip, StatusPill, fmt } from "@msm/ui";
 import { PageHeader, fmtDate } from "@/components/page-header";
 import { SOURCE_LABEL } from "@/components/labels";
@@ -77,7 +78,7 @@ export default async function ClientPage({ params }: Params) {
               <CardTitle>Contrato</CardTitle>
               <p className="text-[16px] font-bold">{c.contract.type}</p>
               <div className="mb-1.5 mt-4 flex justify-between text-[14.5px] font-semibold"><span className="text-muted">Horas consumidas</span><span className="tabular-nums">{fmt(c.contract.hoursUsed)} / {fmt(c.contract.hoursBudget)} h</span></div>
-              <ProgressBar value={pct} tone={pct >= 90 ? "bad" : pct >= 75 ? "warn" : "primary"} label="Horas consumidas del contrato" />
+              <ProgressBar value={pct} tone={pct >= 90 ? "bad" : pct >= 75 ? "warn" : "primary"} label="Horas consumidas del contrato" hint={HINT.contractBar} />
               <p className="mt-3 text-[14.5px] text-muted">Renovación: <strong className="text-text">{fmtDate(c.contract.renewal)}</strong></p>
             </Card>
           ) : null}

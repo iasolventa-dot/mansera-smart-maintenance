@@ -5,6 +5,7 @@ import { motion, MotionConfig } from "motion/react";
 import { CircleCheck, OctagonAlert, TriangleAlert, Database, Loader2 } from "lucide-react";
 import { cn } from "./cn";
 import { spring } from "./motion";
+import { Tooltip, type Hint } from "./tooltip";
 
 /** Respeta `prefers-reduced-motion` en todos los componentes hijos. */
 export function MotionRoot({ children }: { children: ReactNode }) {
@@ -34,6 +35,8 @@ type ButtonProps = Omit<ComponentProps<"button">, "ref" | "onDrag" | "onDragStar
   variant?: "primary" | "secondary" | "ghost" | "danger";
   size?: "md" | "lg";
   loading?: boolean;
+  /** Texto de ayuda al pasar el ratón: qué hace el botón. */
+  hint?: Hint | string;
 };
 
 const buttonStyles = {
@@ -43,8 +46,8 @@ const buttonStyles = {
   danger: "bg-bad-soft text-bad-text border border-bad/30 hover:bg-bad/15",
 } as const;
 
-export function Button({ variant = "primary", size = "md", loading, className, children, disabled, ...props }: ButtonProps) {
-  return (
+export function Button({ variant = "primary", size = "md", loading, hint, className, children, disabled, ...props }: ButtonProps) {
+  const button = (
     <motion.button
       whileTap={{ scale: 0.97 }}
       transition={spring}
@@ -61,6 +64,7 @@ export function Button({ variant = "primary", size = "md", loading, className, c
       {children}
     </motion.button>
   );
+  return hint ? <Tooltip hint={hint}>{button}</Tooltip> : button;
 }
 
 /* ───────── Card ───────── */
@@ -91,17 +95,25 @@ const tone = {
   bad: { cls: "bg-bad-soft text-bad-text", Icon: OctagonAlert, label: "Crítico" },
 } as const;
 
-export function StatusPill({ status, label, className }: { status: keyof typeof tone; label?: string; className?: string }) {
+const STATUS_HINT = {
+  ok: { title: "Correcto", text: "Dentro de lo normal: no requiere acción." },
+  warn: { title: "Atención", text: "Conviene revisarlo pronto antes de que empeore." },
+  bad: { title: "Crítico", text: "Requiere actuar ya o puede causar un problema." },
+} as const;
+
+/** «hint» personaliza el texto de ayuda; «false» lo desactiva (cuando ya está dentro de otro elemento con ayuda). */
+export function StatusPill({ status, label, className, hint }: { status: keyof typeof tone; label?: string; className?: string; hint?: Hint | string | false }) {
   const { cls, Icon, label: def } = tone[status];
-  return (
+  const pill = (
     <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[13px] font-bold", cls, className)}>
       <Icon className="size-4" aria-hidden="true" />
       {label ?? def}
     </span>
   );
+  return hint === false ? pill : <Tooltip hint={hint ?? STATUS_HINT[status]}>{pill}</Tooltip>;
 }
 
-export function Badge({ children, tone: t = "neutral", className }: { children: ReactNode; tone?: "neutral" | "info" | "ok" | "warn" | "bad"; className?: string }) {
+export function Badge({ children, tone: t = "neutral", className, hint }: { children: ReactNode; tone?: "neutral" | "info" | "ok" | "warn" | "bad"; className?: string; hint?: Hint | string }) {
   const map = {
     neutral: "bg-bg text-muted border border-border",
     info: "bg-primary-soft text-primary-text",
@@ -109,7 +121,8 @@ export function Badge({ children, tone: t = "neutral", className }: { children: 
     warn: "bg-warn-soft text-warn-text",
     bad: "bg-bad-soft text-bad-text",
   } as const;
-  return <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-[12.5px] font-bold", map[t], className)}>{children}</span>;
+  const badge = <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-[12.5px] font-bold", map[t], className)}>{children}</span>;
+  return hint ? <Tooltip hint={hint}>{badge}</Tooltip> : badge;
 }
 
 /* ───────── Avatar ───────── */
@@ -139,23 +152,25 @@ export function EmptyState({ title, description, action }: { title: string; desc
 }
 
 /* ───────── SourceChip: cita de IA a un toque ───────── */
-export function SourceChip({ app, label, className }: { app: string; label: string; className?: string }) {
-  return (
+export function SourceChip({ app, label, className, hint }: { app: string; label: string; className?: string; hint?: Hint | string | false }) {
+  const chip = (
     <span className={cn("inline-flex items-center gap-1.5 rounded-full border border-border bg-bg px-2.5 py-1 text-[12.5px] font-semibold text-muted", className)}>
       <span className="size-2 rounded-full bg-accent" aria-hidden="true" />
       <span className="font-bold text-text">{app}</span>
       <span>{label}</span>
     </span>
   );
+  return hint === false ? chip : <Tooltip hint={hint ?? { title: "Fuente del dato", text: `Sale de ${app}: ${label}. El programa de origen siempre tiene la razón.` }}>{chip}</Tooltip>;
 }
 
 /* ───────── ProgressBar ───────── */
-export function ProgressBar({ value, max = 100, tone: t = "primary", label }: { value: number; max?: number; tone?: "primary" | "ok" | "warn" | "bad"; label: string }) {
+export function ProgressBar({ value, max = 100, tone: t = "primary", label, hint }: { value: number; max?: number; tone?: "primary" | "ok" | "warn" | "bad"; label: string; hint?: Hint | string }) {
   const pct = Math.min(100, Math.max(0, (value / max) * 100));
   const color = { primary: "bg-primary", ok: "bg-ok", warn: "bg-warn", bad: "bg-bad" }[t];
-  return (
+  const bar = (
     <div role="progressbar" aria-label={label} aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100} className="h-2.5 w-full overflow-hidden rounded-full bg-border/70">
       <motion.div className={cn("h-full origin-left rounded-full", color)} initial={{ scaleX: 0 }} animate={{ scaleX: pct / 100 }} style={{ width: "100%" }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }} />
     </div>
   );
+  return hint ? <Tooltip hint={hint}>{bar}</Tooltip> : bar;
 }

@@ -5,14 +5,15 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronRight, MapPin } from "lucide-react";
 import type { WorkOrder } from "@msm/core";
-import { Badge, EmptyState, cn, spring } from "@msm/ui";
+import { Badge, EmptyState, spring } from "@msm/ui";
+import { FilterTabs } from "./filter-tabs";
 import { PRIORITY_TONE, SOURCE_LABEL, STATUS_LABEL, STATUS_TONE } from "./labels";
 
 const FILTERS = [
-  { id: "todas", label: "Todas" },
-  { id: "urgentes", label: "Urgentes" },
-  { id: "preventivas", label: "Preventivas" },
-  { id: "material", label: "Esperando material" },
+  { id: "todas", label: "Todas", hint: "Todas las órdenes de trabajo." },
+  { id: "urgentes", label: "Urgentes", hint: "Órdenes de prioridad alta o urgente que siguen abiertas." },
+  { id: "preventivas", label: "Preventivas", hint: "Mantenimiento programado, no averías." },
+  { id: "material", label: "Esperando material", hint: "Paradas hasta que llegue un repuesto. Mira Compras para ver el pedido." },
 ] as const;
 
 export function OrdersList({ orders }: { orders: WorkOrder[] }) {
@@ -23,15 +24,7 @@ export function OrdersList({ orders }: { orders: WorkOrder[] }) {
 
   return (
     <div>
-      <div role="tablist" aria-label="Filtrar órdenes" className="-mx-4 mb-5 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
-        {FILTERS.map((x) => (
-          <button key={x.id} role="tab" aria-selected={f === x.id} onClick={() => setF(x.id)}
-            className={cn("relative min-h-12 shrink-0 rounded-full border px-5 text-[15px] font-bold transition-colors", f === x.id ? "border-transparent text-white" : "border-border bg-surface text-muted hover:text-text")}>
-            {f === x.id ? <motion.span layoutId="orders-filter" transition={spring} className="absolute inset-0 rounded-full bg-primary" /> : null}
-            <span className="relative">{x.label}</span>
-          </button>
-        ))}
-      </div>
+      <FilterTabs id="orders" label="Filtrar órdenes" value={f} onChange={setF} options={FILTERS.map((x) => ({ id: x.id, label: x.label, hint: x.hint }))} />
 
       {list.length === 0 ? <EmptyState title="Sin órdenes en este filtro" description="Prueba con otro filtro o revisa más tarde." /> : (
         <ul className="grid gap-3">

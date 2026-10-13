@@ -20,7 +20,7 @@ export function SystemView({ users, audit, matrix }: { users: SystemUser[]; audi
   return (
     <div>
       <FilterTabs id="sys" label="Administración" value={tab} onChange={setTab} options={[
-        { id: "usuarios", label: "Usuarios", count: users.length }, { id: "permisos", label: "Permisos por rol" }, { id: "auditoria", label: "Auditoría" },
+        { id: "usuarios", label: "Usuarios", count: users.length, hint: "Personas con acceso, su perfil y su último acceso." }, { id: "permisos", label: "Permisos por rol", hint: "Qué sección ve cada perfil. La barrera real es la base de datos." }, { id: "auditoria", label: "Auditoría", hint: "Registro inmutable de quién hizo qué y cuándo." },
       ]} />
 
       {tab === "usuarios" ? (

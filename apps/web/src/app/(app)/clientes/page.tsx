@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { HINT } from "@msm/core";
 import { Item, ProgressBar, Stagger, StatusPill, fmt } from "@msm/ui";
 import { PageHeader } from "@/components/page-header";
 import { getProvider } from "@/lib/data";
@@ -33,7 +34,7 @@ export default async function ClientesPage() {
                 {pct !== null ? (
                   <div className="mt-auto">
                     <div className="mb-1.5 flex justify-between text-[13.5px] font-semibold"><span className="text-muted">Horas del contrato</span><span className="tabular-nums">{pct} %</span></div>
-                    <ProgressBar value={pct} tone={pct >= 90 ? "bad" : pct >= 75 ? "warn" : "primary"} label={`Horas consumidas del contrato de ${c.name}`} />
+                    <ProgressBar value={pct} tone={pct >= 90 ? "bad" : pct >= 75 ? "warn" : "primary"} label={`Horas consumidas del contrato de ${c.name}`} hint={HINT.contractBar} />
                   </div>
                 ) : <p className="mt-auto text-[13.5px] text-muted">Sin contrato marco</p>}
               </Link>

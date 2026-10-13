@@ -5,8 +5,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { BookOpen, LifeBuoy, RotateCcw, SendHorizontal, X } from "lucide-react";
-import { SUGGESTIONS, answerLocally, anchorFor, findTask, type NavId } from "@msm/core";
-import { cn, spring } from "@msm/ui";
+import { HINT, SUGGESTIONS, answerLocally, anchorFor, findTask, type NavId } from "@msm/core";
+import { Tooltip, cn, spring } from "@msm/ui";
 import type { AssistantResult } from "@/lib/assistant";
 
 type NavLite = { id: string; label: string; href: string };
@@ -202,11 +202,13 @@ export function HelpAssistant({ nav, storageKey, ask, role }: Props) {
             </motion.button>
           ) : null}
         </AnimatePresence>
-        <motion.button whileTap={{ scale: 0.94 }} onClick={() => toggle()} aria-expanded={open} aria-controls="msm-help-panel"
-          aria-label={open ? "Cerrar la ayuda" : "Abrir la ayuda: pregunta cómo hacer cualquier cosa"}
-          className="grid size-14 place-items-center rounded-full bg-primary text-white shadow-[0_10px_30px_-8px_var(--primary)] hover:bg-primary-hover">
-          {open ? <X className="size-6" aria-hidden="true" /> : <LifeBuoy className="size-7" aria-hidden="true" />}
-        </motion.button>
+        <Tooltip hint={open ? null : HINT.helpFab} side="left">
+          <motion.button whileTap={{ scale: 0.94 }} onClick={() => toggle()} aria-expanded={open} aria-controls="msm-help-panel"
+            aria-label={open ? "Cerrar la ayuda" : "Abrir la ayuda: pregunta cómo hacer cualquier cosa"}
+            className="grid size-14 place-items-center rounded-full bg-primary text-white shadow-[0_10px_30px_-8px_var(--primary)] hover:bg-primary-hover">
+            {open ? <X className="size-6" aria-hidden="true" /> : <LifeBuoy className="size-7" aria-hidden="true" />}
+          </motion.button>
+        </Tooltip>
       </div>
 
       <AnimatePresence>
@@ -222,9 +224,9 @@ export function HelpAssistant({ nav, storageKey, ask, role }: Props) {
                   {mode === "ia" ? "Con IA · basado en el manual" : mode === "guia" || noAI ? "Modo guía · respuestas del manual" : "Pregúntame cómo usar la aplicación"}
                 </p>
               </div>
-              <button onClick={() => { setMsgs([]); setMode(null); }} aria-label="Nueva conversación" title="Nueva conversación" className="grid size-10 place-items-center rounded-xl text-muted hover:bg-primary-soft"><RotateCcw className="size-[18px]" /></button>
-              <Link href={manualHref} onClick={() => setOpen(false)} aria-label="Abrir el manual" title="Abrir el manual" className="grid size-10 place-items-center rounded-xl text-muted hover:bg-primary-soft"><BookOpen className="size-[18px]" /></Link>
-              <button onClick={() => toggle(false)} aria-label="Cerrar (Esc)" title="Cerrar (Esc)" className="grid size-10 place-items-center rounded-xl text-muted hover:bg-primary-soft"><X className="size-5" /></button>
+              <Tooltip hint={HINT.newChat} side="bottom"><button onClick={() => { setMsgs([]); setMode(null); }} aria-label="Nueva conversación" className="grid size-10 place-items-center rounded-xl text-muted hover:bg-primary-soft"><RotateCcw className="size-[18px]" /></button></Tooltip>
+              <Tooltip hint={{ title: "Abrir el manual", text: "Lleva al manual en la tarea de la pantalla en la que estás." }} side="bottom"><Link href={manualHref} onClick={() => setOpen(false)} aria-label="Abrir el manual" className="grid size-10 place-items-center rounded-xl text-muted hover:bg-primary-soft"><BookOpen className="size-[18px]" /></Link></Tooltip>
+              <Tooltip hint={{ title: "Cerrar", text: "Cierra el asistente (también con Esc). La conversación se conserva mientras no cierres la pestaña." }} side="bottom"><button onClick={() => toggle(false)} aria-label="Cerrar (Esc)" className="grid size-10 place-items-center rounded-xl text-muted hover:bg-primary-soft"><X className="size-5" /></button></Tooltip>
             </header>
 
             <div ref={box} className="flex-1 space-y-3 overflow-y-auto px-4 py-4" aria-live="polite">
@@ -267,7 +269,7 @@ export function HelpAssistant({ nav, storageKey, ask, role }: Props) {
                 onChange={(e) => { setText(e.target.value); e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px"; }}
                 onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(); } }}
                 className="max-h-[120px] min-h-12 flex-1 resize-none rounded-[10px] border border-border bg-bg px-3.5 py-3 text-[16px] outline-none focus:border-primary" />
-              <button type="submit" disabled={sending || !text.trim()} aria-label="Enviar" className="grid size-12 shrink-0 place-items-center rounded-[10px] bg-primary text-white hover:bg-primary-hover disabled:opacity-50"><SendHorizontal className="size-5" /></button>
+              <Tooltip hint={HINT.sendQuestion} side="top"><button type="submit" disabled={sending || !text.trim()} aria-label="Enviar" className="grid size-12 shrink-0 place-items-center rounded-[10px] bg-primary text-white hover:bg-primary-hover disabled:opacity-50"><SendHorizontal className="size-5" /></button></Tooltip>
             </form>
             <p className="px-4 pb-2 text-center text-[11.5px] text-muted">No escribas datos personales. La IA se equivoca a veces: la fuente te dice dónde comprobarlo.</p>
           </motion.div>

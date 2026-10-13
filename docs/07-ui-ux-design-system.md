@@ -50,6 +50,9 @@ Button · IconButton · Card/StatCard (KPI con tendencia) · StatusPill (semáfo
 7. **Administración** (conexiones, usuarios, auditoría).
 8. **Modo campo** (móvil): mis OT, grande, una mano, voz y foto.
 
+## Ayuda contextual (tooltips)
+Al pasar el ratón (o enfocar con teclado) por un elemento, un recuadro explica **qué es y para qué sirve**. Componente `Tooltip` en `packages/ui`; los textos viven centralizados en `packages/core/src/help/tooltips.ts` (un test exige texto para cada sección del menú y limita su longitud). Las tarjetas de indicadores muestran además el cálculo y la fuente (`kpiHint`). Accesible: `role="tooltip"` + `aria-describedby`, se cierra con Esc, no depende solo del color. En táctil no existe «pasar por encima»: ahí cubren el manual y el asistente. Al crear un elemento nuevo con significado propio (botón, etiqueta, filtro), añade su `hint`.
+
 ## Accesibilidad (innegociable)
 Teclado completo, foco visible, etiquetas ARIA, lectores de pantalla, tamaño de texto escalable, no depender del color, `lang="es"`. Pruebas con axe + revisión manual.
 
