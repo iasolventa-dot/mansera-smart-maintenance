@@ -24,7 +24,8 @@
 ## Calidad verificada (G0)
 - E2E + accesibilidad (Playwright + axe, WCAG 2.1 AA): **291 pruebas pasan** en 7 perfiles, 3 tamaños (375/768/1440), tema claro y oscuro; sin desbordamiento horizontal; permisos, propuestas, búsqueda, manual, asistente y tooltips. Se ejecutan en CI (job `e2e`). Local: `pnpm --filter @msm/web exec playwright test --workers=3` (cierra antes cualquier `pnpm dev` de este proyecto).
 - Corregido gracias a ellas: contraste insuficiente (menú, etiqueta IA, azul principal en oscuro, botón secundario), desbordamiento (cabecera a 768, manual y usuarios a 375), error de hidratación del contador con «reducir movimiento».
-- Aún no hecho: Lighthouse, `/revision` independiente, valoración de G0.
+- CI verde con el job `e2e` (291 pruebas también en Linux). Lighthouse móvil sobre https://mansera-indol.vercel.app/login: rendimiento 98 · accesibilidad 100 · buenas prácticas 100 · SEO 100; LCP 2,2 s, CLS 0, TBT 120 ms. Solo se midió la pantalla pública (el resto exige sesión).
+- En curso: `/revision` independiente (subagente reviewer). Aún no hecho: valoración final de G0.
 
 ## Siguiente paso concreto
 1. Usuario: revisar la demo en producción con `demo@solventa.com` y dar feedback.
