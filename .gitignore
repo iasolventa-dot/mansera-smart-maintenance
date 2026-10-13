@@ -1,0 +1,70 @@
+# Secretos y entorno (NUNCA subir)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*credentials*.json
+*service-account*.json
+*secret*.txt
+*api key*.txt
+*key.txt
+
+# Dependencias y builds
+node_modules/
+.pnpm-store/
+.next/
+out/
+dist/
+build/
+.turbo/
+.vercel/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+next-env.d.ts
+
+# Supabase local
+supabase/.branches/
+supabase/.temp/
+supabase/seed.local.sql
+
+# Datos reales de MANSERA / clientes (jamás en el repo)
+data/
+exports/
+fixtures/real/
+*.bak
+*.mdb
+*.accdb
+*.sql.gz
+*.dump
+*.csv
+!fixtures/**/*.sample.csv
+
+# Gateway on-prem: configuración y logs locales
+apps/gateway/config.local.*
+apps/gateway/*.log
+logs/
+*.log
+
+# Claude Code: configuración personal (la compartida SÍ se versiona)
+.claude/settings.local.json
+.claude/*.local.*
+
+# Sistema / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+
+# Temporales
+tmp/
+temp/
+*.tmp

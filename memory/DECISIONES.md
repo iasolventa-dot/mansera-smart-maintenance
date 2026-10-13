@@ -1,0 +1,15 @@
+# Registro de decisiones (índice de ADR)
+
+Formato de cada ADR en `memory/adr/NNNN-titulo.md`: Contexto · Decisión · Alternativas · Consecuencias · Estado (propuesto/aceptado/sustituido) · Fecha.
+
+| ADR | Título | Estado |
+|---|---|---|
+| 0001 | API-first con política de acceso a datos (live por defecto; almacén mínimo y regenerable) | Aceptado |
+| 0002 | Stack: monorepo pnpm+Turbo, Next.js+TS, Tailwind+shadcn+Motion, Supabase, Vercel | Propuesto |
+| 0003 | Gateway on-prem saliente para apps locales | Propuesto (depende de Q1/M1) |
+| 0004 | Multi-tenant desde el día 1 (`org_id` + RLS) | Propuesto |
+| 0005 | Escrituras como propuesta con aprobación humana | Aceptado |
+| 0006 | IA solo en servidor, con citas obligatorias y permisos heredados | Aceptado |
+| 0007 | n8n solo para orquestación auxiliar no crítica | Propuesto |
+
+Para crear uno nuevo: copiar `adr/0000-plantilla.md`.
