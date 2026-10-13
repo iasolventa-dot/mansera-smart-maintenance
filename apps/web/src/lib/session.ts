@@ -64,7 +64,8 @@ async function getSupabaseState(): Promise<SessionState> {
   const user = auth.user;
   if (!user) return { state: "anon" };
 
-  const { data: m } = await supabase.from("memberships").select("role").eq("user_id", user.id).limit(1).maybeSingle();
+  // Orden fijo: con varias organizaciones el rol sería no determinista (la organización activa se fijará en M2).
+  const { data: m } = await supabase.from("memberships").select("role").eq("user_id", user.id).order("created_at", { ascending: true }).limit(1).maybeSingle();
   const real = Role.safeParse(m?.role);
   if (!real.success) return { state: "no-membership", email: user.email ?? "" };
 

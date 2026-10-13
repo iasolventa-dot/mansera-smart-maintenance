@@ -144,3 +144,16 @@ export const homeFor = (role: Role): string => (role === "campo" ? "/campo" : "/
 export const canAccess = (role: Role, id: NavId): boolean => ACCESS[role].nav.includes(id);
 /** Secciones del rol, en el orden maestro del menú. */
 export const navFor = (role: Role): NavId[] => NAV_ORDER.filter((id) => canAccess(role, id));
+
+/**
+ * Acciones del servidor (escrituras y consultas con efecto) y la sección cuyo permiso exigen.
+ * La interfaz oculta lo que no se puede hacer, pero la barrera real está aquí y en el servidor:
+ * toda server action debe llamar a `canPerform` (lo recuerda un test).
+ */
+export type ActionId = "decidirPropuesta" | "crearOrden" | "usarCopiloto";
+export const ACTION_SECTION: Record<ActionId, NavId> = {
+  decidirPropuesta: "propuestas",
+  crearOrden: "ordenes",
+  usarCopiloto: "copiloto",
+};
+export const canPerform = (role: Role, action: ActionId): boolean => canAccess(role, ACTION_SECTION[action]);

@@ -13,3 +13,8 @@ Probabilidad/Impacto: B/M/A. Revisar al cierre de cada hito.
 | R-08 | Dependencia de personas clave (Cristina) | M | M | Documentación, runbooks, formación | Abierto |
 | R-09 | Competencia/otro proveedor de IA en el cliente | M | M | Valor demostrable rápido (M3); no sustituir sistemas | Abierto |
 | R-10 | Sobrecarga de UI/animación degrada rendimiento en móvil | M | M | Presupuesto de rendimiento en `07`; Lighthouse CI | Abierto |
+| R-11 | Protección contra contraseñas filtradas desactivada en Supabase Auth (aviso del advisor) | M | M | Activarla en el panel (Authentication → Password security); cuentas demo con contraseña robusta | Abierto |
+| R-12 | Función `public.rls_auto_enable()` ejecutable por anon/authenticated (aviso del advisor; la activó el usuario para forzar RLS en tablas nuevas) | B | M | Mantener mientras sirva; si molesta, `revoke execute` a anon/authenticated | Aceptado |
+| R-13 | El contador diario del asistente falla «abierto» (si falla la base de datos no bloquea al usuario) y en demo es en memoria | B | B | Decisión consciente; revisar con el modelo real y valorar Haiku por defecto | Aceptado |
+| R-14 | Con varios `memberships` por usuario el rol sale del más antiguo; no hay organización activa | M | M | Fijar organización activa antes de M2 (multi-tenant real) | Abierto |
+| R-15 | Valor por defecto de Supabase (staging) incrustado en `next.config.mjs`: un entorno de producción apuntaría a staging si falta la variable | M | A | Exigir las variables de entorno en producción y dejar el valor por defecto solo en local, antes del primer despliegue de producción | Abierto |

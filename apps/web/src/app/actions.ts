@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { homeFor, NewWorkOrderInput, Role, type CopilotAnswer, type SearchHit } from "@msm/core";
+import { canPerform, homeFor, NewWorkOrderInput, Role, type CopilotAnswer, type SearchHit } from "@msm/core";
 import { getProvider } from "@/lib/data";
 import { askAssistantServer, type AssistantResult } from "@/lib/assistant";
 import { applyOverlay, recordCreated, recordDecision } from "@/lib/demo-state";
@@ -46,6 +46,7 @@ export async function signOut(): Promise<void> {
 
 export async function decideProposal(formData: FormData): Promise<void> {
   const session = await requireSession();
+  if (!canPerform(session.role, "decidirPropuesta")) return; // permiso en servidor, no solo botón oculto
   const id = String(formData.get("id") ?? "");
   const decision = formData.get("decision") === "aprobada" ? "aprobada" : "rechazada";
   const current = (await applyOverlay(await getProvider().listProposals())).find((p) => p.id === id);
@@ -59,6 +60,7 @@ export type CreateOrderResult = { ok: true; id: string } | { ok: false; error: s
 /** Acción rápida: crea una PROPUESTA de OT (nunca escribe en PGMWin sin aprobación). */
 export async function createWorkOrder(input: NewWorkOrderInput): Promise<CreateOrderResult> {
   const session = await requireSession();
+  if (!canPerform(session.role, "crearOrden")) return { ok: false, error: "Tu perfil no puede crear órdenes de trabajo." };
   const parsed = NewWorkOrderInput.safeParse(input);
   if (!parsed.success) return { ok: false, error: "Revisa los datos: falta cliente, activo o descripción." };
   const proposal = await getProvider().createWorkOrderProposal(parsed.data, session.name);
@@ -69,6 +71,9 @@ export async function createWorkOrder(input: NewWorkOrderInput): Promise<CreateO
 
 export async function askCopilot(question: string): Promise<CopilotAnswer> {
   const session = await requireSession();
+  if (!canPerform(session.role, "usarCopiloto")) {
+    return { answer: "Tu perfil no tiene acceso al Copiloto de IA.", confidence: "baja", sources: [], noData: true };
+  }
   const q = question.trim().slice(0, 500);
   return getProvider().askCopilot(q, session.role);
 }

@@ -205,7 +205,7 @@ export const MANUAL: ManualChapter[] = [
           "Cada tarjeta muestra el código, el estado, la prioridad, si es correctivo o preventivo, el cliente, el activo, el centro, quién la lleva y cuándo vence.",
           "Pulsa una orden para abrir la **ficha del activo** afectado.",
         ],
-        notes: [{ kind: "info", text: "Las órdenes se leen de PGMWin: siempre ves el dato vigente, la aplicación no guarda una copia." }],
+        notes: [{ kind: "info", text: "Las órdenes se leen de PGMWin: con la conexión real siempre ves el dato vigente y la aplicación no guarda una copia. Mientras se muestren «datos de ejemplo», son ficticios." }],
       },
       {
         id: "mantenimiento",
@@ -437,7 +437,7 @@ export const MANUAL: ManualChapter[] = [
         keywords: ["dato antiguo", "desactualizado", "no coincide", "no se actualiza", "hace minutos", "lento", "sincronización", "diferente"],
         steps: [
           "Mira en **Conexiones** (si tu perfil lo permite) si la aplicación de origen aparece como **Lenta** o **Sin conexión**: los datos pueden tener unos minutos de retraso.",
-          "Recarga la página. Los datos se leen del programa de origen cada vez, no se guardan copias.",
+          "Recarga la página. Con la conexión real, los datos se leen del programa de origen cada vez, no se guardan copias (con «datos de ejemplo» no hay conexión).",
           "Si sigue sin coincidir, avisa a TI indicando la pantalla y el dato.",
         ],
         notes: [{ kind: "info", text: "El programa de origen (PGMWin, A3ERP, Trello o Sésame) siempre tiene la razón: esta aplicación solo lo muestra y lo enlaza." }],

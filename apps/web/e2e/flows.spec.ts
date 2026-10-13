@@ -158,3 +158,20 @@ test.describe("ayuda contextual (tooltips)", () => {
     await expect(page.getByRole("tooltip")).toContainText("Fuente: PGMWin");
   });
 });
+
+test.describe("permisos de acciones (el servidor manda, no solo el botón)", () => {
+  test("un perfil sin Órdenes no puede abrir el diálogo de nueva orden ni por la dirección", async ({ page, context }) => {
+    await loginAs(context, "campo");
+    await page.goto("/campo?accion=ot");
+    await settle(page);
+    await expect(page.getByRole("dialog", { name: "Nueva orden de trabajo" })).toHaveCount(0);
+  });
+
+  test("tampoco se ofrece «Nueva orden de trabajo» en la búsqueda", async ({ page, context }) => {
+    await loginAs(context, "rrhh");
+    await page.goto("/panel");
+    await settle(page);
+    await page.keyboard.press("Control+K");
+    await expect(page.getByRole("dialog", { name: "Buscar o ir a" }).getByText("Nueva orden de trabajo")).toHaveCount(0);
+  });
+});

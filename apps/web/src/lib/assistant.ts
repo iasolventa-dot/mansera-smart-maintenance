@@ -55,7 +55,9 @@ export async function askAssistantServer(user: { id: string; role: Role }, input
   }
 
   const allowedNav: NavId[] = navFor(user.role);
-  const panelName = input.panel ? String(input.panel).slice(0, 60) : null;
+  // Solo se acepta el nombre de una sección real (texto que llega del navegador no entra tal cual en el prompt).
+  const knownPanels = new Set<string>(Object.values(NAV_LABEL));
+  const panelName = input.panel && knownPanels.has(String(input.panel)) ? String(input.panel) : null;
   const client = new Anthropic({ apiKey, timeout: 45_000, maxRetries: 1 });
 
   try {

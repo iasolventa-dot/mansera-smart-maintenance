@@ -67,7 +67,8 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
   const [palette, setPalette] = useState(false);
   const [bell, setBell] = useState(false);
   const [dark, setDark] = useState(false);
-  const orderOpen = params.get("accion") === "ot";
+  const canCreateOrder = nav.some((n) => n.id === "ordenes");
+  const orderOpen = params.get("accion") === "ot" && canCreateOrder;
 
   useEffect(() => {
     // Sincroniza con el DOM/preferencia del sistema (no existe en el servidor).
@@ -234,7 +235,7 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
             <form action={signOut} className="mt-2"><button className="flex min-h-14 w-full items-center gap-3 rounded-xl px-3 text-[17px] font-bold text-bad-text hover:bg-bad-soft"><LogOut className="size-5" aria-hidden="true" />Cerrar sesión</button></form>
           </Sheet>
         ) : null}
-        {palette ? <Palette nav={nav} searchAll={searchAll} onClose={() => setPalette(false)} onGo={(href) => { setPalette(false); goTo(href); }} /> : null}
+        {palette ? <Palette nav={nav} searchAll={searchAll} canCreateOrder={canCreateOrder} onClose={() => setPalette(false)} onGo={(href) => { setPalette(false); goTo(href); }} /> : null}
         {orderOpen ? <QuickOrderDialog clients={quick.clients} assets={quick.assets} create={createWorkOrder} onClose={closeOrder} /> : null}
       </AnimatePresence>
       <HelpAssistant nav={nav} storageKey={helpKey} ask={askAssistant} role={role} />
@@ -312,7 +313,7 @@ function Sheet({ title, onClose, children }: { title: string; onClose: () => voi
 
 const KIND_LABEL: Record<SearchHit["kind"], string> = { cliente: "Cliente", activo: "Activo", orden: "Orden", oferta: "Oferta", persona: "Persona" };
 
-function Palette({ nav, searchAll, onClose, onGo }: { nav: NavItem[]; searchAll: Props["searchAll"]; onClose: () => void; onGo: (href: string) => void }) {
+function Palette({ nav, searchAll, canCreateOrder, onClose, onGo }: { nav: NavItem[]; searchAll: Props["searchAll"]; canCreateOrder: boolean; onClose: () => void; onGo: (href: string) => void }) {
   const [q, setQ] = useState("");
   const [i, setI] = useState(0);
   const [hits, setHits] = useState<SearchHit[]>([]);
@@ -333,7 +334,7 @@ function Palette({ nav, searchAll, onClose, onGo }: { nav: NavItem[]; searchAll:
   const needle = q.toLowerCase();
   const navHits = nav.filter((n) => n.label.toLowerCase().includes(needle));
   const items: { id: string; label: string; sub?: string; href: string; tag: string }[] = [
-    ...(needle.includes("orden") || needle.includes("nueva") || !needle ? [{ id: "act-ot", label: "Nueva orden de trabajo", sub: "Acción rápida · crea una propuesta", href: "?accion=ot", tag: "Acción" }] : []),
+    ...(canCreateOrder && (needle.includes("orden") || needle.includes("nueva") || !needle) ? [{ id: "act-ot", label: "Nueva orden de trabajo", sub: "Acción rápida · crea una propuesta", href: "?accion=ot", tag: "Acción" }] : []),
     ...navHits.map((n) => ({ id: n.id, label: n.label, href: n.href, tag: "Ir a" })),
     ...(q.trim().length >= 2 ? hits.map((h) => ({ id: h.kind + h.id, label: h.title, sub: h.subtitle, href: h.href, tag: KIND_LABEL[h.kind] })) : []),
     ...(q.trim().length >= 3 ? [{ id: "ask-help", label: `Preguntar a la ayuda: «${q.trim().slice(0, 60)}»`, sub: "El asistente te explica cómo hacerlo", href: `#help:${q.trim()}`, tag: "Ayuda" }] : []),
