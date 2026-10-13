@@ -55,6 +55,8 @@ function kpisFor(role: Role): Kpi[] {
     administracion: [pendFact, { ...coste, id: "coste-adm" }, { ...ordenes, label: "OT cerradas sin albarán", value: 14, id: "ot-sin-albaran", status: "warn", trend: undefined }],
     ti: [
       { id: "conx", label: "Conexiones activas", value: 3, unit: "", decimals: 0, status: "warn", note: "de 4 configuradas", provenance: prov({ source: "msm", entity: "Salud de conectores", calc: "Conectores con health() correcto" }) },
+      { id: "lat", label: "Latencia media", value: 461, unit: "", decimals: 0, status: "warn", note: "ms · A3ERP la eleva", provenance: prov({ source: "msm", entity: "connector_runs", period: "últimas 24 h", calc: "Media de latencia por llamada a los conectores" }) },
+      { id: "aud", label: "Eventos de auditoría hoy", value: 38, unit: "", decimals: 0, status: "ok", note: "quién hizo qué, siempre registrado", provenance: prov({ source: "msm", entity: "audit_log", period: "hoy", calc: "Recuento de eventos del día" }) },
       { id: "prop-pend", label: "Propuestas pendientes", value: 2, unit: "", decimals: 0, status: "warn", provenance: prov({ source: "msm", entity: "sync_proposals", calc: "Propuestas en estado pendiente" }) },
     ],
     campo: [],

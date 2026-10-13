@@ -22,7 +22,9 @@ export const ASSETS: Asset[] = [
   { id: "A-0098", name: "Llenadora LL-03", client: "Embotelladora Sur", site: "Línea 1", category: "Envasado", status: "ok", failures12m: 2, nextPreventive: "2026-11-05" },
 ];
 
-const T = "2026-10-13T08:00:00.000Z";
+/** Marcas de tiempo relativas: la demo siempre parece "viva", sea cual sea el día. */
+const minutesAgo = (m: number) => new Date(Date.now() - m * 60_000).toISOString();
+const T = minutesAgo(5);
 
 export const WORK_ORDERS: WorkOrder[] = [
   { id: "ot-1", externalId: "OT-26-3318", source: "pgmwin", title: "Fuga en sello mecánico", client: "Embotelladora Sur", assetId: "A-0142", assetName: "Bomba B-14", status: "en_curso", priority: "urgente", type: "correctivo", dueDate: "2026-10-13", assignee: "Marcos Ruiz", site: "Línea 2 · Sala de bombeo", mine: true, fetchedAt: T },
@@ -66,7 +68,7 @@ export const PROPOSALS: Proposal[] = [
   {
     id: "p-1", title: "Crear OT en PGMWin desde la oferta ganada «Revisión líneas 1 y 2»", from: "trello", to: "pgmwin",
     summary: "La oferta pasó a «Ganada» en Trello. Se propone abrir la orden de trabajo correspondiente.",
-    createdBy: "Sistema (regla: oferta ganada)", createdAt: "2026-10-13T07:42:00.000Z", status: "pendiente", environment: "pruebas",
+    createdBy: "Sistema (regla: oferta ganada)", createdAt: minutesAgo(80), status: "pendiente", environment: "pruebas",
     diff: [
       { field: "Cliente", before: null, after: "Embotelladora Sur (PGMWin CL-122)" },
       { field: "Descripción", before: null, after: "Revisión líneas 1 y 2 · según oferta O-2026-0417" },
@@ -77,7 +79,7 @@ export const PROPOSALS: Proposal[] = [
   {
     id: "p-2", title: "Generar factura en A3 desde el albarán AL-26-1190", from: "pgmwin", to: "a3erp",
     summary: "Albarán cerrado y conformado por el cliente. Se propone emitir la factura con las líneas del parte.",
-    createdBy: "Carmen Vidal", createdAt: "2026-10-12T16:10:00.000Z", status: "pendiente", environment: "pruebas",
+    createdBy: "Carmen Vidal", createdAt: minutesAgo(17 * 60), status: "pendiente", environment: "pruebas",
     diff: [
       { field: "Cliente", before: null, after: "Logística Norte (A3 4518)" },
       { field: "Líneas", before: null, after: "Mano de obra 6,5 h · Repuestos 3 uds" },
@@ -88,7 +90,7 @@ export const PROPOSALS: Proposal[] = [
   {
     id: "p-3", title: "Alta de cliente nuevo en PGMWin desde A3", from: "a3erp", to: "pgmwin",
     summary: "Cliente creado ayer en A3. Evita teclear de nuevo los datos maestros.",
-    createdBy: "Sistema (regla: cliente nuevo)", createdAt: "2026-10-11T09:00:00.000Z", status: "aprobada", environment: "pruebas",
+    createdBy: "Sistema (regla: cliente nuevo)", createdAt: minutesAgo(2 * 24 * 60), status: "aprobada", environment: "pruebas",
     diff: [
       { field: "Razón social", before: null, after: "Frigoríficos del Guadalquivir S.L." },
       { field: "NIF", before: null, after: "B00000000 (ficticio)" },
@@ -97,9 +99,9 @@ export const PROPOSALS: Proposal[] = [
 ];
 
 export const CONNECTIONS: Connection[] = [
-  { source: "trello", name: "Trello", health: "conectado", transport: "directo", lastSyncAt: "2026-10-13T08:44:00.000Z", latencyMs: 182, note: "Webhooks activos. Reconciliación cada 15 min.", capabilities: [{ name: "Leer tableros y tarjetas", state: "verified" }, { name: "Webhooks", state: "verified" }, { name: "Crear tarjetas", state: "assumed" }] },
-  { source: "sesame", name: "Sésame HR", health: "conectado", transport: "directo", lastSyncAt: "2026-10-13T08:41:00.000Z", latencyMs: 241, capabilities: [{ name: "Leer empleados y fichajes", state: "assumed" }, { name: "Ausencias", state: "assumed" }] },
-  { source: "a3erp", name: "A3ERP", health: "degradado", transport: "gateway", lastSyncAt: "2026-10-13T08:32:00.000Z", latencyMs: 1420, note: "Gateway responde lento. Datos con hasta 12 min de antigüedad.", capabilities: [{ name: "Leer clientes y facturas", state: "assumed" }, { name: "Crear facturas (Link API)", state: "assumed" }] },
+  { source: "trello", name: "Trello", health: "conectado", transport: "directo", lastSyncAt: minutesAgo(2), latencyMs: 182, note: "Webhooks activos. Reconciliación cada 15 min.", capabilities: [{ name: "Leer tableros y tarjetas", state: "verified" }, { name: "Webhooks", state: "verified" }, { name: "Crear tarjetas", state: "assumed" }] },
+  { source: "sesame", name: "Sésame HR", health: "conectado", transport: "directo", lastSyncAt: minutesAgo(4), latencyMs: 241, capabilities: [{ name: "Leer empleados y fichajes", state: "assumed" }, { name: "Ausencias", state: "assumed" }] },
+  { source: "a3erp", name: "A3ERP", health: "degradado", transport: "gateway", lastSyncAt: minutesAgo(12), latencyMs: 1420, note: "Gateway responde lento. Datos con hasta 12 min de antigüedad.", capabilities: [{ name: "Leer clientes y facturas", state: "assumed" }, { name: "Crear facturas (Link API)", state: "assumed" }] },
   { source: "pgmwin", name: "PGMWin", health: "pendiente", transport: "gateway", note: "Pendiente de confirmar vía de integración con el proveedor.", capabilities: [{ name: "Leer OT y activos", state: "assumed" }, { name: "Escribir OT", state: "no-go" }] },
 ];
 
