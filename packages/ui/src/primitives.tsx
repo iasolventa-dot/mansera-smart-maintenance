@@ -16,9 +16,12 @@ export function MotionRoot({ children }: { children: ReactNode }) {
 export function Logo({ className, inverted = false }: { className?: string; inverted?: boolean }) {
   return (
     <div className={cn("flex items-center gap-2.5", className)} aria-label="MANSERA">
-      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
-        <path d="M2 4 L18 4 L2 30 Z" fill={inverted ? "#61BDE4" : "#3E97D0"} />
-        <path d="M18 4 L32 4 L32 30 L10 30 Z" fill={inverted ? "#FFFFFF" : "#4673AF"} opacity={inverted ? 0.92 : 1} />
+      {/* Marca real de MANSERA: tres triángulos azules alrededor de uno blanco. */}
+      <svg width="36" height="36" viewBox="0 0 447 447" aria-hidden="true" className={inverted ? "rounded-lg" : "rounded-lg ring-1 ring-border"}>
+        <polygon points="0,0 447,0 0,167" fill="#4673AF" />
+        <polygon points="447,0 447,447 282,447" fill="#3E97D0" />
+        <polygon points="0,167 282,447 0,447" fill="#61BDE4" />
+        <polygon points="0,167 447,0 282,447" fill="#FFFFFF" />
       </svg>
       <div className="leading-none">
         <div className={cn("text-[17px] font-extrabold tracking-wide", inverted ? "text-white" : "text-brand")}>MANSERA</div>

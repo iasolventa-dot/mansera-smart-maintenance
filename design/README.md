@@ -1,2 +1,4 @@
 # Diseño de referencia
 `mockups/msm_login.png` y `mockups/msm_dashboard.png`: prototipos aprobados (identidad, jerarquía, "Acciones rápidas"). Son **punto de partida**, no techo: la implementación debe superarlos en pulido, movimiento y adaptación móvil siguiendo `docs/07-ui-ux-design-system.md`. Coloca aquí el logo de MANSERA (`logo-mansera.png`) cuando esté disponible.
+
+**Marca vectorial (real):** 4 triángulos sobre un cuadrado de 447 × 447: azul oscuro #4673AF (arriba), azul medio #3E97D0 (derecha), azul claro #61BDE4 (izquierda) y uno blanco central con vértices (0,167), (447,0), (282,447). Está en `packages/ui/src/primitives.tsx` (componente Logo) y en `apps/web/scripts/generate-icons.mjs` (iconos de la PWA). Pendiente: el logotipo completo «MSA MANSERA» en alta resolución, si se quiere usar el original en vez del texto.
