@@ -27,13 +27,13 @@ export default async function PropuestasPage() {
 
       <h2 className="mb-3 text-lg font-extrabold">Pendientes de aprobar ({pending.length})</h2>
       {pending.length === 0 ? <EmptyState title="Todo al día" description="No hay propuestas esperando tu decisión." /> : (
-        <Stagger className="mb-8 grid gap-4 xl:grid-cols-2">{pending.map((p) => <Item key={p.id}><ProposalCard p={p} /></Item>)}</Stagger>
+        <Stagger className="mb-8 grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-2">{pending.map((p) => <Item key={p.id}><ProposalCard p={p} /></Item>)}</Stagger>
       )}
 
       {done.length ? (
         <>
           <h2 className="mb-3 mt-2 text-lg font-extrabold">Resueltas</h2>
-          <div className="grid gap-4 xl:grid-cols-2">{done.map((p) => <ProposalCard key={p.id} p={p} />)}</div>
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-2">{done.map((p) => <ProposalCard key={p.id} p={p} />)}</div>
         </>
       ) : null}
     </>
