@@ -43,10 +43,10 @@ function describeNetwork(name: string, e: unknown): ProbeResult {
 export async function probeTrello(config: Values, secrets: Values, fetchImpl: FetchLike = fetch): Promise<ProbeResult> {
   const key = config.apiKey, token = secrets.token;
   if (!key || !token) return { status: "error", message: "Faltan la clave de API o el token." };
-  // Documentado: GET /1/members/me con key y token como parámetros. La URL no se registra en ningún sitio.
-  const url = `https://api.trello.com/1/members/me?fields=username&key=${encodeURIComponent(key)}&token=${encodeURIComponent(token)}`;
+  // Documentado: GET /1/members/me. Credenciales en la cabecera OAuth (nunca en la URL, que podría acabar en registros).
+  const url = "https://api.trello.com/1/members/me?fields=username";
   try {
-    const { res, ms } = await timed(fetchImpl, url, { method: "GET", headers: { Accept: "application/json" } });
+    const { res, ms } = await timed(fetchImpl, url, { method: "GET", headers: { Accept: "application/json", Authorization: `OAuth oauth_consumer_key="${key}", oauth_token="${token}"` } });
     if (res.status === 200) return { status: "verificada", message: "Conexión correcta con Trello.", latencyMs: ms };
     return describeHttp("Trello", res.status);
   } catch (e) {

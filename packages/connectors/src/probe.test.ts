@@ -11,7 +11,8 @@ describe("comprobación de Trello", () => {
     expect(r.status).toBe("verificada");
     const url = String(f.mock.calls[0]![0]);
     expect(url.startsWith("https://api.trello.com/1/members/me?")).toBe(true);
-    expect(url).toContain(`token=${TOKEN}`);
+    expect(url).not.toContain(TOKEN);
+    expect((f.mock.calls[0]![1] as RequestInit).headers).toMatchObject({ Authorization: expect.stringContaining(`oauth_token="${TOKEN}"`) });
   });
   it("no sigue redirecciones ni deja en caché", async () => {
     const f = reply(200);

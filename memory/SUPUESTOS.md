@@ -18,3 +18,5 @@ Estados: **HECHO** (fuente) · **HIPÓTESIS** · **VERIFICADO (spike)** · **REF
 | S-12 | Trello: key+token; Sésame: Bearer en https://api-{región}.sesametime.com | HECHO (docs oficiales); sin verificar con cuentas de MANSERA (las pruebas del sondeo usan respuestas simuladas) | developer.atlassian.com · apidocs.sesametime.com | 2026-10-13 |
 | S-13 | PGMWin no tiene documentación pública de integración | HECHO (búsquedas 2026-10-13); formato de conexión PENDIENTE DE DOCUMENTAR | — | 2026-10-13 |
 | S-14 | Valores válidos de región de Sésame y alcances del token | HIPÓTESIS: la regla aceptada es [a-z0-9-]; por confirmar | — | 2026-10-13 |
+| S-15 | MANSERA guarda importe, cliente y probabilidad de cada oferta en campos personalizados de Trello | HIPÓTESIS: si no es así, el mapeo deja las ofertas como «incompletas» (no inventa); confirmar con la pregunta E | — | 2026-10-13 |
+| S-16 | La API de Trello acepta la cabecera Authorization: OAuth oauth_consumer_key/oauth_token | HECHO (docs Atlassian); sin verificar con la cuenta de MANSERA | developer.atlassian.com | 2026-10-13 |

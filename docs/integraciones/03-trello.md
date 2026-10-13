@@ -21,3 +21,8 @@ Estructura real de tableros/listas/etiquetas de MANSERA (levantar en auditoría)
 - Clave de API (key) + token de usuario en cada petición (también OAuth 1.0). Comprobación de solo lectura: `GET https://api.trello.com/1/members/me?key=…&token=…`.
 - Token con `scope=read` al principio; `write` solo cuando existan propuestas de escritura. Usar una cuenta de servicio. Un token revocado devuelve 401.
 - En la aplicación: **Conexiones → Credenciales de acceso** (ADR-0010). Catálogo: `packages/core/src/connectors/specs.ts`.
+
+## Conector de lectura (preparado 2026-10-13, sin probar con la cuenta de MANSERA)
+- `packages/connectors/src/trello/`: cliente de SOLO lectura (autenticación por cabecera `Authorization: OAuth oauth_consumer_key, oauth_token`, respuestas validadas con Zod, errores tipados) y mapeo puro tarjeta → oferta.
+- **El mapeo es configuración, no suposición:** qué lista es cada etapa y qué campos personalizados guardan importe, cliente y probabilidad se levantará con MANSERA (pregunta E del cuestionario). Si falta un dato, la tarjeta sale como «incompleta» con el motivo; nunca se rellena.
+- Pruebas con datos de ejemplo INVENTADOS en `packages/connectors/fixtures/trello/board.sample.json` (formato documentado).

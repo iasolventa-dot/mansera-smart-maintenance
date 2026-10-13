@@ -1,0 +1,226 @@
+{
+  "_aviso": "DATOS DE EJEMPLO INVENTADOS con el formato documentado de la API de Trello. No son datos de MANSERA.",
+  "lists": [
+    {
+      "id": "0000000000000000000000a1",
+      "name": "Borradores",
+      "closed": false,
+      "pos": 1
+    },
+    {
+      "id": "0000000000000000000000a2",
+      "name": "Enviadas",
+      "closed": false,
+      "pos": 2
+    },
+    {
+      "id": "0000000000000000000000a3",
+      "name": "En negociación",
+      "closed": false,
+      "pos": 3
+    },
+    {
+      "id": "0000000000000000000000a4",
+      "name": "Ganadas",
+      "closed": false,
+      "pos": 4
+    },
+    {
+      "id": "0000000000000000000000a9",
+      "name": "Archivo",
+      "closed": false,
+      "pos": 5
+    }
+  ],
+  "customFields": [
+    {
+      "id": "0000000000000000000000c1",
+      "name": "Importe (€)",
+      "type": "number"
+    },
+    {
+      "id": "0000000000000000000000c2",
+      "name": "Cliente",
+      "type": "list",
+      "options": [
+        {
+          "id": "0000000000000000000000d1",
+          "value": {
+            "text": "Cliente Ejemplo A"
+          }
+        },
+        {
+          "id": "0000000000000000000000d2",
+          "value": {
+            "text": "Cliente Ejemplo B"
+          }
+        }
+      ]
+    },
+    {
+      "id": "0000000000000000000000c3",
+      "name": "Probabilidad",
+      "type": "number"
+    }
+  ],
+  "members": [
+    {
+      "id": "0000000000000000000000e1",
+      "fullName": "Persona Ejemplo Uno"
+    },
+    {
+      "id": "0000000000000000000000e2",
+      "fullName": "Persona Ejemplo Dos"
+    }
+  ],
+  "cards": [
+    {
+      "id": "000000000000000000000f01",
+      "name": "Mantenimiento climatización nave 3",
+      "idList": "0000000000000000000000a2",
+      "closed": false,
+      "due": "2026-11-20T10:00:00.000Z",
+      "dateLastActivity": "2026-10-10T08:00:00.000Z",
+      "idMembers": [
+        "0000000000000000000000e1"
+      ],
+      "labels": [],
+      "shortUrl": "https://trello.com/c/EJEMPLO1",
+      "customFieldItems": [
+        {
+          "idCustomField": "0000000000000000000000c1",
+          "value": {
+            "number": "12500.50"
+          }
+        },
+        {
+          "idCustomField": "0000000000000000000000c2",
+          "idValue": "0000000000000000000000d1"
+        },
+        {
+          "idCustomField": "0000000000000000000000c3",
+          "value": {
+            "number": "60"
+          }
+        }
+      ]
+    },
+    {
+      "id": "000000000000000000000f02",
+      "name": "Revisión PCI anual",
+      "idList": "0000000000000000000000a4",
+      "closed": false,
+      "due": "2026-11-20T10:00:00.000Z",
+      "dateLastActivity": "2026-10-10T08:00:00.000Z",
+      "idMembers": [
+        "0000000000000000000000e2"
+      ],
+      "labels": [],
+      "shortUrl": "https://trello.com/c/EJEMPLO2",
+      "customFieldItems": [
+        {
+          "idCustomField": "0000000000000000000000c1",
+          "value": {
+            "number": "8000"
+          }
+        },
+        {
+          "idCustomField": "0000000000000000000000c2",
+          "idValue": "0000000000000000000000d2"
+        },
+        {
+          "idCustomField": "0000000000000000000000c3",
+          "value": {
+            "number": "100"
+          }
+        }
+      ]
+    },
+    {
+      "id": "000000000000000000000f03",
+      "name": "Oferta sin importe",
+      "idList": "0000000000000000000000a3",
+      "closed": false,
+      "due": "2026-11-20T10:00:00.000Z",
+      "dateLastActivity": "2026-10-10T08:00:00.000Z",
+      "idMembers": [
+        "0000000000000000000000e1"
+      ],
+      "labels": [],
+      "shortUrl": "https://trello.com/c/EJEMPLO3",
+      "customFieldItems": [
+        {
+          "idCustomField": "0000000000000000000000c2",
+          "idValue": "0000000000000000000000d1"
+        },
+        {
+          "idCustomField": "0000000000000000000000c3",
+          "value": {
+            "number": "40"
+          }
+        }
+      ]
+    },
+    {
+      "id": "000000000000000000000f04",
+      "name": "Tarjeta sin responsable ni fecha",
+      "idList": "0000000000000000000000a1",
+      "closed": false,
+      "due": null,
+      "dateLastActivity": "2026-10-10T08:00:00.000Z",
+      "idMembers": [],
+      "labels": [],
+      "shortUrl": "https://trello.com/c/EJEMPLO4",
+      "customFieldItems": [
+        {
+          "idCustomField": "0000000000000000000000c1",
+          "value": {
+            "number": "12500.50"
+          }
+        },
+        {
+          "idCustomField": "0000000000000000000000c2",
+          "idValue": "0000000000000000000000d1"
+        },
+        {
+          "idCustomField": "0000000000000000000000c3",
+          "value": {
+            "number": "60"
+          }
+        }
+      ]
+    },
+    {
+      "id": "000000000000000000000f05",
+      "name": "Tarjeta en lista no mapeada",
+      "idList": "0000000000000000000000a9",
+      "closed": false,
+      "due": "2026-11-20T10:00:00.000Z",
+      "dateLastActivity": "2026-10-10T08:00:00.000Z",
+      "idMembers": [
+        "0000000000000000000000e1"
+      ],
+      "labels": [],
+      "shortUrl": "https://trello.com/c/EJEMPLO5",
+      "customFieldItems": [
+        {
+          "idCustomField": "0000000000000000000000c1",
+          "value": {
+            "number": "12500.50"
+          }
+        },
+        {
+          "idCustomField": "0000000000000000000000c2",
+          "idValue": "0000000000000000000000d1"
+        },
+        {
+          "idCustomField": "0000000000000000000000c3",
+          "value": {
+            "number": "60"
+          }
+        }
+      ]
+    }
+  ],
+  "fetchedAt": "2026-10-13T12:00:00.000Z"
+}
