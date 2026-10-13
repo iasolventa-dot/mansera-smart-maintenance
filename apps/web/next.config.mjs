@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   // Los paquetes del monorepo se publican como TypeScript fuente.
-  transpilePackages: ["@msm/core", "@msm/ui"],
+  transpilePackages: ["@msm/connectors", "@msm/core", "@msm/ui"],
   // Configuración PÚBLICA de Supabase (staging "Mansera", UE). Se incrusta en el navegador por
   // diseño; la seguridad la da RLS. Una variable de entorno real (Vercel / .env.local) tiene
   // prioridad sobre estos valores por defecto. Aquí NUNCA va la service role ni ningún secreto.

@@ -14,6 +14,8 @@ import { createClient } from "./supabase/server";
  */
 export type Session = {
   userId: string;
+  /** Organización de la sesión (null en el modo demo local sin Supabase). */
+  orgId: string | null;
   name: string;
   email: string;
   role: Role;
@@ -54,7 +56,7 @@ export async function getSessionState(): Promise<SessionState> {
   const role = Role.safeParse(raw);
   if (!role.success) return { state: "anon" };
   const u = DEMO_USERS[role.data];
-  return { state: "ok", session: { ...u, role: role.data, realRole: role.data, canPreview: true } };
+  return { state: "ok", session: { ...u, orgId: null, role: role.data, realRole: role.data, canPreview: true } };
 }
 
 async function getSupabaseState(): Promise<SessionState> {
@@ -65,7 +67,7 @@ async function getSupabaseState(): Promise<SessionState> {
   if (!user) return { state: "anon" };
 
   // Orden fijo: con varias organizaciones el rol sería no determinista (la organización activa se fijará en M2).
-  const { data: m } = await supabase.from("memberships").select("role").eq("user_id", user.id).order("created_at", { ascending: true }).limit(1).maybeSingle();
+  const { data: m } = await supabase.from("memberships").select("role, org_id").eq("user_id", user.id).order("created_at", { ascending: true }).limit(1).maybeSingle();
   const real = Role.safeParse(m?.role);
   if (!real.success) return { state: "no-membership", email: user.email ?? "" };
 
@@ -76,6 +78,7 @@ async function getSupabaseState(): Promise<SessionState> {
     state: "ok",
     session: {
       userId: user.id,
+      orgId: typeof m?.org_id === "string" ? m.org_id : null,
       name: p?.full_name || user.email || "Usuario",
       email: user.email ?? "",
       role: canPreview && preview.success ? preview.data : real.data,

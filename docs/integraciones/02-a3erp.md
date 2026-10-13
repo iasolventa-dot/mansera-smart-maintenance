@@ -18,3 +18,10 @@ Lectura de clientes y facturación; creación de **facturas desde albaranes de P
 
 ## Riesgos
 Coste de licencia no previsto · escritura contable = alto impacto → **solo con validación humana y entorno de pruebas** · ventanas de mantenimiento/actualización.
+
+## Autenticación y conexión [HECHO — documentación oficial de la API, consultada 2026-10-13; sin verificar en la instalación de MANSERA]
+- La API oficial (a3ERP Link API / «A3ERP API») es un **servicio de Windows dentro de la red del cliente** con un puerto propio (Config.ini). Requiere A3ERP 14+ y el diccionario «JNCAPI».
+- Login: `POST /api/login` con `Authorization: Basic base64(usuario:contraseña)` → JWT; después `Authorization: Bearer`. Sin endpoint de refresco documentado: repetir el login al recibir 401. Paginación `Page`/`PageSize`.
+- Un tercero (Chift) dice que A3ERP no tiene API pública; contradice la documentación oficial. Se confirma en la instalación (Q3).
+- No es accesible desde la nube: se prueba y se usa **desde el gateway** (M2). Credenciales ya guardables en **Conexiones**.
+- Documentación: a3erpapi.appcloud.es (introducción, validación, instalación).

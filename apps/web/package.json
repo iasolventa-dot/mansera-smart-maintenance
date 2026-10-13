@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
+    "@msm/connectors": "workspace:*",
     "@msm/core": "workspace:*",
     "@msm/ui": "workspace:*",
     "@supabase/ssr": "^0.12.7",

@@ -32,3 +32,6 @@ Objetivo: pasar capabilities de `assumed` a `verified` o declarar *no-go*.
 
 ## Acciones previstas con valor (si hay escritura)
 Crear OT desde oferta ganada de Trello · consultar historial de un activo · parte de trabajo desde móvil · preventivos pendientes por cliente.
+
+## Estado de la documentación (2026-10-13): **Pendiente de documentar**
+Búsquedas públicas sin resultados sobre API, webservice o integración de PGMWin. En **Conexiones** aparece como «Pendiente de documentar» y no se piden credenciales hasta conocer el formato (la base segura —Vault, RLS, auditoría— es la misma de los demás, ADR-0010, y solo falta añadir su catálogo de campos). Acción: Q2 a EGEOtec.

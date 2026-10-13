@@ -7,10 +7,14 @@ Estados: **HECHO** (fuente) · **HIPÓTESIS** · **VERIFICADO (spike)** · **REF
 | S-01 | MANSERA usa PGMWin 26.0, A3ERP 15.0.0.0, Trello web, Sésame | HECHO | Usuario | 2026-09 |
 | S-02 | No hay integración actual PGMWin↔A3 | HECHO | Usuario / acta | 2026-09-15 |
 | S-03 | PGMWin ofrecerá una vía de integración (API/webservice) utilizable | HIPÓTESIS | Premisa del usuario; investigación previa no halló API pública | — |
-| S-04 | A3ERP Link API disponible (módulo con licencia) y contratado en MANSERA | HIPÓTESIS (existencia: HECHO por fuentes de terceros) | Docs/terceros | — |
-| S-05 | Sésame API es Add On de pago | HECHO (docs proveedor, reverificar) | Docs | — |
+| S-04 | A3ERP Link API disponible (módulo con licencia) y contratado en MANSERA | HIPÓTESIS (existencia de la API: HECHO, docs oficiales a3erpapi.appcloud.es; contratación en MANSERA: sin confirmar) | Docs oficiales | 2026-10-13 |
+| S-05 | Sésame API es Add On de pago | HECHO según fuente previa; la documentación consultada el 2026-10-13 (apidocs.sesametime.com) no lo menciona: SIN CONFIRMAR | Docs | 2026-10-13 |
 | S-06 | Trello: 300 req/10 s por clave, 100/10 s por token; webhooks pueden duplicarse/perderse | HECHO (docs, reverificar) | Docs oficiales | — |
 | S-07 | PGMWin y A3 están en servidor local | HIPÓTESIS | Pendiente Q1 | — |
 | S-08 | Existe red local con todos los usuarios | HIPÓTESIS | Pendiente Q1 | — |
 | S-09 | Remanente presupuestario 8–9 k€; propuesta 13,5 k€ | HECHO (acta) / HECHO (propuesta) | Acta; propuesta | 2026-09 |
 | S-10 | Umbral 8 h/mes para justificar botón propio | HIPÓTESIS (a calibrar con auditoría de funciones) | Plantilla v2 | — |
+| S-11 | A3ERP: login POST /api/login (Basic) → JWT Bearer; servicio de Windows en la red del cliente | HECHO (docs oficiales); sin verificar en MANSERA | a3erpapi.appcloud.es | 2026-10-13 |
+| S-12 | Trello: key+token; Sésame: Bearer en https://api-{región}.sesametime.com | HECHO (docs oficiales); sin verificar con cuentas de MANSERA (las pruebas del sondeo usan respuestas simuladas) | developer.atlassian.com · apidocs.sesametime.com | 2026-10-13 |
+| S-13 | PGMWin no tiene documentación pública de integración | HECHO (búsquedas 2026-10-13); formato de conexión PENDIENTE DE DOCUMENTAR | — | 2026-10-13 |
+| S-14 | Valores válidos de región de Sésame y alcances del token | HIPÓTESIS: la regla aceptada es [a-z0-9-]; por confirmar | — | 2026-10-13 |

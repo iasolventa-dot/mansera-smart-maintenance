@@ -16,3 +16,8 @@ Tarjeta de oferta → estado "Ganada" dispara propuesta "Crear OT en PGMWin" · 
 
 ## Incógnitas
 Estructura real de tableros/listas/etiquetas de MANSERA (levantar en auditoría) · plan de Trello contratado (límites de Power-Ups/automatizaciones).
+
+## Autenticación y conexión [HECHO — docs oficiales, consultadas 2026-10-13; sin verificar contra la cuenta de MANSERA]
+- Clave de API (key) + token de usuario en cada petición (también OAuth 1.0). Comprobación de solo lectura: `GET https://api.trello.com/1/members/me?key=…&token=…`.
+- Token con `scope=read` al principio; `write` solo cuando existan propuestas de escritura. Usar una cuenta de servicio. Un token revocado devuelve 401.
+- En la aplicación: **Conexiones → Credenciales de acceso** (ADR-0010). Catálogo: `packages/core/src/connectors/specs.ts`.

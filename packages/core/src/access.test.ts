@@ -24,7 +24,7 @@ describe("permisos de las acciones del servidor", () => {
 
   it("TODA server action con efecto comprueba el permiso en el servidor", () => {
     const src = readFileSync(join(fileURLToPath(new URL(".", import.meta.url)), "../../../apps/web/src/app/actions.ts"), "utf8");
-    const guarded: Record<string, ActionId> = { decideProposal: "decidirPropuesta", createWorkOrder: "crearOrden", askCopilot: "usarCopiloto" };
+    const guarded: Record<string, ActionId> = { decideProposal: "decidirPropuesta", createWorkOrder: "crearOrden", askCopilot: "usarCopiloto", saveConnection: "configurarConexiones", deleteConnection: "configurarConexiones" };
     for (const [fn, action] of Object.entries(guarded)) {
       const start = src.indexOf(`export async function ${fn}(`);
       expect(start, `no encuentro ${fn}`).toBeGreaterThan(-1);

@@ -412,6 +412,22 @@ export const MANUAL: ManualChapter[] = [
         notes: [{ kind: "info", text: "Si una aplicación cae, el resto sigue funcionando y los datos de la que falla se marcan como antiguos." }],
       },
       {
+        id: "credenciales",
+        title: "Guardar las credenciales de una aplicación",
+        panel: "conexiones",
+        keywords: ["credenciales", "contraseña", "token", "clave", "api", "conectar", "vault", "cifrado", "trello", "sésame", "a3erp", "pgmwin", "pendiente de documentar"],
+        steps: [
+          "Abre **Conexiones**. En **Credenciales de acceso** hay una tarjeta por aplicación; despliega **Dónde conseguir las credenciales** para ver los pasos oficiales.",
+          "Rellena los campos de la tarjeta (los marcados con candado son secretos) y pulsa **Guardar y comprobar**. La plataforma valida el formato, guarda los secretos cifrados y, si la aplicación está en la nube (Trello, Sésame), comprueba que entra en modo solo lectura.",
+          "Para cambiar una credencial usa **Reemplazar credenciales** (hay que escribirlas todas de nuevo: las anteriores no se pueden ver). **Eliminar** las borra del almacén cifrado.",
+          "**PGMWin** aparece como **Pendiente de documentar**: no hay documentación pública de su API y no se piden credenciales hasta saber el formato.",
+        ],
+        notes: [
+          { kind: "info", text: "Solo el perfil de TI puede guardar o borrar credenciales. Cada cambio queda en la auditoría, sin los valores secretos." },
+          { kind: "info", text: "La API de A3ERP está dentro de la red de MANSERA: las credenciales quedan guardadas, pero solo se podrán comprobar cuando exista el gateway." },
+        ],
+      },
+      {
         id: "usuarios",
         title: "Ver usuarios, permisos y auditoría",
         panel: "usuarios",

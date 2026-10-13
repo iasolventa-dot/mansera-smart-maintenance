@@ -2,9 +2,13 @@ import type { Metadata } from "next";
 import { CircleCheck, CircleHelp, OctagonAlert, TriangleAlert, type LucideIcon } from "lucide-react";
 import type { ConnectionHealth } from "@msm/core";
 import { Badge, Card, Item, Stagger, cn } from "@msm/ui";
+import { connectorList, type ConnectorApp } from "@msm/core";
+import { deleteConnection, saveConnection } from "@/app/actions";
+import { ConnectionCard, type StoredConnection } from "@/components/connection-card";
+import { createClient } from "@/lib/supabase/server";
 import { PageHeader, ago } from "@/components/page-header";
 import { getProvider } from "@/lib/data";
-import { requireAccess } from "@/lib/session";
+import { realAuthEnabled, requireAccess } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Conexiones" };
 
@@ -17,11 +21,31 @@ const HEALTH: Record<ConnectionHealth, { label: string; cls: string; Icon: Lucid
 const CAP = { verified: { l: "Verificado", t: "ok" }, assumed: { l: "Por verificar", t: "warn" }, "no-go": { l: "No disponible", t: "bad" } } as const;
 
 export default async function ConexionesPage() {
-  await requireAccess("conexiones");
+  const session = await requireAccess("conexiones");
   const conns = await getProvider().getConnections();
+  const real = realAuthEnabled();
+  const canEdit = real && session.realRole === "ti" && session.role === "ti" && !!session.orgId;
+  const readOnlyReason = !real ? "Con el modo demostración local no se guardan credenciales: hace falta Supabase configurado." : session.realRole !== "ti" ? "Solo el perfil de TI puede gestionar las credenciales." : session.role !== "ti" ? "Estás viendo una vista previa: vuelve al perfil de TI para gestionar credenciales." : undefined;
+  const stored: Partial<Record<ConnectorApp, StoredConnection>> = {};
+  if (real && session.orgId) {
+    const { data } = await (await createClient()).from("connections").select("app, config, status, last_check_at, last_check_message, updated_at").eq("org_id", session.orgId);
+    for (const r of data ?? []) {
+      stored[r.app as ConnectorApp] = { config: (r.config ?? {}) as Record<string, string>, status: r.status, lastCheckAt: r.last_check_at, lastCheckMessage: r.last_check_message, updatedAt: r.updated_at };
+    }
+  }
   return (
     <>
       <PageHeader title="Conexiones" subtitle="Estado de cada aplicación. Si una cae, el resto sigue funcionando y se avisa del dato antiguo" />
+      <section aria-labelledby="cred-h" className="mb-8">
+        <h2 id="cred-h" className="mb-1 text-[19px] font-extrabold">Credenciales de acceso</h2>
+        <p className="mb-4 max-w-3xl text-[15px] text-muted">Datos que MANSERA proporciona para que la plataforma lea de cada aplicación. Las claves se guardan cifradas, no se pueden volver a ver y cada cambio queda en la auditoría. Los sistemas siguen siendo la fuente de verdad: aquí solo se conectan.</p>
+        <div className="grid gap-4 xl:grid-cols-2">
+          {connectorList().map((spec) => (
+            <ConnectionCard key={spec.app} spec={spec} stored={stored[spec.app] ?? null} canEdit={canEdit} readOnlyReason={readOnlyReason} save={saveConnection} remove={deleteConnection} />
+          ))}
+        </div>
+      </section>
+      <h2 className="mb-3 text-[19px] font-extrabold">Estado de la sincronización <span className="text-[14px] font-normal text-muted">(datos de ejemplo)</span></h2>
       <Stagger className="grid gap-4 xl:grid-cols-2">
         {conns.map((c) => {
           const h = HEALTH[c.health];

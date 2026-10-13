@@ -150,10 +150,11 @@ export const navFor = (role: Role): NavId[] => NAV_ORDER.filter((id) => canAcces
  * La interfaz oculta lo que no se puede hacer, pero la barrera real está aquí y en el servidor:
  * toda server action debe llamar a `canPerform` (lo recuerda un test).
  */
-export type ActionId = "decidirPropuesta" | "crearOrden" | "usarCopiloto";
+export type ActionId = "decidirPropuesta" | "crearOrden" | "usarCopiloto" | "configurarConexiones";
 export const ACTION_SECTION: Record<ActionId, NavId> = {
   decidirPropuesta: "propuestas",
   crearOrden: "ordenes",
   usarCopiloto: "copiloto",
+  configurarConexiones: "conexiones",
 };
 export const canPerform = (role: Role, action: ActionId): boolean => canAccess(role, ACTION_SECTION[action]);

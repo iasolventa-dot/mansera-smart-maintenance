@@ -3,7 +3,8 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { canPerform, homeFor, NewWorkOrderInput, Role, type CopilotAnswer, type SearchHit } from "@msm/core";
+import { canPerform, ConnectorAppSchema, homeFor, NewWorkOrderInput, Role, validateCredentials, type CopilotAnswer, type SearchHit } from "@msm/core";
+import { probeConnection } from "@msm/connectors";
 import { getProvider } from "@/lib/data";
 import { askAssistantServer, type AssistantResult } from "@/lib/assistant";
 import { applyOverlay, recordCreated, recordDecision } from "@/lib/demo-state";
@@ -87,4 +88,54 @@ export async function searchAll(query: string): Promise<SearchHit[]> {
 export async function askAssistant(input: { messages: unknown; panel: string | null }): Promise<AssistantResult> {
   const session = await requireSession();
   return askAssistantServer({ id: session.userId, role: session.role }, input);
+}
+
+export type ConnectionResult = { ok: true; message: string; status: "verificada" | "error" | "no_probable" } | { ok: false; error: string };
+
+/** Solo TI de verdad (no una vista previa) y con Supabase real: es donde viven el Vault y la auditoría. */
+async function connectionContext(): Promise<{ ok: true; orgId: string } | { ok: false; error: string }> {
+  const session = await requireSession();
+  if (!realAuthEnabled()) return { ok: false, error: "Las conexiones solo se pueden guardar con la base de datos real configurada." };
+  const orgId = session.orgId;
+  if (!canPerform(session.role, "configurarConexiones") || session.realRole !== "ti" || session.role !== "ti" || !orgId) {
+    return { ok: false, error: "Solo el perfil de TI puede gestionar las conexiones." };
+  }
+  return { ok: true, orgId };
+}
+
+/**
+ * Guarda las credenciales de una aplicación: valida en servidor (Zod, por sistema), cifra los campos
+ * sensibles en Vault, comprueba la conexión (solo lectura) y anota el resultado. NUNCA devuelve ni registra secretos.
+ */
+export async function saveConnection(appId: string, values: Record<string, unknown>): Promise<ConnectionResult> {
+  const session = await requireSession();
+  if (!canPerform(session.role, "configurarConexiones")) return { ok: false, error: "Tu perfil no puede gestionar conexiones." };
+  const ctx = await connectionContext();
+  if (!ctx.ok) return { ok: false, error: ctx.error };
+  const app = ConnectorAppSchema.safeParse(appId);
+  if (!app.success) return { ok: false, error: "Aplicación desconocida." };
+  const checked = validateCredentials(app.data, values && typeof values === "object" ? values : {});
+  if (!checked.ok) return { ok: false, error: checked.errors.join(" · ") };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("connection_save", { p_org: ctx.orgId, p_app: app.data, p_config: checked.config, p_secrets: JSON.stringify(checked.secrets) });
+  if (error) return { ok: false, error: "No se pudo guardar. Inténtalo de nuevo o avisa a soporte." }; // sin detalle: podría contener datos
+
+  const probe = await probeConnection(app.data, checked.config, checked.secrets);
+  await supabase.rpc("connection_record_test", { p_org: ctx.orgId, p_app: app.data, p_status: probe.status, p_message: probe.message });
+  revalidatePath("/conexiones");
+  return { ok: true, message: probe.message, status: probe.status };
+}
+
+export async function deleteConnection(appId: string): Promise<ConnectionResult> {
+  const session = await requireSession();
+  if (!canPerform(session.role, "configurarConexiones")) return { ok: false, error: "Tu perfil no puede gestionar conexiones." };
+  const ctx = await connectionContext();
+  if (!ctx.ok) return { ok: false, error: ctx.error };
+  const app = ConnectorAppSchema.safeParse(appId);
+  if (!app.success) return { ok: false, error: "Aplicación desconocida." };
+  const { error } = await (await createClient()).rpc("connection_delete", { p_org: ctx.orgId, p_app: app.data });
+  if (error) return { ok: false, error: "No se pudo eliminar la conexión." };
+  revalidatePath("/conexiones");
+  return { ok: true, message: "Credenciales eliminadas.", status: "no_probable" };
 }
