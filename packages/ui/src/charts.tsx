@@ -95,7 +95,8 @@ const toneVar = { primary: "var(--primary)", cyan: "var(--cyan)", warn: "var(--w
 export function Donut({ data, centerLabel }: { data: { label: string; value: number; tone: keyof typeof toneVar }[]; centerLabel: string }) {
   const total = data.reduce((s, d) => s + d.value, 0);
   const R = 52, C = 2 * Math.PI * R;
-  let acc = 0;
+  // Desplazamiento acumulado de cada segmento, calculado antes de renderizar (sin mutar durante el render).
+  const offsets = data.map((_, i) => data.slice(0, i).reduce((s, x) => s + (x.value / total) * C, 0));
   return (
     <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center">
       <div className="relative size-[148px] shrink-0">
@@ -103,13 +104,11 @@ export function Donut({ data, centerLabel }: { data: { label: string; value: num
           <circle cx="70" cy="70" r={R} fill="none" stroke="var(--border)" strokeWidth="16" />
           {data.map((d, i) => {
             const len = (d.value / total) * C;
-            const el = (
+            return (
               <motion.circle key={d.label} cx="70" cy="70" r={R} fill="none" stroke={toneVar[d.tone]} strokeWidth="16"
-                strokeDasharray={`${len} ${C - len}`} strokeDashoffset={-acc}
+                strokeDasharray={`${len} ${C - len}`} strokeDashoffset={-(offsets[i] ?? 0)}
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.12 * i, duration: 0.5 }} />
             );
-            acc += len;
-            return el;
           })}
         </svg>
         <div className="absolute inset-0 grid place-content-center text-center">

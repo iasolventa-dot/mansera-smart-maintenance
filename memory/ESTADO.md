@@ -39,7 +39,7 @@
 ## Avisos
 - Datos demo ficticios. El login demo solo existe sin Supabase y fuera de producción.
 - Probes y gateway probados con respuestas SIMULADAS; nada verificado contra APIs reales (R-17).
-- `core`, `ui`, `connectors` y `gateway` no tienen lint propio (solo typecheck/test); deuda menor.
+- Lint en los 5 paquetes (configuración raíz `eslint.config.mjs` para paquetes; `apps/web` usa la de Next).
 - `AGENTS.md` lo genera turbo. Docker no instalado.
 
 ## Riesgos activos top-3

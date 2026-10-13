@@ -59,7 +59,7 @@ export function Tooltip({
       y = r.top + r.height / 2 - h / 2;
       x = use === "left" ? r.left - w - GAP : r.right + GAP;
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- medir el DOM real es justo lo que hace este efecto
+    // Medir el DOM real y colocar el globo es justo lo que hace este efecto.
     setPos({ x: Math.min(Math.max(x, MARGIN), Math.max(vw - w - MARGIN, MARGIN)), y: Math.min(Math.max(y, MARGIN), Math.max(vh - h - MARGIN, MARGIN)) });
   }, [open, side]);
 
