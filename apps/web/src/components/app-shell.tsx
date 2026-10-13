@@ -129,7 +129,7 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
               <LogOut className="size-[18px]" aria-hidden="true" /> Cerrar sesión
             </button>
           </form>
-          <p className="px-3 text-xs text-white/50">Desarrollado por SOLVENTA</p>
+          <p className="px-3 text-xs text-white/50">Desarrollado por SOLVENTA IA</p>
         </div>
       </aside>
 
@@ -245,11 +245,11 @@ function NotificationsPanel({ items, onClose }: { items: NotificationItem[]; onC
 
 function RoleSwitcher({ roles, switchRole, dark }: { roles: Props["roles"]; switchRole: Props["switchRole"]; dark?: boolean }) {
   return (
-    <form action={switchRole} className="grid gap-1.5 px-1">
+    <form action={switchRole} className="grid min-w-0 gap-1.5">
       <label htmlFor={dark ? "role-d" : "role-m"} className={cn("text-xs font-bold uppercase tracking-wider", dark ? "text-cyan" : "text-muted")}>Vista previa como</label>
       <select id={dark ? "role-d" : "role-m"} name="role" defaultValue={roles.find((r) => r.current)?.value}
         onChange={(e) => e.currentTarget.form?.requestSubmit()}
-        className={cn("min-h-11 rounded-xl border px-3 text-[15px] font-semibold", dark ? "border-white/20 bg-white/10 text-white [&>option]:text-black" : "border-border bg-bg text-text")}>
+        className={cn("min-h-11 w-full min-w-0 truncate rounded-xl border px-3 text-[15px] font-semibold", dark ? "border-white/20 bg-white/10 text-white [&>option]:text-black" : "border-border bg-bg text-text")}>
         {roles.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
       </select>
     </form>

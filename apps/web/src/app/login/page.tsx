@@ -39,7 +39,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             ))}
           </ul>
         </div>
-        <p className="hidden text-sm text-white/70 lg:block">Desarrollado por SOLVENTA</p>
+        <p className="hidden text-sm text-white/70 lg:block">Desarrollado por SOLVENTA IA</p>
         <svg aria-hidden="true" className="pointer-events-none absolute -bottom-10 -right-16 hidden w-[520px] opacity-30 lg:block" viewBox="0 0 400 400">
           <path d="M400 40 L400 400 L60 400 Z" fill="#3E97D0" opacity=".5" />
           <path d="M400 150 L400 400 L170 400 Z" fill="#61BDE4" opacity=".5" />
@@ -97,7 +97,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
               Acceso reservado al personal autorizado de MANSERA. Cada usuario ve únicamente los datos de su departamento.
             </p>
           </div>
-          <p className="mt-5 text-center text-sm text-muted">MANSERA Smart Maintenance · desarrollado por SOLVENTA</p>
+          <p className="mt-5 text-center text-sm text-muted">MANSERA Smart Maintenance · desarrollado por SOLVENTA IA</p>
         </div>
       </section>
     </main>
