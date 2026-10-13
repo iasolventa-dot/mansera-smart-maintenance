@@ -49,6 +49,21 @@ describe("protocolo del gateway", () => {
   it("rechaza basura sin lanzar excepciones", () => {
     for (const x of [null, 1, "x", {}, { job: {}, sig: "a" }]) expect(verifyJob(x, KEY, fresh())).toEqual({ ok: false, reason: "formato" });
   });
+  it("una firma con caracteres raros se rechaza sin lanzar excepciones", () => {
+    const s = job();
+    for (const sig of ["é".repeat(64), "A".repeat(64), "0".repeat(63) + "é", "g".repeat(64)]) {
+      expect(() => verifyJob({ ...s, sig }, KEY, fresh())).not.toThrow();
+      expect(verifyJob({ ...s, sig }, KEY, fresh()).ok).toBe(false);
+    }
+    expect(() => verifyResult({ result: { jobId: "j", ok: true, status: "ok", message: "", at: T }, sig: "é".repeat(64) }, KEY)).not.toThrow();
+  });
+  it("la firma de un trabajo no sirve como firma de resultado", () => {
+    const s = job();
+    expect(verifyResult({ result: s.job as never, sig: s.sig }, KEY)).toBe(false);
+  });
+  it("las claves undefined no alteran la firma", () => {
+    expect(canonical({ a: 1, b: undefined })).toBe(canonical({ a: 1 }));
+  });
   it("los resultados también se firman y se detecta la manipulación", () => {
     const r = signResult({ jobId: "j", ok: true, status: "ok", message: "bien", at: T }, KEY);
     expect(verifyResult(r, KEY)).toBe(true);

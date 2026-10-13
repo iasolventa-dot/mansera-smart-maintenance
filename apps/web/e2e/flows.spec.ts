@@ -175,3 +175,28 @@ test.describe("permisos de acciones (el servidor manda, no solo el botón)", () 
     await expect(page.getByRole("dialog", { name: "Buscar o ir a" }).getByText("Nueva orden de trabajo")).toHaveCount(0);
   });
 });
+
+test.describe("conexiones (credenciales)", () => {
+  test("TI ve el formulario; en demostración valida pero no guarda nada", async ({ page, context }) => {
+    await loginAs(context, "ti");
+    await page.goto("/conexiones");
+    await settle(page);
+    const trello = page.getByTestId("conexion-trello");
+    const token = trello.getByLabel("Token de usuario");
+    await expect(token).toHaveAttribute("type", "password");
+    await expect(token).toHaveAttribute("autocomplete", "new-password");
+    await trello.getByLabel("Clave de API").fill("a".repeat(32));
+    await token.fill("t".repeat(40)); // relleno, no es un token real
+    await trello.getByRole("button", { name: "Guardar y comprobar" }).click();
+    await expect(trello.getByText("Modo demostración: no se ha guardado nada")).toBeVisible();
+  });
+
+  test("PGMWin aparece como pendiente de documentar y sin formulario", async ({ page, context }) => {
+    await loginAs(context, "ti");
+    await page.goto("/conexiones");
+    await settle(page);
+    const pgm = page.getByTestId("conexion-pgmwin");
+    await expect(pgm.getByText("Pendiente de documentar", { exact: true })).toBeVisible();
+    await expect(pgm.locator("form")).toHaveCount(0);
+  });
+});

@@ -36,20 +36,30 @@ export type SignedResult = { result: JobResult; sig: string };
 export function canonical(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
   if (value && typeof value === "object") {
-    return `{${Object.keys(value).sort().map((k) => `${JSON.stringify(k)}:${canonical((value as Record<string, unknown>)[k])}`).join(",")}}`;
+    const obj = value as Record<string, unknown>;
+    // Las claves con `undefined` se omiten, igual que hace JSON al viajar: si no, la firma cambiaría por el camino.
+    return `{${Object.keys(obj).filter((k) => obj[k] !== undefined).sort().map((k) => `${JSON.stringify(k)}:${canonical(obj[k])}`).join(",")}}`;
   }
   return JSON.stringify(value) ?? "null";
 }
-const mac = (secret: string, payload: unknown) => createHmac("sha256", secret).update(canonical(payload)).digest("hex");
-const same = (a: string, b: string) => a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
+/** Separación de dominio: una firma de trabajo nunca vale como firma de resultado (y al revés). */
+type Domain = "job" | "res";
+const mac = (secret: string, domain: Domain, payload: unknown) => createHmac("sha256", secret).update(`msm-gw-v1:${domain}:`).update(canonical(payload)).digest("hex");
+const HEX64 = /^[0-9a-f]{64}$/;
+/** Comparación en tiempo constante que NUNCA lanza: cualquier firma mal formada es simplemente «no coincide». */
+const same = (given: unknown, expected: string) => {
+  if (typeof given !== "string" || !HEX64.test(given)) return false;
+  const a = Buffer.from(given, "hex"), b = Buffer.from(expected, "hex");
+  return a.length === b.length && timingSafeEqual(a, b);
+};
 
 export function createJob(input: { orgId: string; op: OpName; params?: Record<string, unknown>; ttlMs?: number }, secret: string, now = Date.now()): SignedJob {
   const ttl = Math.min(input.ttlMs ?? 30_000, MAX_TTL_MS);
   const job: Job = { id: randomUUID(), orgId: input.orgId, op: input.op, params: input.params ?? {}, iat: now, exp: now + ttl, nonce: randomUUID().replaceAll("-", "") };
-  return { job, sig: mac(secret, job) };
+  return { job, sig: mac(secret, "job", job) };
 }
-export const signResult = (result: JobResult, secret: string): SignedResult => ({ result, sig: mac(secret, result) });
-export const verifyResult = (s: SignedResult, secret: string): boolean => same(s.sig, mac(secret, s.result));
+export const signResult = (result: JobResult, secret: string): SignedResult => ({ result, sig: mac(secret, "res", result) });
+export const verifyResult = (s: SignedResult, secret: string): boolean => !!s && typeof s === "object" && same(s.sig, mac(secret, "res", s.result));
 
 /** Memoria de nonces vistos (contra repetición). En producción se persiste; aquí basta una implementación en memoria. */
 export class NonceStore {
@@ -67,10 +77,10 @@ export type Verdict = { ok: true; job: Job; op: OpName } | { ok: false; reason: 
 
 /** Orden deliberado: formato → firma → organización → vigencia → repetición → lista blanca → parámetros. */
 export function verifyJob(signed: unknown, secret: string, ctx: { orgId: string; nonces: NonceStore; now?: number }): Verdict {
-  const parsed = z.object({ job: JobSchema, sig: z.string().length(64) }).safeParse(signed);
+  const parsed = z.object({ job: JobSchema, sig: z.string().regex(HEX64) }).safeParse(signed);
   if (!parsed.success) return { ok: false, reason: "formato" };
   const { job, sig } = parsed.data;
-  if (!same(sig, mac(secret, job))) return { ok: false, reason: "firma" };
+  if (!same(sig, mac(secret, "job", job))) return { ok: false, reason: "firma" };
   if (job.orgId !== ctx.orgId) return { ok: false, reason: "organizacion" };
   const now = ctx.now ?? Date.now();
   if (job.exp - job.iat > MAX_TTL_MS) return { ok: false, reason: "ttl" };

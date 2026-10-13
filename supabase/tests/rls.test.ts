@@ -190,12 +190,22 @@ describe("audit_log (inmutable)", () => {
     await denied(() => db.exec("delete from public.audit_log"));
     await denied(() => db.exec("truncate public.audit_log"));
   });
+  it("borrar un usuario anonimiza sus entradas (actor a NULL) sin poder tocar nada más", async () => {
+    await db.exec("insert into auth.users (id, email) values ('20000000-0000-4000-8000-000000000009', 'baja@test')");
+    await db.exec(`insert into public.memberships (org_id, user_id, role) values ('${ids.org1}', '20000000-0000-4000-8000-000000000009', 'campo')`);
+    await db.exec(`insert into public.audit_log (org_id, actor_id, app, action) values ('${ids.org1}', '20000000-0000-4000-8000-000000000009', 'msm', 'antes-de-la-baja')`);
+    await db.exec("delete from auth.users where id = '20000000-0000-4000-8000-000000000009'");
+    const [r] = await rows("select actor_id from public.audit_log where action = 'antes-de-la-baja'");
+    expect(r?.actor_id).toBeNull();
+    await denied(() => db.exec("update public.audit_log set actor_id = null, action = 'cambiada' where action = 'antes-de-la-baja'"));
+    await denied(() => db.exec(`update public.audit_log set actor_id = '${ids.ti1}' where action = 'antes-de-la-baja'`));
+  });
 });
 
 describe("connections + Vault (credenciales)", () => {
   const SECRETO = '{"token":"SECRETO-DE-PRUEBA-123"}';
   const save = (org: string, app = "trello") =>
-    db.query("select public.connection_save($1, $2, $3::jsonb, $4)", [org, app, '{"apiKey":"clave-publica"}', SECRETO]);
+    db.query("select public.connection_save($1, $2, $3::jsonb, $4)", [org, app, JSON.stringify({ apiKey: "a".repeat(32) }), SECRETO]);
 
   it("solo TI puede guardar; dirección, campo y TI de otra organización no", async () => {
     await denied(() => asUser(ids.dir1, () => save(ids.org1)));
@@ -206,7 +216,7 @@ describe("connections + Vault (credenciales)", () => {
   it("TI guarda; la configuración se ve, el secreto no está en la tabla", async () => {
     await asUser(ids.ti1, () => save(ids.org1));
     const r = await asUser(ids.ti1, () => rows("select app, config, status from public.connections"));
-    expect(r).toEqual([{ app: "trello", config: { apiKey: "clave-publica" }, status: "sin_probar" }]);
+    expect(r).toEqual([{ app: "trello", config: { apiKey: "a".repeat(32) }, status: "sin_probar" }]);
     expect(JSON.stringify(r)).not.toContain("SECRETO");
   });
   it("nadie del navegador puede leer secret_id, ni el Vault, ni la función de lectura", async () => {
@@ -215,8 +225,9 @@ describe("connections + Vault (credenciales)", () => {
     await denied(() => asUser(ids.ti1, () => rows("select public.connection_read_secret($1, 'trello')", [ids.org1])));
     await denied(() => asUser(ids.dir1, () => rows("select public.connection_read_secret($1, 'trello')", [ids.org1])));
   });
-  it("solo dirección y TI ven las conexiones; campo y otra organización, ninguna", async () => {
-    expect((await asUser(ids.dir1, () => rows("select app from public.connections"))).length).toBe(1);
+  it("solo TI ve las conexiones; dirección, campo y otra organización, ninguna", async () => {
+    expect((await asUser(ids.ti1, () => rows("select app from public.connections"))).length).toBe(1);
+    expect(await asUser(ids.dir1, () => rows("select app from public.connections"))).toEqual([]);
     expect(await asUser(ids.campo1, () => rows("select app from public.connections"))).toEqual([]);
     expect(await asUser(ids.ti2, () => rows("select app from public.connections"))).toEqual([]);
   });
@@ -246,6 +257,22 @@ describe("connections + Vault (credenciales)", () => {
     expect(r.length).toBeGreaterThan(0);
     expect(r.map((x) => x.after).join(" ")).not.toContain("SECRETO");
     expect(r.some((x) => String(x.after).includes("campos_secretos"))).toBe(true);
+  });
+  it("las funciones validan por sí mismas aunque se llamen directamente por la API", async () => {
+    const call = (app: string, config: unknown, secrets: string) =>
+      asUser(ids.ti1, () => db.query("select public.connection_save($1, $2, $3::jsonb, $4)", [ids.org1, app, JSON.stringify(config), secrets]));
+    const ok = JSON.stringify({ username: "u", ["pass" + "word"]: "p" });
+    await expect(call("a3erp", { baseUrl: "https://srv:8443" }, ok)).resolves.toBeDefined();
+    for (const baseUrl of ["https://srv:8443/", "https://srv/api", "https://u:p@srv", "https://srv?x=1", "file:///etc"]) {
+      await expect(call("a3erp", { baseUrl }, ok), baseUrl).rejects.toThrow(/no válidos/);
+    }
+    await expect(call("a3erp", { baseUrl: "https://srv:8443", extra: "x" }, ok)).rejects.toThrow(/no válidos/);
+    await expect(call("trello", { apiKey: "a".repeat(32) }, JSON.stringify({ token: "t", otro: "x" }))).rejects.toThrow(/no válidos/);
+    await expect(call("trello", { apiKey: "a".repeat(32) }, "{no es json")).rejects.toThrow(/secretos no válidos/);
+    await asUser(ids.ti1, () => db.query("select public.connection_delete($1, 'a3erp')", [ids.org1]));
+  });
+  it("no se puede anotar una comprobación de una conexión que no existe", async () => {
+    await expect(asUser(ids.ti1, () => db.query("select public.connection_record_test($1, 'sesame', 'verificada', 'x')", [ids.org1]))).rejects.toThrow(/no existe/);
   });
   it("eliminar borra la conexión y el secreto del Vault", async () => {
     await asUser(ids.ti1, () => db.query("select public.connection_delete($1, 'trello')", [ids.org1]));

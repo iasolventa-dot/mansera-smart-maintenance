@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import { CircleAlert, CircleCheck, CircleHelp, ExternalLink, KeyRound, Lock, Trash2 } from "lucide-react";
 import type { ConnectorSpec } from "@msm/core";
 import { Badge, Button, Card, Tooltip, cn } from "@msm/ui";
@@ -39,6 +39,8 @@ export function ConnectionCard({ spec, stored, canEdit, readOnlyReason, save, re
   const [values, setValues] = useState<Record<string, string>>({});
   const [result, setResult] = useState<ConnectionResult | null>(null);
   const [busy, start] = useTransition();
+  const [confirming, setConfirming] = useState(false);
+  const uid = useId();
   const st = stored ? STATUS[stored.status] : null;
 
   const submit = (e: React.FormEvent) => {
@@ -51,7 +53,7 @@ export function ConnectionCard({ spec, stored, canEdit, readOnlyReason, save, re
     });
   };
   const del = () => {
-    if (!confirm(`¿Eliminar las credenciales de ${spec.name}? Dejará de sincronizar hasta que se vuelvan a guardar.`)) return;
+    setConfirming(false);
     start(async () => setResult(await remove(spec.app)));
   };
 
@@ -100,7 +102,7 @@ export function ConnectionCard({ spec, stored, canEdit, readOnlyReason, save, re
                 <label key={f.key} className="grid gap-1">
                   <span className="flex items-center gap-1.5 text-[14px] font-bold">
                     {f.label}
-                    {f.secret ? <Tooltip hint="Se guarda cifrado y no se vuelve a mostrar nunca."><span className="inline-flex"><Lock className="size-3.5 text-muted" aria-label="Dato secreto" role="img" /></span></Tooltip> : null}
+                    {f.secret ? <Tooltip hint="Se guarda cifrado y no se vuelve a mostrar nunca."><span className="inline-flex items-center gap-1 rounded-full bg-bg px-2 py-0.5 text-[12px] font-semibold text-muted" tabIndex={0}><Lock className="size-3" aria-hidden="true" />secreto</span></Tooltip> : null}
                     {!f.required ? <span className="font-normal text-muted">(opcional)</span> : null}
                   </span>
                   <input
@@ -112,23 +114,33 @@ export function ConnectionCard({ spec, stored, canEdit, readOnlyReason, save, re
                     placeholder={stored && f.secret ? "•••••••• (escribe uno nuevo para reemplazarlo)" : f.placeholder}
                     autoComplete={f.secret ? "new-password" : "off"}
                     spellCheck={false}
-                    required={f.required && !stored}
+                    required={f.required}
+                    aria-describedby={`${uid}-${f.key}-ayuda ${uid}-resultado`}
                     disabled={busy}
                   />
-                  <span className="text-[13px] text-muted">{f.help}</span>
+                  <span id={`${uid}-${f.key}-ayuda`} className="text-[13px] text-muted">{f.help}</span>
                 </label>
               ))}
               <div className="flex flex-wrap items-center gap-3">
                 <Button type="submit" disabled={busy}><KeyRound className="size-4" aria-hidden="true" />{busy ? "Guardando…" : stored ? "Reemplazar credenciales" : "Guardar y comprobar"}</Button>
-                {stored ? <Button type="button" variant="secondary" onClick={del} disabled={busy}><Trash2 className="size-4" aria-hidden="true" />Eliminar</Button> : null}
+                {stored && !confirming ? <Button type="button" variant="secondary" onClick={() => setConfirming(true)} disabled={busy}><Trash2 className="size-4" aria-hidden="true" />Eliminar</Button> : null}
               </div>
+              {confirming ? (
+                <div role="alertdialog" aria-labelledby={`${uid}-borrar`} className="rounded-xl border border-bad/30 bg-bad-soft p-3">
+                  <p id={`${uid}-borrar`} className="text-[15px] font-bold text-bad-text">¿Eliminar las credenciales de {spec.name}? Dejará de sincronizar hasta que se vuelvan a guardar.</p>
+                  <div className="mt-2 flex flex-wrap gap-3">
+                    <Button type="button" variant="danger" onClick={del} disabled={busy} autoFocus>Sí, eliminar</Button>
+                    <Button type="button" variant="secondary" onClick={() => setConfirming(false)} disabled={busy}>Cancelar</Button>
+                  </div>
+                </div>
+              ) : null}
               {stored ? <p className="text-[13px] text-muted">Al reemplazar hay que volver a escribir todos los campos: por seguridad no se pueden recuperar los anteriores.</p> : null}
             </form>
           ) : (
             <p className="mt-4 rounded-xl bg-bg p-3 text-[15px] text-muted">{readOnlyReason ?? "Solo el perfil de TI puede gestionar las credenciales."}</p>
           )}
 
-          <div aria-live="polite" className="mt-3 text-[15px] font-semibold">
+          <div id={`${uid}-resultado`} aria-live="polite" className="mt-3 text-[15px] font-semibold">
             {result ? (result.ok ? <p className={result.status === "error" ? "text-bad-text" : "text-ok-text"}>{result.message}</p> : <p className="text-bad-text">{result.error}</p>) : null}
           </div>
         </>

@@ -52,6 +52,10 @@ describe("validación de credenciales", () => {
       expect(validateCredentials("a3erp", { ...base, baseUrl }).ok, baseUrl).toBe(false);
     }
   });
+  it("A3ERP: guarda la dirección normalizada, sin barra final", () => {
+    const r = validateCredentials("a3erp", { baseUrl: "https://Servidor:8443/", username: FILL, ["pass" + "word"]: FILL });
+    expect(r.ok && r.config.baseUrl).toBe("https://servidor:8443");
+  });
   it("PGMWin: se niega a guardar nada", () => {
     expect(validateCredentials("pgmwin", {}).ok).toBe(false);
   });

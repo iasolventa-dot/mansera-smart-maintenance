@@ -15,6 +15,7 @@ if (me.status === 200) {
   const first = boards.body?.find((b) => !b.closed);
   if (first) {
     const lists = await get(`/boards/${first.id}/lists?fields=name`);
-    console.log("listas del primer tablero abierto:", Array.isArray(lists.body) ? lists.body.map((l) => l.name) : lists.status);
+    // Solo el número: los nombres de listas pueden contener nombres de clientes.
+    console.log("listas del primer tablero abierto:", Array.isArray(lists.body) ? `${lists.body.length} listas` : lists.status);
   }
 }

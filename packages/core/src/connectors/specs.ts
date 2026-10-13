@@ -150,8 +150,9 @@ export const connectorList = (): ConnectorSpec[] => CONNECTOR_APPS.map((a) => CO
 function fieldSchema(f: FieldDef): z.ZodType<string | undefined> {
   let s = z.string().trim().min(f.rule.min, `«${f.label}»: mínimo ${f.rule.min} caracteres`).max(f.rule.max, `«${f.label}»: máximo ${f.rule.max} caracteres`);
   if (f.rule.pattern) s = s.regex(new RegExp(f.rule.pattern), `«${f.label}»: ${f.rule.patternMessage ?? "formato no válido"}`);
+  let out: z.ZodType<string> = s;
   if (f.rule.url) {
-    s = s.refine((v) => {
+    out = s.refine((v) => {
       try {
         const u = new URL(v);
         // Sin credenciales en la URL, sin parámetros ni fragmentos; solo http(s).
@@ -159,9 +160,11 @@ function fieldSchema(f: FieldDef): z.ZodType<string | undefined> {
       } catch {
         return false;
       }
-    }, `«${f.label}»: usa solo el servidor y el puerto, p. ej. https://servidor:puerto (sin usuario, ruta ni parámetros)`);
+    }, `«${f.label}»: usa solo el servidor y el puerto, p. ej. https://servidor:puerto (sin usuario, ruta ni parámetros)`)
+      // Se guarda normalizado (sin barra final): así `${baseUrl}/api` nunca queda con doble barra.
+      .transform((v) => new URL(v).origin);
   }
-  return f.required ? s : z.union([z.literal("").transform(() => undefined), s]).optional();
+  return f.required ? out : z.union([z.literal("").transform(() => undefined), out]).optional();
 }
 
 export type CredentialInput = Record<string, unknown>;

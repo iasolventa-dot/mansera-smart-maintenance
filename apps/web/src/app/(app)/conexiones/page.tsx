@@ -24,11 +24,14 @@ export default async function ConexionesPage() {
   const session = await requireAccess("conexiones");
   const conns = await getProvider().getConnections();
   const real = realAuthEnabled();
-  const canEdit = real && session.realRole === "ti" && session.role === "ti" && !!session.orgId;
-  const readOnlyReason = !real ? "Con el modo demostración local no se guardan credenciales: hace falta Supabase configurado." : session.realRole !== "ti" ? "Solo el perfil de TI puede gestionar las credenciales." : session.role !== "ti" ? "Estás viendo una vista previa: vuelve al perfil de TI para gestionar credenciales." : undefined;
+  // Sin Supabase (demostración local) el formulario se puede probar, pero el servidor no guarda nada.
+  const canEdit = session.realRole === "ti" && session.role === "ti" && (!real || !!session.orgId);
+  const readOnlyReason = session.realRole !== "ti" ? "Solo el perfil de TI puede gestionar las credenciales." : session.role !== "ti" ? "Estás viendo una vista previa: vuelve al perfil de TI para gestionar credenciales." : undefined;
   const stored: Partial<Record<ConnectorApp, StoredConnection>> = {};
+  let loadError = false;
   if (real && session.orgId) {
-    const { data } = await (await createClient()).from("connections").select("app, config, status, last_check_at, last_check_message, updated_at").eq("org_id", session.orgId);
+    const { data, error } = await (await createClient()).from("connections").select("app, config, status, last_check_at, last_check_message, updated_at").eq("org_id", session.orgId);
+    if (error) loadError = true;
     for (const r of data ?? []) {
       stored[r.app as ConnectorApp] = { config: (r.config ?? {}) as Record<string, string>, status: r.status, lastCheckAt: r.last_check_at, lastCheckMessage: r.last_check_message, updatedAt: r.updated_at };
     }
@@ -39,6 +42,8 @@ export default async function ConexionesPage() {
       <section aria-labelledby="cred-h" className="mb-8">
         <h2 id="cred-h" className="mb-1 text-[19px] font-extrabold">Credenciales de acceso</h2>
         <p className="mb-4 max-w-3xl text-[15px] text-muted">Datos que MANSERA proporciona para que la plataforma lea de cada aplicación. Las claves se guardan cifradas, no se pueden volver a ver y cada cambio queda en la auditoría. Los sistemas siguen siendo la fuente de verdad: aquí solo se conectan.</p>
+        {!real ? <p className="mb-4 rounded-xl bg-warn-soft p-3 text-[15px] font-semibold text-warn-text">Modo demostración: puedes probar el formulario, pero no se guarda ninguna credencial.</p> : null}
+        {loadError ? <p role="alert" className="mb-4 rounded-xl bg-bad-soft p-3 text-[15px] font-semibold text-bad-text">No se pudo leer el estado guardado de las conexiones. Las tarjetas pueden mostrar «Sin configurar» aunque haya credenciales; recarga la página o avisa a soporte.</p> : null}
         <div className="grid gap-4 xl:grid-cols-2">
           {connectorList().map((spec) => (
             <ConnectionCard key={spec.app} spec={spec} stored={stored[spec.app] ?? null} canEdit={canEdit} readOnlyReason={readOnlyReason} save={saveConnection} remove={deleteConnection} />

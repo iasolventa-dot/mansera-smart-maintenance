@@ -95,7 +95,7 @@ export type ConnectionResult = { ok: true; message: string; status: "verificada"
 /** Solo TI de verdad (no una vista previa) y con Supabase real: es donde viven el Vault y la auditoría. */
 async function connectionContext(): Promise<{ ok: true; orgId: string } | { ok: false; error: string }> {
   const session = await requireSession();
-  if (!realAuthEnabled()) return { ok: false, error: "Las conexiones solo se pueden guardar con la base de datos real configurada." };
+  if (!realAuthEnabled()) return { ok: false, error: "Modo demostración: no se ha guardado nada. Las credenciales solo se guardan con la base de datos real." };
   const orgId = session.orgId;
   if (!canPerform(session.role, "configurarConexiones") || session.realRole !== "ti" || session.role !== "ti" || !orgId) {
     return { ok: false, error: "Solo el perfil de TI puede gestionar las conexiones." };
