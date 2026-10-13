@@ -21,6 +21,10 @@
 - Usuarios: `demo@solventa.com` (rol Dirección, "Demo SOLVENTA", para la demo) y `iasolventa@gmail.com` (TI, administración). Rol real desde `memberships`; TI/Dirección pueden previsualizar otros paneles mientras los datos sean de ejemplo.
 - CI GitHub Actions (lint, typecheck, test, build, gitleaks). Git: el usuario autorizó commit/push.
 
+## En curso al cortarse la sesión (límite de uso)
+- Pruebas E2E y de accesibilidad (Playwright + axe) en `apps/web/e2e` y `playwright.config.ts`: escritas pero SIN VALIDAR. Ejecutar con `E2E_PORT=3100 pnpm --filter @msm/web exec playwright test --workers=1` (necesita `pnpm dev` en demo: NEXT_PUBLIC_SUPABASE_URL vacío). Con 2-3 trabajadores en paralelo fallaban por lentitud del servidor de desarrollo; en serie, de 15 pruebas de flujos solo se vio pasar 1 antes del corte. Revisar si los fallos son de las pruebas o de la aplicación.
+- Aún no hechos: Lighthouse, `/revision` independiente, valoración de G0.
+
 ## Siguiente paso concreto
 1. Usuario: revisar la demo en producción con `demo@solventa.com` y dar feedback.
 2. M0 pendiente: axe + Lighthouse sobre la URL real, `/revision` independiente, tests de componentes, aceptar ADR-0002/0004 (siguen "propuestos").
