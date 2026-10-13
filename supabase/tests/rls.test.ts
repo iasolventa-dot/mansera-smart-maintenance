@@ -65,6 +65,14 @@ describe("RLS activada en todo", () => {
   });
 });
 
+describe("roles", () => {
+  it("el enum app_role coincide con los roles de la aplicación", async () => {
+    const r = await rows("select unnest(enum_range(null::public.app_role))::text as role");
+    expect(r.map((x) => x.role).sort()).toEqual(
+      ["administracion", "campo", "compras", "direccion", "oficina_tecnica", "rrhh", "ti"].sort());
+  });
+});
+
 describe("orgs", () => {
   it("un miembro solo ve su organización", async () => {
     const r = await asUser(ids.campo1, () => rows("select id from public.orgs"));

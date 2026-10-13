@@ -49,4 +49,4 @@ Principio: **solo lo que no existe en las apps.** Todo con `org_id` (multi-tenan
 Una migración = un cambio; reversible o documentada; nombre `YYYYMMDDHHMM_descripcion.sql`; sin datos reales; ejecutar `supabase db lint` y advisors de seguridad antes de dar por buena.
 
 ## Estado de implementación
-Migraciones aplicadas en `supabase/migrations`: `orgs`, `profiles`, `memberships`, `audit_log` (RLS + tests en `supabase/tests`, motor PGlite; `pnpm test`). Funciones auxiliares en el esquema `private` (no expuesto por la API). El resto de tablas se añaden por hito.
+Migraciones aplicadas en `supabase/migrations` (y en el proyecto Mansera): `orgs`, `profiles`, `memberships`, `audit_log`, roles `compras`/`rrhh` (RLS + tests en `supabase/tests`, motor PGlite; `pnpm test`). Funciones auxiliares en el esquema `private` (no expuesto por la API). El resto de tablas se añaden por hito.

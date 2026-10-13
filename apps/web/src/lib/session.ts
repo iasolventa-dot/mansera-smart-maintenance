@@ -36,6 +36,8 @@ export const DEMO_USERS: Record<Role, { userId: string; name: string; email: str
   oficina_tecnica: { userId: "u-ot", name: "Elena Marín", email: "tecnica@demo.mansera.es" },
   administracion: { userId: "u-adm", name: "Carmen Vidal", email: "administracion@demo.mansera.es" },
   ti: { userId: "u-ti", name: "Cristina Durán", email: "ti@demo.mansera.es" },
+  compras: { userId: "u-com", name: "Raúl Campos", email: "compras@demo.mansera.es" },
+  rrhh: { userId: "u-rrhh", name: "Beatriz Lara", email: "rrhh@demo.mansera.es" },
   campo: { userId: "u-cam", name: "Marcos Ruiz", email: "campo@demo.mansera.es" },
 };
 

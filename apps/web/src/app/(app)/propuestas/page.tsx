@@ -5,6 +5,7 @@ import { Badge, Button, Card, EmptyState, Item, Stagger } from "@msm/ui";
 import { PageHeader, ago } from "@/components/page-header";
 import { SOURCE_LABEL } from "@/components/labels";
 import { getProvider } from "@/lib/data";
+import { applyOverlay } from "@/lib/demo-state";
 import { requireAccess } from "@/lib/session";
 import { decideProposal } from "../../actions";
 
@@ -12,7 +13,7 @@ export const metadata: Metadata = { title: "Propuestas" };
 
 export default async function PropuestasPage() {
   await requireAccess("propuestas");
-  const all = await getProvider().listProposals();
+  const all = await applyOverlay(await getProvider().listProposals());
   const pending = all.filter((p) => p.status === "pendiente");
   const done = all.filter((p) => p.status !== "pendiente");
 

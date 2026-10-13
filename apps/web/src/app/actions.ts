@@ -3,12 +3,11 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { homeFor, Role, type CopilotAnswer } from "@msm/core";
+import { homeFor, NewWorkOrderInput, Role, type CopilotAnswer, type SearchHit } from "@msm/core";
 import { getProvider } from "@/lib/data";
+import { applyOverlay, recordCreated, recordDecision } from "@/lib/demo-state";
 import { createClient } from "@/lib/supabase/server";
-import {
-  endSession, realAuthEnabled, requireSession, setPreviewRole, startDemoSession,
-} from "@/lib/session";
+import { endSession, realAuthEnabled, requireSession, setPreviewRole, startDemoSession } from "@/lib/session";
 
 const Credentials = z.object({ email: z.email().max(200), password: z.string().min(1).max(200) });
 
@@ -48,12 +47,32 @@ export async function decideProposal(formData: FormData): Promise<void> {
   const session = await requireSession();
   const id = String(formData.get("id") ?? "");
   const decision = formData.get("decision") === "aprobada" ? "aprobada" : "rechazada";
-  await getProvider().decideProposal(id, decision, session.name);
+  const current = (await applyOverlay(await getProvider().listProposals())).find((p) => p.id === id);
+  if (!current || current.status !== "pendiente") return;
+  await recordDecision(id, decision, session.name);
   revalidatePath("/propuestas");
+}
+
+export type CreateOrderResult = { ok: true; id: string } | { ok: false; error: string };
+
+/** Acción rápida: crea una PROPUESTA de OT (nunca escribe en PGMWin sin aprobación). */
+export async function createWorkOrder(input: NewWorkOrderInput): Promise<CreateOrderResult> {
+  const session = await requireSession();
+  const parsed = NewWorkOrderInput.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Revisa los datos: falta cliente, activo o descripción." };
+  const proposal = await getProvider().createWorkOrderProposal(parsed.data, session.name);
+  await recordCreated(proposal);
+  revalidatePath("/propuestas");
+  return { ok: true, id: proposal.id };
 }
 
 export async function askCopilot(question: string): Promise<CopilotAnswer> {
   const session = await requireSession();
   const q = question.trim().slice(0, 500);
   return getProvider().askCopilot(q, session.role);
+}
+
+export async function searchAll(query: string): Promise<SearchHit[]> {
+  const session = await requireSession();
+  return getProvider().search(query.slice(0, 80), session.role);
 }

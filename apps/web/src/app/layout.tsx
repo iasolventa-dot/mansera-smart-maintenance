@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   title: { default: "MANSERA Smart Maintenance", template: "%s · MANSERA Smart Maintenance" },
   description: "Un solo acceso a PGMWin, A3, Trello y Sésame, con inteligencia artificial trazable.",
   applicationName: "MANSERA Smart Maintenance",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/icon-192.png", sizes: "192x192", type: "image/png" }],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
   appleWebApp: { capable: true, title: "MANSERA", statusBarStyle: "default" },
 };
 

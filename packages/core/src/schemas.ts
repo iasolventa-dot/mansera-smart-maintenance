@@ -8,7 +8,7 @@ export type SourceApp = z.infer<typeof SourceApp>;
 export const Semaforo = z.enum(["ok", "warn", "bad"]);
 export type Semaforo = z.infer<typeof Semaforo>;
 
-export const Role = z.enum(["direccion", "ti", "oficina_tecnica", "administracion", "campo"]);
+export const Role = z.enum(["direccion", "ti", "oficina_tecnica", "administracion", "compras", "rrhh", "campo"]);
 export type Role = z.infer<typeof Role>;
 
 /** Trazabilidad: de dónde sale una cifra (principio 5 de CLAUDE.md). */
@@ -40,7 +40,7 @@ export type Kpi = z.infer<typeof Kpi>;
 export const Alert = z.object({
   id: z.string(),
   severity: z.enum(["alta", "media", "baja"]),
-  kind: z.enum(["anomalia", "contrato", "prl", "preventivo", "sistema"]),
+  kind: z.enum(["anomalia", "contrato", "prl", "preventivo", "sistema", "facturacion", "stock"]),
   text: z.string(),
   actionLabel: z.string(),
   href: z.string(),
@@ -60,6 +60,15 @@ export const QuickAction = z.object({
 });
 export type QuickAction = z.infer<typeof QuickAction>;
 
+/** Gráficos genéricos: cada rol decide el título y los datos (misma pieza de UI). */
+export const TrendChart = z.object({ title: z.string(), data: z.array(Series) });
+export const RankingChart = z.object({ title: z.string(), unit: z.enum(["eur", "keur", "num"]), data: z.array(Series) });
+export const BreakdownChart = z.object({
+  title: z.string(),
+  centerLabel: z.string(),
+  data: z.array(z.object({ label: z.string(), value: z.number(), tone: z.enum(["primary", "cyan", "warn", "ok"]) })),
+});
+
 export const Dashboard = z.object({
   role: Role,
   title: z.string(),
@@ -67,11 +76,9 @@ export const Dashboard = z.object({
   overall: Semaforo,
   overallText: z.string(),
   kpis: z.array(Kpi),
-  failuresByMonth: z.array(Series),
-  costByClient: z.array(Series),
-  ordersByState: z.array(
-    z.object({ label: z.string(), value: z.number(), tone: z.enum(["primary", "cyan", "warn", "ok"]) }),
-  ),
+  trend: TrendChart.optional(),
+  ranking: RankingChart.optional(),
+  breakdown: BreakdownChart.optional(),
   alerts: z.array(Alert),
   quickActions: z.array(QuickAction),
 });

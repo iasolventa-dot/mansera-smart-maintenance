@@ -1,38 +1,68 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import {
-  CalendarCheck, ClipboardList, FileText, GitPullRequestArrow, LayoutDashboard, LogOut, Menu, Moon, Plug,
-  Search, Sparkles, Sun, Wrench, X, type LucideIcon,
+  Bell, BellRing, Building2, CalendarCheck, ClipboardList, FileText, GitPullRequestArrow, HandCoins, LayoutDashboard, LogOut,
+  Menu, Moon, Plug, Search, ShieldCheck, ShoppingCart, Sparkles, Sun, TriangleAlert, UserCog, Users, Wrench, X, Wrench as Tool, type LucideIcon,
 } from "lucide-react";
+import type { CreateOrderResult } from "@/app/actions";
+import type { NewWorkOrderInput, SearchHit } from "@msm/core";
 import { Avatar, Badge, Logo, cn, spring } from "@msm/ui";
+import { QuickOrderDialog } from "./quick-order-dialog";
 
-export type NavItem = { id: string; label: string; href: string };
+export type NavItem = { id: string; label: string; href: string; group: string };
+export type NotificationItem = { id: string; title: string; body: string; at: string; href: string; tone: "info" | "warn" | "bad" | "ok"; read: boolean };
 type Props = {
   nav: NavItem[];
   user: { name: string; roleLabel: string };
   roles: { value: string; label: string; current: boolean }[];
+  notifications: NotificationItem[];
   demo: boolean;
   canPreview: boolean;
+  quick: { clients: string[]; assets: { name: string; client: string }[] };
   switchRole: (formData: FormData) => Promise<void>;
   signOut: () => Promise<void>;
+  createWorkOrder: (input: NewWorkOrderInput) => Promise<CreateOrderResult>;
+  searchAll: (q: string) => Promise<SearchHit[]>;
   children: ReactNode;
 };
 
 const ICONS: Record<string, LucideIcon> = {
-  panel: LayoutDashboard, ordenes: ClipboardList, activos: Wrench, propuestas: GitPullRequestArrow,
-  copiloto: Sparkles, informes: FileText, conexiones: Plug, campo: CalendarCheck,
+  campo: CalendarCheck, panel: LayoutDashboard, alertas: TriangleAlert, ordenes: ClipboardList, mantenimiento: Tool, activos: Wrench,
+  clientes: Building2, comercial: HandCoins, facturacion: FileText, compras: ShoppingCart, personal: Users, prl: ShieldCheck,
+  propuestas: GitPullRequestArrow, informes: FileText, copiloto: Sparkles, conexiones: Plug, usuarios: UserCog,
+};
+/** Destinos que ocupan la barra inferior móvil, por orden de prioridad. */
+const MOBILE_PRIORITY = ["campo", "panel", "ordenes", "alertas", "activos", "copiloto", "propuestas"];
+
+const rel = (iso: string) => {
+  const m = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (m < 1) return "ahora";
+  if (m < 60) return `hace ${m} min`;
+  const h = Math.round(m / 60);
+  return h < 24 ? `hace ${h} h` : `hace ${Math.round(h / 24)} d`;
 };
 
-export function AppShell({ nav, user, roles, demo, canPreview, switchRole, signOut, children }: Props) {
+export function AppShell(props: Props) {
+  return (
+    <Suspense fallback={null}>
+      <Shell {...props} />
+    </Suspense>
+  );
+}
+
+function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switchRole, signOut, createWorkOrder, searchAll, children }: Props) {
   const pathname = usePathname();
   const router = useRouter();
+  const params = useSearchParams();
   const [more, setMore] = useState(false);
   const [palette, setPalette] = useState(false);
+  const [bell, setBell] = useState(false);
   const [dark, setDark] = useState(false);
+  const orderOpen = params.get("accion") === "ot";
 
   useEffect(() => {
     // Sincroniza con el DOM/preferencia del sistema (no existe en el servidor).
@@ -56,36 +86,47 @@ export function AppShell({ nav, user, roles, demo, canPreview, switchRole, signO
   }, [dark]);
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
-  const primary = nav.slice(0, nav.length > 5 ? 4 : nav.length);
-  const overflow = nav.slice(primary.length);
+  const byPriority = MOBILE_PRIORITY.map((id) => nav.find((n) => n.id === id)).filter((n): n is NavItem => Boolean(n));
+  const primary = (nav.length > 5 ? byPriority.slice(0, 4) : nav).sort((a, b) => nav.indexOf(a) - nav.indexOf(b));
+  const overflow = nav.filter((n) => !primary.includes(n));
+  const groups = nav.reduce<Record<string, NavItem[]>>((acc, n) => { (acc[n.group] ??= []).push(n); return acc; }, {});
+  const unread = notifications.filter((n) => !n.read).length;
+  const closeOrder = useCallback(() => router.replace(pathname, { scroll: false }), [router, pathname]);
 
   return (
-    <div className="min-h-dvh lg:grid lg:grid-cols-[264px_1fr]">
+    <div className="min-h-dvh lg:grid lg:grid-cols-[272px_1fr]">
       <a href="#contenido" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-4 focus:py-2 focus:font-bold">Saltar al contenido</a>
 
       {/* Barra lateral (escritorio) */}
       <aside className="sticky top-0 hidden h-dvh flex-col bg-sidebar px-4 py-5 text-white lg:flex">
         <Logo inverted className="px-2" />
-        <nav aria-label="Principal" className="mt-8 grid gap-1">
-          {nav.map((n) => {
-            const Icon = ICONS[n.id] ?? LayoutDashboard;
-            const active = isActive(n.href);
-            return (
-              <Link key={n.id} href={n.href} aria-current={active ? "page" : undefined}
-                className={cn("relative flex min-h-12 items-center gap-3 rounded-xl px-3 text-[15.5px] font-bold transition-colors", active ? "text-white" : "text-white/75 hover:bg-white/8 hover:text-white")}>
-                {active ? <motion.span layoutId="side-active" transition={spring} className="absolute inset-0 rounded-xl bg-white/14 ring-1 ring-white/10" /> : null}
-                <Icon className="relative size-5" aria-hidden="true" />
-                <span className="relative">{n.label}</span>
-                {n.id === "copiloto" ? <Badge tone="info" className="relative ml-auto !bg-cyan/25 !text-cyan">IA</Badge> : null}
-              </Link>
-            );
-          })}
+        <nav aria-label="Principal" className="mt-6 flex-1 overflow-y-auto pr-1">
+          {Object.entries(groups).map(([group, items]) => (
+            <div key={group} className="mb-4">
+              {Object.keys(groups).length > 1 ? <p className="mb-1 px-3 text-[11px] font-bold uppercase tracking-[0.16em] text-white/45">{group}</p> : null}
+              <div className="grid gap-0.5">
+                {items.map((n) => {
+                  const Icon = ICONS[n.id] ?? LayoutDashboard;
+                  const active = isActive(n.href);
+                  return (
+                    <Link key={n.id} href={n.href} aria-current={active ? "page" : undefined}
+                      className={cn("relative flex min-h-11 items-center gap-3 rounded-xl px-3 text-[15px] font-bold transition-colors", active ? "text-white" : "text-white/75 hover:bg-white/8 hover:text-white")}>
+                      {active ? <motion.span layoutId="side-active" transition={spring} className="absolute inset-0 rounded-xl bg-white/14 ring-1 ring-white/10" /> : null}
+                      <Icon className="relative size-[18px]" aria-hidden="true" />
+                      <span className="relative">{n.label}</span>
+                      {n.id === "copiloto" ? <Badge tone="info" className="relative ml-auto !bg-cyan/25 !text-cyan">IA</Badge> : null}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
-        <div className="mt-auto grid gap-3">
+        <div className="grid gap-2 pt-3">
           {demo && canPreview ? <RoleSwitcher roles={roles} switchRole={switchRole} dark /> : null}
           <form action={signOut}>
-            <button className="flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-[15px] font-semibold text-white/75 hover:bg-white/8 hover:text-white">
-              <LogOut className="size-5" aria-hidden="true" /> Cerrar sesión
+            <button className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-[15px] font-semibold text-white/75 hover:bg-white/8 hover:text-white">
+              <LogOut className="size-[18px]" aria-hidden="true" /> Cerrar sesión
             </button>
           </form>
           <p className="px-3 text-xs text-white/50">Desarrollado por SOLVENTA</p>
@@ -96,17 +137,25 @@ export function AppShell({ nav, user, roles, demo, canPreview, switchRole, signO
         {/* Cabecera */}
         <header className="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-border bg-surface/85 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
           <div className="lg:hidden"><Logo /></div>
-          <button onClick={() => setPalette(true)} className="ml-auto hidden min-h-11 w-full max-w-sm items-center gap-2 rounded-xl border border-border bg-bg px-3.5 text-muted hover:border-primary/50 sm:flex lg:ml-0" aria-label="Buscar o ir a… (Ctrl+K)">
-            <Search className="size-4.5" aria-hidden="true" /> <span className="text-[15px]">Buscar o ir a…</span>
+          <button onClick={() => setPalette(true)} className="hidden min-h-11 w-full max-w-sm items-center gap-2 rounded-xl border border-border bg-bg px-3.5 text-muted hover:border-primary/50 sm:flex" aria-label="Buscar o ir a… (Ctrl+K)">
+            <Search className="size-[18px]" aria-hidden="true" /> <span className="text-[15px]">Buscar o ir a…</span>
             <kbd className="ml-auto rounded-md border border-border bg-surface px-1.5 text-xs font-bold">Ctrl K</kbd>
           </button>
-          <div className="ml-auto flex items-center gap-2 sm:ml-0">
+          <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
             {demo ? <Badge tone="warn" className="whitespace-nowrap uppercase tracking-wide"><span className="sm:hidden">Demo</span><span className="hidden sm:inline">Datos de ejemplo</span></Badge> : null}
             <button onClick={() => setPalette(true)} aria-label="Buscar" className="grid size-11 place-items-center rounded-xl text-muted hover:bg-primary-soft sm:hidden"><Search className="size-5" /></button>
+            <div className="relative">
+              <button onClick={() => setBell((b) => !b)} aria-label={`Notificaciones${unread ? `, ${unread} sin leer` : ""}`} aria-expanded={bell}
+                className="relative grid size-11 place-items-center rounded-xl text-muted hover:bg-primary-soft">
+                {unread ? <BellRing className="size-5" /> : <Bell className="size-5" />}
+                {unread ? <span className="absolute right-2 top-2 grid size-4 place-items-center rounded-full bg-bad text-[10px] font-extrabold text-white">{unread}</span> : null}
+              </button>
+              <AnimatePresence>{bell ? <NotificationsPanel items={notifications} onClose={() => setBell(false)} /> : null}</AnimatePresence>
+            </div>
             <button onClick={toggleTheme} aria-label={dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"} className="grid size-11 place-items-center rounded-xl text-muted hover:bg-primary-soft">
               {dark ? <Sun className="size-5" /> : <Moon className="size-5" />}
             </button>
-            <div className="hidden items-center gap-3 pl-2 sm:flex">
+            <div className="hidden items-center gap-3 pl-2 md:flex">
               <Avatar name={user.name} />
               <div className="leading-tight"><div className="text-[15px] font-bold">{user.name}</div><div className="text-[13px] text-muted">{user.roleLabel}</div></div>
             </div>
@@ -141,19 +190,56 @@ export function AppShell({ nav, user, roles, demo, canPreview, switchRole, signO
       <AnimatePresence>
         {more ? (
           <Sheet onClose={() => setMore(false)} title="Más opciones">
-            <ul className="grid gap-1">
-              {overflow.map((n) => {
-                const Icon = ICONS[n.id] ?? LayoutDashboard;
-                return <li key={n.id}><Link href={n.href} onClick={() => setMore(false)} className="flex min-h-14 items-center gap-3 rounded-xl px-3 text-[17px] font-bold hover:bg-primary-soft"><Icon className="size-5 text-primary" aria-hidden="true" />{n.label}</Link></li>;
-              })}
-            </ul>
-            {demo && canPreview ? <div className="mt-4 border-t border-border pt-4"><RoleSwitcher roles={roles} switchRole={switchRole} /></div> : null}
+            {Object.entries(overflow.reduce<Record<string, NavItem[]>>((acc, n) => { (acc[n.group] ??= []).push(n); return acc; }, {})).map(([group, items]) => (
+              <div key={group} className="mb-2">
+                <p className="mb-1 px-3 text-[11px] font-bold uppercase tracking-[0.16em] text-muted">{group}</p>
+                <ul className="grid gap-0.5">
+                  {items.map((n) => {
+                    const Icon = ICONS[n.id] ?? LayoutDashboard;
+                    return <li key={n.id}><Link href={n.href} onClick={() => setMore(false)} className="flex min-h-12 items-center gap-3 rounded-xl px-3 text-[17px] font-bold hover:bg-primary-soft"><Icon className="size-5 text-primary" aria-hidden="true" />{n.label}</Link></li>;
+                  })}
+                </ul>
+              </div>
+            ))}
+            {demo && canPreview ? <div className="mt-3 border-t border-border pt-4"><RoleSwitcher roles={roles} switchRole={switchRole} /></div> : null}
             <form action={signOut} className="mt-2"><button className="flex min-h-14 w-full items-center gap-3 rounded-xl px-3 text-[17px] font-bold text-bad-text hover:bg-bad-soft"><LogOut className="size-5" aria-hidden="true" />Cerrar sesión</button></form>
           </Sheet>
         ) : null}
-        {palette ? <Palette nav={nav} onClose={() => setPalette(false)} onGo={(href) => { setPalette(false); router.push(href); }} /> : null}
+        {palette ? <Palette nav={nav} searchAll={searchAll} onClose={() => setPalette(false)} onGo={(href) => { setPalette(false); router.push(href); }} /> : null}
+        {orderOpen ? <QuickOrderDialog clients={quick.clients} assets={quick.assets} create={createWorkOrder} onClose={closeOrder} /> : null}
       </AnimatePresence>
     </div>
+  );
+}
+
+function NotificationsPanel({ items, onClose }: { items: NotificationItem[]; onClose: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const onDown = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) onClose(); };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("mousedown", onDown);
+    addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", onDown); removeEventListener("keydown", onKey); };
+  }, [onClose]);
+  const dot = { info: "bg-primary", warn: "bg-warn", bad: "bg-bad", ok: "bg-ok" } as const;
+  return (
+    <motion.div ref={ref} role="dialog" aria-label="Notificaciones" initial={{ opacity: 0, y: -8, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6 }} transition={spring}
+      className="fixed inset-x-3 top-[68px] z-50 max-h-[70dvh] overflow-auto rounded-2xl border border-border bg-surface shadow-2xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-[52px] sm:w-[380px]">
+      <div className="flex items-center justify-between border-b border-border px-4 py-3"><h2 className="text-[16px] font-extrabold">Notificaciones</h2><span className="text-sm text-muted">{items.filter((n) => !n.read).length} sin leer</span></div>
+      {items.length === 0 ? <p className="px-4 py-8 text-center text-muted">Todo al día.</p> : (
+        <ul>
+          {items.map((n) => (
+            <li key={n.id} className="border-b border-border last:border-0">
+              <Link href={n.href} onClick={onClose} className="flex gap-3 px-4 py-3.5 hover:bg-primary-soft">
+                <span className={cn("mt-2 size-2.5 shrink-0 rounded-full", n.read ? "bg-border" : dot[n.tone])} aria-hidden="true" />
+                <span className="min-w-0"><span className={cn("block text-[15.5px]", n.read ? "font-semibold" : "font-extrabold")}>{n.title}{n.read ? "" : <span className="sr-only"> (sin leer)</span>}</span>
+                  <span className="block text-[14px] leading-snug text-muted">{n.body}</span><span className="mt-0.5 block text-[12.5px] font-semibold text-muted">{rel(n.at)}</span></span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </motion.div>
   );
 }
 
@@ -163,7 +249,7 @@ function RoleSwitcher({ roles, switchRole, dark }: { roles: Props["roles"]; swit
       <label htmlFor={dark ? "role-d" : "role-m"} className={cn("text-xs font-bold uppercase tracking-wider", dark ? "text-cyan" : "text-muted")}>Vista previa como</label>
       <select id={dark ? "role-d" : "role-m"} name="role" defaultValue={roles.find((r) => r.current)?.value}
         onChange={(e) => e.currentTarget.form?.requestSubmit()}
-        className={cn("min-h-12 rounded-xl border px-3 text-[15px] font-semibold", dark ? "border-white/20 bg-white/10 text-white [&>option]:text-black" : "border-border bg-bg text-text")}>
+        className={cn("min-h-11 rounded-xl border px-3 text-[15px] font-semibold", dark ? "border-white/20 bg-white/10 text-white [&>option]:text-black" : "border-border bg-bg text-text")}>
         {roles.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
       </select>
     </form>
@@ -192,40 +278,60 @@ function Sheet({ title, onClose, children }: { title: string; onClose: () => voi
   );
 }
 
-function Palette({ nav, onClose, onGo }: { nav: NavItem[]; onClose: () => void; onGo: (href: string) => void }) {
+const KIND_LABEL: Record<SearchHit["kind"], string> = { cliente: "Cliente", activo: "Activo", orden: "Orden", oferta: "Oferta", persona: "Persona" };
+
+function Palette({ nav, searchAll, onClose, onGo }: { nav: NavItem[]; searchAll: Props["searchAll"]; onClose: () => void; onGo: (href: string) => void }) {
   const [q, setQ] = useState("");
   const [i, setI] = useState(0);
+  const [hits, setHits] = useState<SearchHit[]>([]);
+  const [busy, setBusy] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => { input.current?.focus(); }, []);
-  const items = useMemo(() => {
-    const extra = [
-      { id: "x-b14", label: "Bomba B-14 · ficha del activo", href: "/activos/A-0142" },
-      { id: "x-prop", label: "Revisar propuestas pendientes", href: "/propuestas" },
-    ].filter((e) => e.href === "/propuestas" ? nav.some((n) => n.id === "propuestas") : nav.some((n) => n.id === "activos"));
-    return [...nav, ...extra].filter((n) => n.label.toLowerCase().includes(q.toLowerCase()));
-  }, [nav, q]);
+
+  useEffect(() => {
+    if (q.trim().length < 2) return;
+    let live = true;
+    const t = setTimeout(async () => {
+      setBusy(true);
+      try { const r = await searchAll(q); if (live) setHits(r); } finally { if (live) setBusy(false); }
+    }, 180);
+    return () => { live = false; clearTimeout(t); };
+  }, [q, searchAll]);
+
+  const needle = q.toLowerCase();
+  const navHits = nav.filter((n) => n.label.toLowerCase().includes(needle));
+  const items: { id: string; label: string; sub?: string; href: string; tag: string }[] = [
+    ...(needle.includes("orden") || needle.includes("nueva") || !needle ? [{ id: "act-ot", label: "Nueva orden de trabajo", sub: "Acción rápida · crea una propuesta", href: "?accion=ot", tag: "Acción" }] : []),
+    ...navHits.map((n) => ({ id: n.id, label: n.label, href: n.href, tag: "Ir a" })),
+    ...(q.trim().length >= 2 ? hits.map((h) => ({ id: h.kind + h.id, label: h.title, sub: h.subtitle, href: h.href, tag: KIND_LABEL[h.kind] })) : []),
+  ];
+  const cur = Math.min(i, Math.max(items.length - 1, 0));
 
   return (
-    <motion.div className="fixed inset-0 z-[60] grid place-items-start justify-items-center bg-black/45 p-4 pt-[12vh]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+    <motion.div className="fixed inset-0 z-[60] grid place-items-start justify-items-center bg-black/45 p-4 pt-[10vh]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <motion.div role="dialog" aria-modal="true" aria-label="Buscar o ir a" className="w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl"
+      <motion.div role="dialog" aria-modal="true" aria-label="Buscar o ir a" className="w-full max-w-xl overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl"
         initial={{ y: -12, scale: 0.97 }} animate={{ y: 0, scale: 1 }} exit={{ y: -8, opacity: 0 }} transition={spring}>
         <div className="flex items-center gap-3 border-b border-border px-4">
           <Search className="size-5 text-muted" aria-hidden="true" />
-          <input ref={input} value={q} onChange={(e) => { setQ(e.target.value); setI(0); }} placeholder="Ir a… (panel, activos, propuestas)" aria-label="Buscar"
+          <input ref={input} value={q} onChange={(e) => { setQ(e.target.value); setI(0); }} placeholder="Busca clientes, activos, órdenes, ofertas… o ve a una sección" aria-label="Buscar"
             className="min-h-14 w-full bg-transparent text-[17px] outline-none placeholder:text-muted"
             onKeyDown={(e) => {
               if (e.key === "Escape") onClose();
-              if (e.key === "ArrowDown") { e.preventDefault(); setI((x) => Math.min(x + 1, items.length - 1)); }
-              if (e.key === "ArrowUp") { e.preventDefault(); setI((x) => Math.max(x - 1, 0)); }
-              if (e.key === "Enter" && items[i]) onGo(items[i].href);
+              if (e.key === "ArrowDown") { e.preventDefault(); setI(Math.min(cur + 1, items.length - 1)); }
+              if (e.key === "ArrowUp") { e.preventDefault(); setI(Math.max(cur - 1, 0)); }
+              if (e.key === "Enter" && items[cur]) onGo(items[cur].href);
             }} />
+          {busy ? <span className="text-xs font-semibold text-muted">Buscando…</span> : null}
         </div>
-        <ul className="max-h-80 overflow-auto p-2" role="listbox">
+        <ul className="max-h-[55dvh] overflow-auto p-2" role="listbox">
           {items.length === 0 ? <li className="px-3 py-6 text-center text-muted">Sin resultados</li> : null}
           {items.map((n, idx) => (
-            <li key={n.id} role="option" aria-selected={idx === i}>
-              <button onClick={() => onGo(n.href)} onMouseEnter={() => setI(idx)} className={cn("flex min-h-12 w-full items-center rounded-xl px-3 text-left text-[16px] font-semibold", idx === i && "bg-primary-soft text-primary-text")}>{n.label}</button>
+            <li key={n.id} role="option" aria-selected={idx === cur}>
+              <button onClick={() => onGo(n.href)} onMouseEnter={() => setI(idx)} className={cn("flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left", idx === cur && "bg-primary-soft")}>
+                <Badge tone={n.tag === "Acción" ? "info" : "neutral"} className="shrink-0">{n.tag}</Badge>
+                <span className="min-w-0"><span className="block truncate text-[16px] font-semibold">{n.label}</span>{n.sub ? <span className="block truncate text-[13.5px] text-muted">{n.sub}</span> : null}</span>
+              </button>
             </li>
           ))}
         </ul>

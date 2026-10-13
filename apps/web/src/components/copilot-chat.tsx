@@ -9,7 +9,13 @@ import { SOURCE_LABEL } from "./labels";
 
 type Msg = { role: "user"; text: string } | { role: "ai"; answer: CopilotAnswer };
 
-const SUGGESTIONS = ["¿Qué máquinas han fallado más este mes?", "¿Cuánto hemos gastado en mantenimiento y en qué clientes?", "¿Qué acreditaciones PRL vencen pronto?"];
+const SUGGESTIONS = [
+  "¿Qué máquinas han fallado más este mes?",
+  "¿Cómo van las horas de los contratos marco?",
+  "¿Cuánto hay sin facturar y qué está vencido?",
+  "¿Qué acreditaciones PRL vencen pronto?",
+  "¿Cómo está el pipeline de ofertas?",
+];
 
 /** Convierte **negrita** en <strong>, sin HTML arbitrario. */
 function Rich({ text }: { text: string }) {
