@@ -20,7 +20,7 @@ export const ROLES: Role[] = ROLE_ORDER;
 
 /** Espera a que la página esté pintada y estable (hidratada, sin animaciones de entrada en curso). */
 export async function settle(page: Page) {
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("load");
   await page.locator("main h1, main h2").first().waitFor();
   await page.waitForTimeout(700);
 }

@@ -190,7 +190,7 @@ function TaskCard({ t, words, open, onToggle }: { t: ManualTaskView; words: stri
       <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 py-3 text-[16.5px] font-bold [&::-webkit-details-marker]:hidden">
         <ChevronDown className="size-5 shrink-0 text-primary transition-transform group-open:rotate-180" aria-hidden="true" />
         <span className="min-w-0 flex-1"><Highlight text={t.title} words={words} /></span>
-        {t.availability ? <Badge tone="warn" className="hidden shrink-0 sm:inline-flex">{t.availability}</Badge> : null}
+        {t.availability ? <span className="hidden max-w-[45%] shrink-0 sm:block"><Badge tone="warn" className="max-w-full truncate">{t.availability}</Badge></span> : null}
       </summary>
       <div className="px-4 pb-4 pt-1">
         {t.availability ? <p className="mb-3 text-[14px] font-semibold text-warn-text sm:hidden">Disponible para: {t.availability}</p> : null}

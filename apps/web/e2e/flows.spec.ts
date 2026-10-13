@@ -43,7 +43,7 @@ test.describe("propuestas (humano en el circuito)", () => {
     await expect(page).toHaveURL(/\/propuestas$/);
     const card = page.locator("section", { hasText: "Ruido anómalo en el acoplamiento" }).first();
     await expect(card).toBeVisible();
-    await expect(card.getByText("Antes")).toBeVisible();
+    await expect(card.getByRole("columnheader", { name: "Antes" })).toBeVisible();
     await card.getByRole("button", { name: "Aprobar" }).click();
     await expect(page.getByText("Aprobada por").first()).toBeVisible();
   });

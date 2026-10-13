@@ -4,7 +4,7 @@
 **Fase/hito en curso:** M0 · Cimientos — UI, núcleo, Auth y Supabase hechos; faltan axe/Lighthouse, `/revision` y G0
 **Puerta superada:** ninguna (G0 pendiente)
 
-## Qué existe (verificado: lint, typecheck, 81 tests, `pnpm build` de 22 rutas; recorrido por rol en navegador)
+## Qué existe (verificado: lint, typecheck, 81 tests unitarios + 291 E2E, `pnpm build` de 22 rutas; recorrido por rol en navegador)
 - Monorepo pnpm + Turborepo: `apps/web` (Next 16, React 19, Tailwind 4, Motion), `packages/core`, `packages/ui`, `supabase/`.
 - `packages/core`: esquemas Zod (`schemas.ts` + `modules.ts`), contrato `DataProvider`, permisos por rol (`access.ts`: 7 roles, 17 secciones agrupadas), `demo/` con datos FICTICIOS (fechas relativas a hoy). Sin estado: las escrituras devuelven resultado.
 - `packages/ui`: Button, Card, StatCard (contador), StatusPill, SourceChip, LineChart/BarList/Donut (SVG, al ancho real), Reveal/Stagger.
@@ -21,9 +21,10 @@
 - Usuarios: `demo@solventa.com` (rol Dirección, "Demo SOLVENTA", para la demo) y `iasolventa@gmail.com` (TI, administración). Rol real desde `memberships`; TI/Dirección pueden previsualizar otros paneles mientras los datos sean de ejemplo.
 - CI GitHub Actions (lint, typecheck, test, build, gitleaks). Git: el usuario autorizó commit/push.
 
-## En curso al cortarse la sesión (límite de uso)
-- Pruebas E2E y de accesibilidad (Playwright + axe) en `apps/web/e2e` y `playwright.config.ts`: escritas pero SIN VALIDAR. Ejecutar con `E2E_PORT=3100 pnpm --filter @msm/web exec playwright test --workers=1` (necesita `pnpm dev` en demo: NEXT_PUBLIC_SUPABASE_URL vacío). Con 2-3 trabajadores en paralelo fallaban por lentitud del servidor de desarrollo; en serie, de 15 pruebas de flujos solo se vio pasar 1 antes del corte. Revisar si los fallos son de las pruebas o de la aplicación.
-- Aún no hechos: Lighthouse, `/revision` independiente, valoración de G0.
+## Calidad verificada (G0)
+- E2E + accesibilidad (Playwright + axe, WCAG 2.1 AA): **291 pruebas pasan** en 7 perfiles, 3 tamaños (375/768/1440), tema claro y oscuro; sin desbordamiento horizontal; permisos, propuestas, búsqueda, manual, asistente y tooltips. Se ejecutan en CI (job `e2e`). Local: `pnpm --filter @msm/web exec playwright test --workers=3` (cierra antes cualquier `pnpm dev` de este proyecto).
+- Corregido gracias a ellas: contraste insuficiente (menú, etiqueta IA, azul principal en oscuro, botón secundario), desbordamiento (cabecera a 768, manual y usuarios a 375), error de hidratación del contador con «reducir movimiento».
+- Aún no hecho: Lighthouse, `/revision` independiente, valoración de G0.
 
 ## Siguiente paso concreto
 1. Usuario: revisar la demo en producción con `demo@solventa.com` y dar feedback.

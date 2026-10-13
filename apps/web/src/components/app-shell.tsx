@@ -114,7 +114,7 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
         <nav aria-label="Principal" className="mt-6 flex-1 overflow-y-auto pr-1">
           {Object.entries(groups).map(([group, items]) => (
             <div key={group} className="mb-4">
-              {Object.keys(groups).length > 1 ? <p className="mb-1 px-3 text-[11px] font-bold uppercase tracking-[0.16em] text-white/45">{group}</p> : null}
+              {Object.keys(groups).length > 1 ? <p className="mb-1 px-3 text-[11px] font-bold uppercase tracking-[0.16em] text-white/70">{group}</p> : null}
               <div className="grid gap-0.5">
                 {items.map((n) => {
                   const Icon = ICONS[n.id] ?? LayoutDashboard;
@@ -126,7 +126,7 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
                         {active ? <motion.span layoutId="side-active" transition={spring} className="absolute inset-0 rounded-xl bg-white/14 ring-1 ring-white/10" /> : null}
                         <Icon className="relative size-[18px]" aria-hidden="true" />
                         <span className="relative">{n.label}</span>
-                        {n.id === "copiloto" ? <Badge tone="info" className="relative ml-auto !bg-cyan/25 !text-cyan">IA</Badge> : null}
+                        {n.id === "copiloto" ? <Badge tone="info" className="relative ml-auto !bg-white/15 !text-white">IA</Badge> : null}
                       </Link>
                     </Tooltip>
                   );
@@ -144,7 +144,7 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
               </button>
             </Tooltip>
           </form>
-          <p className="px-3 text-xs text-white/50">Desarrollado por SOLVENTA IA</p>
+          <p className="px-3 text-xs text-white/70">Desarrollado por SOLVENTA IA</p>
         </div>
       </aside>
 
@@ -182,9 +182,9 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
               </button>
             </Tooltip>
             <Tooltip hint={HINT.user} side="bottom">
-              <div className="hidden items-center gap-3 pl-2 md:flex">
+              <div className="hidden max-w-[240px] items-center gap-3 pl-2 lg:flex">
                 <Avatar name={user.name} />
-                <div className="leading-tight"><div className="text-[15px] font-bold">{user.name}</div><div className="text-[13px] text-muted">{user.roleLabel}</div></div>
+                <div className="min-w-0 leading-tight"><div className="truncate text-[15px] font-bold">{user.name}</div><div className="truncate text-[13px] text-muted">{user.roleLabel}</div></div>
               </div>
             </Tooltip>
           </div>

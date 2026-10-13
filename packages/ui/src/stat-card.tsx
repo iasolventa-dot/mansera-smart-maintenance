@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { animate, motion, useInView, useReducedMotion } from "motion/react";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { cn, fmt } from "./cn";
@@ -8,11 +8,20 @@ import { riseIn } from "./motion";
 import { StatusPill } from "./primitives";
 import { Tooltip, type Hint } from "./tooltip";
 
-/** Contador animado; con reduced-motion muestra el valor final directamente. */
+/**
+ * Contador animado. El HTML inicial lleva SIEMPRE el valor final (servidor y navegador coinciden, y se lee bien
+ * sin JavaScript o con lector de pantalla). Con movimiento permitido, justo antes de pintar se pone a 0 y sube
+ * hasta el valor al entrar en pantalla; con «reducir movimiento» se queda en el valor final.
+ */
 export function AnimatedNumber({ value, decimals = 0, className }: { value: number; decimals?: number; className?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true });
   const reduce = useReducedMotion();
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (el && !reduce && !inView) el.textContent = fmt(0, decimals);
+  }, [reduce, inView, decimals]);
 
   useEffect(() => {
     const el = ref.current;
@@ -25,7 +34,7 @@ export function AnimatedNumber({ value, decimals = 0, className }: { value: numb
     return () => controls.stop();
   }, [inView, reduce, value, decimals]);
 
-  return <span ref={ref} className={cn("tabular-nums", className)}>{fmt(reduce ? value : 0, decimals)}</span>;
+  return <span ref={ref} className={cn("tabular-nums", className)}>{fmt(value, decimals)}</span>;
 }
 
 type Props = {

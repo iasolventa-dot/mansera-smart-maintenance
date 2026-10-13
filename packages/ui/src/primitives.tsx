@@ -44,7 +44,7 @@ type ButtonProps = Omit<ComponentProps<"button">, "ref" | "onDrag" | "onDragStar
 
 const buttonStyles = {
   primary: "bg-primary text-white hover:bg-primary-hover shadow-[0_6px_16px_-6px_var(--primary)]",
-  secondary: "bg-surface text-primary border border-primary/40 hover:bg-primary-soft",
+  secondary: "bg-surface text-primary-text border border-primary/40 hover:bg-primary-soft",
   ghost: "text-muted hover:bg-primary-soft hover:text-text",
   danger: "bg-bad-soft text-bad-text border border-bad/30 hover:bg-bad/15",
 } as const;

@@ -34,8 +34,8 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --brand: #8fb4e6;
-    --primary: #5b8ad0;
-    --primary-hover: #7099da;
+    --primary: #4670b5;
+    --primary-hover: #3d63a5;
     --primary-soft: #1d2f4d;
     --primary-text: #a9c6f0;
     --bg: #0c1424;
@@ -56,8 +56,8 @@
 
 :root[data-theme="dark"] {
   --brand: #8fb4e6;
-  --primary: #5b8ad0;
-  --primary-hover: #7099da;
+  --primary: #4670b5;
+  --primary-hover: #3d63a5;
   --primary-soft: #1d2f4d;
   --primary-text: #a9c6f0;
   --bg: #0c1424;

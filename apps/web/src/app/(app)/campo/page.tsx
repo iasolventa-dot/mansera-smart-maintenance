@@ -25,7 +25,7 @@ export default async function CampoPage() {
           <p className="mt-1 text-[17px] text-white/85">{first.assetName} · {first.client}</p>
           <p className="mt-1 flex items-center gap-1.5 text-white/75"><Navigation className="size-4" aria-hidden="true" />{first.site}</p>
           <div className="mt-5 grid grid-cols-2 gap-3">
-            <Button size="lg" className="!bg-white !text-brand !shadow-none"><Mic className="size-5" aria-hidden="true" />Dictar parte</Button>
+            <Button size="lg" className="!bg-white !text-[#1F3F6E] !shadow-none"><Mic className="size-5" aria-hidden="true" />Dictar parte</Button>
             <Button size="lg" className="!border !border-white/40 !bg-white/10 !text-white !shadow-none"><Camera className="size-5" aria-hidden="true" />Foto</Button>
           </div>
         </Card>

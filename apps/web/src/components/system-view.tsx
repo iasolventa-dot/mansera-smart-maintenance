@@ -26,7 +26,7 @@ export function SystemView({ users, audit, matrix }: { users: SystemUser[]; audi
       {tab === "usuarios" ? (
         <ul className="grid gap-3 md:grid-cols-2">
           {users.map((u) => (
-            <li key={u.id} className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-4">
+            <li key={u.id} className="flex min-w-0 items-center gap-4 rounded-2xl border border-border bg-surface p-4">
               <Avatar name={u.name} className="size-12" />
               <div className="min-w-0 flex-1"><p className="truncate text-[17px] font-extrabold">{u.name}</p><p className="truncate text-[14px] text-muted">{u.email}</p><p className="mt-1 text-[13.5px] text-muted">{u.role} · último acceso {rel(u.lastSeen)}</p></div>
               <Badge tone={u.active ? "ok" : "neutral"}>{u.active ? "Activo" : "Inactivo"}</Badge>
