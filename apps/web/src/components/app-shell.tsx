@@ -5,12 +5,14 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import {
-  Bell, BellRing, Building2, CalendarCheck, ClipboardList, FileText, GitPullRequestArrow, HandCoins, LayoutDashboard, LogOut,
+  Bell, BellRing, BookOpen, Building2, CalendarCheck, CircleHelp, ClipboardList, FileText, GitPullRequestArrow, HandCoins, LayoutDashboard, LogOut,
   Menu, Moon, Plug, Search, ShieldCheck, ShoppingCart, Sparkles, Sun, TriangleAlert, UserCog, Users, Wrench, X, Wrench as Tool, type LucideIcon,
 } from "lucide-react";
 import type { CreateOrderResult } from "@/app/actions";
-import type { NewWorkOrderInput, SearchHit } from "@msm/core";
+import { anchorFor, type NavId, type NewWorkOrderInput, type SearchHit } from "@msm/core";
+import type { AssistantResult } from "@/lib/assistant";
 import { Avatar, Badge, Logo, cn, spring } from "@msm/ui";
+import { HELP_ASK_EVENT, HelpAssistant } from "./help-assistant";
 import { QuickOrderDialog } from "./quick-order-dialog";
 
 export type NavItem = { id: string; label: string; href: string; group: string };
@@ -27,13 +29,16 @@ type Props = {
   signOut: () => Promise<void>;
   createWorkOrder: (input: NewWorkOrderInput) => Promise<CreateOrderResult>;
   searchAll: (q: string) => Promise<SearchHit[]>;
+  askAssistant: (input: { messages: { role: "user" | "assistant"; content: string }[]; panel: string | null }) => Promise<AssistantResult>;
+  helpKey: string;
+  role: string;
   children: ReactNode;
 };
 
 const ICONS: Record<string, LucideIcon> = {
   campo: CalendarCheck, panel: LayoutDashboard, alertas: TriangleAlert, ordenes: ClipboardList, mantenimiento: Tool, activos: Wrench,
   clientes: Building2, comercial: HandCoins, facturacion: FileText, compras: ShoppingCart, personal: Users, prl: ShieldCheck,
-  propuestas: GitPullRequestArrow, informes: FileText, copiloto: Sparkles, conexiones: Plug, usuarios: UserCog,
+  propuestas: GitPullRequestArrow, informes: FileText, copiloto: Sparkles, conexiones: Plug, usuarios: UserCog, manual: BookOpen,
 };
 /** Destinos que ocupan la barra inferior móvil, por orden de prioridad. */
 const MOBILE_PRIORITY = ["campo", "panel", "ordenes", "alertas", "activos", "copiloto", "propuestas"];
@@ -54,7 +59,7 @@ export function AppShell(props: Props) {
   );
 }
 
-function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switchRole, signOut, createWorkOrder, searchAll, children }: Props) {
+function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switchRole, signOut, createWorkOrder, searchAll, askAssistant, helpKey, role, children }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const params = useSearchParams();
@@ -91,14 +96,20 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
   const overflow = nav.filter((n) => !primary.includes(n));
   const groups = nav.reduce<Record<string, NavItem[]>>((acc, n) => { (acc[n.group] ??= []).push(n); return acc; }, {});
   const unread = notifications.filter((n) => !n.read).length;
+  const here = nav.find((n) => pathname === n.href || pathname.startsWith(n.href + "/"));
+  const helpAnchor = here && here.id !== "manual" ? anchorFor(here.id as NavId) : null;
+  const goTo = useCallback((href: string) => {
+    if (href.startsWith("#help:")) window.dispatchEvent(new CustomEvent(HELP_ASK_EVENT, { detail: href.slice(6) }));
+    else router.push(href);
+  }, [router]);
   const closeOrder = useCallback(() => router.replace(pathname, { scroll: false }), [router, pathname]);
 
   return (
-    <div className="min-h-dvh lg:grid lg:grid-cols-[272px_1fr]">
+    <div className="min-h-dvh lg:grid lg:grid-cols-[272px_1fr] print:block">
       <a href="#contenido" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-4 focus:py-2 focus:font-bold">Saltar al contenido</a>
 
       {/* Barra lateral (escritorio) */}
-      <aside className="sticky top-0 hidden h-dvh flex-col bg-sidebar px-4 py-5 text-white lg:flex">
+      <aside className="sticky top-0 hidden print:!hidden h-dvh flex-col bg-sidebar px-4 py-5 text-white lg:flex">
         <Logo inverted className="px-2" />
         <nav aria-label="Principal" className="mt-6 flex-1 overflow-y-auto pr-1">
           {Object.entries(groups).map(([group, items]) => (
@@ -135,7 +146,7 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
 
       <div className="min-w-0">
         {/* Cabecera */}
-        <header className="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-border bg-surface/85 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+        <header className="print:hidden sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-border bg-surface/85 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
           <div className="lg:hidden"><Logo /></div>
           <button onClick={() => setPalette(true)} className="hidden min-h-11 w-full max-w-sm items-center gap-2 rounded-xl border border-border bg-bg px-3.5 text-muted hover:border-primary/50 sm:flex" aria-label="Buscar o ir a… (Ctrl+K)">
             <Search className="size-[18px]" aria-hidden="true" /> <span className="text-[15px]">Buscar o ir a…</span>
@@ -152,6 +163,9 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
               </button>
               <AnimatePresence>{bell ? <NotificationsPanel items={notifications} onClose={() => setBell(false)} /> : null}</AnimatePresence>
             </div>
+            <Link href={helpAnchor ? `/manual#${helpAnchor}` : "/manual"} aria-label="Ayuda de esta pantalla (manual)" title="Ayuda de esta pantalla" className="hidden size-11 place-items-center rounded-xl text-muted hover:bg-primary-soft sm:grid">
+              <CircleHelp className="size-5" aria-hidden="true" />
+            </Link>
             <button onClick={toggleTheme} aria-label={dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"} className="grid size-11 place-items-center rounded-xl text-muted hover:bg-primary-soft">
               {dark ? <Sun className="size-5" /> : <Moon className="size-5" />}
             </button>
@@ -166,7 +180,7 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
       </div>
 
       {/* Barra inferior (móvil) */}
-      <nav aria-label="Principal" className="safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/90 backdrop-blur-xl lg:hidden">
+      <nav aria-label="Principal" className="print:hidden safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/90 backdrop-blur-xl lg:hidden">
         <ul className="mx-auto grid max-w-xl" style={{ gridTemplateColumns: `repeat(${primary.length + (overflow.length ? 1 : 0)}, minmax(0, 1fr))` }}>
           {primary.map((n) => {
             const Icon = ICONS[n.id] ?? LayoutDashboard;
@@ -205,9 +219,10 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
             <form action={signOut} className="mt-2"><button className="flex min-h-14 w-full items-center gap-3 rounded-xl px-3 text-[17px] font-bold text-bad-text hover:bg-bad-soft"><LogOut className="size-5" aria-hidden="true" />Cerrar sesión</button></form>
           </Sheet>
         ) : null}
-        {palette ? <Palette nav={nav} searchAll={searchAll} onClose={() => setPalette(false)} onGo={(href) => { setPalette(false); router.push(href); }} /> : null}
+        {palette ? <Palette nav={nav} searchAll={searchAll} onClose={() => setPalette(false)} onGo={(href) => { setPalette(false); goTo(href); }} /> : null}
         {orderOpen ? <QuickOrderDialog clients={quick.clients} assets={quick.assets} create={createWorkOrder} onClose={closeOrder} /> : null}
       </AnimatePresence>
+      <HelpAssistant nav={nav} storageKey={helpKey} ask={askAssistant} role={role} />
     </div>
   );
 }
@@ -304,6 +319,7 @@ function Palette({ nav, searchAll, onClose, onGo }: { nav: NavItem[]; searchAll:
     ...(needle.includes("orden") || needle.includes("nueva") || !needle ? [{ id: "act-ot", label: "Nueva orden de trabajo", sub: "Acción rápida · crea una propuesta", href: "?accion=ot", tag: "Acción" }] : []),
     ...navHits.map((n) => ({ id: n.id, label: n.label, href: n.href, tag: "Ir a" })),
     ...(q.trim().length >= 2 ? hits.map((h) => ({ id: h.kind + h.id, label: h.title, sub: h.subtitle, href: h.href, tag: KIND_LABEL[h.kind] })) : []),
+    ...(q.trim().length >= 3 ? [{ id: "ask-help", label: `Preguntar a la ayuda: «${q.trim().slice(0, 60)}»`, sub: "El asistente te explica cómo hacerlo", href: `#help:${q.trim()}`, tag: "Ayuda" }] : []),
   ];
   const cur = Math.min(i, Math.max(items.length - 1, 0));
 

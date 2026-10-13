@@ -2,7 +2,7 @@ import { NAV_GROUP, NAV_HREF, NAV_LABEL, ROLE_ACCESS, ROLE_ORDER, navFor } from 
 import { AppShell } from "@/components/app-shell";
 import { getProvider } from "@/lib/data";
 import { requireSession } from "@/lib/session";
-import { createWorkOrder, searchAll, signOut, switchRole } from "../actions";
+import { askAssistant, createWorkOrder, searchAll, signOut, switchRole } from "../actions";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await requireSession();
@@ -29,6 +29,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       signOut={signOut}
       createWorkOrder={createWorkOrder}
       searchAll={searchAll}
+      askAssistant={askAssistant}
+      helpKey={`msm_help_${session.userId}`}
+      role={session.role}
     >
       {children}
     </AppShell>

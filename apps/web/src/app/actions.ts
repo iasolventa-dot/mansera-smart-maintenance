@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { homeFor, NewWorkOrderInput, Role, type CopilotAnswer, type SearchHit } from "@msm/core";
 import { getProvider } from "@/lib/data";
+import { askAssistantServer, type AssistantResult } from "@/lib/assistant";
 import { applyOverlay, recordCreated, recordDecision } from "@/lib/demo-state";
 import { createClient } from "@/lib/supabase/server";
 import { endSession, realAuthEnabled, requireSession, setPreviewRole, startDemoSession } from "@/lib/session";
@@ -75,4 +76,10 @@ export async function askCopilot(question: string): Promise<CopilotAnswer> {
 export async function searchAll(query: string): Promise<SearchHit[]> {
   const session = await requireSession();
   return getProvider().search(query.slice(0, 80), session.role);
+}
+
+/** Asistente de ayuda: la IA (si está activada) responde desde el servidor; si no, el navegador usa el modo guía. */
+export async function askAssistant(input: { messages: unknown; panel: string | null }): Promise<AssistantResult> {
+  const session = await requireSession();
+  return askAssistantServer({ id: session.userId, role: session.role }, input);
 }

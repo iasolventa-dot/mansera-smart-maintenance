@@ -143,6 +143,28 @@ describe("profiles", () => {
   });
 });
 
+describe("assistant_usage (límite diario del asistente)", () => {
+  it("cada llamada cuenta una pregunta del usuario autenticado y devuelve el total del día", async () => {
+    const a = await asUser(ids.campo1, async () => (await rows("select public.assistant_log_use() as n"))[0]?.n);
+    const b = await asUser(ids.campo1, async () => (await rows("select public.assistant_log_use() as n"))[0]?.n);
+    const c = await asUser(ids.ti1, async () => (await rows("select public.assistant_log_use() as n"))[0]?.n);
+    expect([a, b, c]).toEqual([1, 2, 1]);
+  });
+  it("cada usuario solo ve su propio contador", async () => {
+    const r = await asUser(ids.campo1, () => rows("select user_id, questions from public.assistant_usage"));
+    expect(r).toHaveLength(1);
+    expect(r[0]?.user_id).toBe(ids.campo1);
+  });
+  it("nadie puede escribir ni borrar el contador directamente (ni ponérselo a cero)", async () => {
+    await denied(() => asUser(ids.campo1, () => db.exec("update public.assistant_usage set questions = 0")));
+    await denied(() => asUser(ids.campo1, () => db.exec(`insert into public.assistant_usage (user_id, questions) values ('${ids.campo1}', 0)`)));
+    await denied(() => asUser(ids.campo1, () => db.exec("delete from public.assistant_usage")));
+  });
+  it("sin sesión no se puede llamar a la función", async () => {
+    await denied(() => asUser(null, () => rows("select public.assistant_log_use()"), "anon"));
+  });
+});
+
 describe("audit_log (inmutable)", () => {
   const insert = (org: string, actor: string) =>
     `insert into public.audit_log (org_id, actor_id, app, action) values ('${org}', '${actor}', 'msm', 'prueba')`;

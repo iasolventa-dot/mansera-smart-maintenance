@@ -17,9 +17,10 @@ export type NavId =
   | "informes"
   | "copiloto"
   | "conexiones"
-  | "usuarios";
+  | "usuarios"
+  | "manual";
 
-export type NavGroup = "Mi día" | "Operación" | "Negocio" | "Personas" | "Inteligencia" | "Sistema";
+export type NavGroup = "Mi día" | "Operación" | "Negocio" | "Personas" | "Inteligencia" | "Sistema" | "Ayuda";
 
 /** Orden maestro del menú; cada rol ve el subconjunto que le corresponde. */
 export const NAV_ORDER: NavId[] = [
@@ -28,6 +29,7 @@ export const NAV_ORDER: NavId[] = [
   "personal", "prl",
   "propuestas", "informes", "copiloto",
   "conexiones", "usuarios",
+  "manual",
 ];
 
 export const NAV_LABEL: Record<NavId, string> = {
@@ -48,6 +50,7 @@ export const NAV_LABEL: Record<NavId, string> = {
   copiloto: "Copiloto de IA",
   conexiones: "Conexiones",
   usuarios: "Usuarios y auditoría",
+  manual: "Manual de usuario",
 };
 
 export const NAV_HREF: Record<NavId, string> = {
@@ -68,6 +71,7 @@ export const NAV_HREF: Record<NavId, string> = {
   copiloto: "/copiloto",
   conexiones: "/conexiones",
   usuarios: "/usuarios",
+  manual: "/manual",
 };
 
 export const NAV_GROUP: Record<NavId, NavGroup> = {
@@ -88,6 +92,7 @@ export const NAV_GROUP: Record<NavId, NavGroup> = {
   copiloto: "Inteligencia",
   conexiones: "Sistema",
   usuarios: "Sistema",
+  manual: "Ayuda",
 };
 
 /**
@@ -98,37 +103,37 @@ const ACCESS: Record<Role, { label: string; description: string; nav: NavId[] }>
   direccion: {
     label: "Dirección",
     description: "Visión global, rentabilidad y alertas críticas",
-    nav: ["panel", "alertas", "ordenes", "mantenimiento", "activos", "clientes", "comercial", "facturacion", "compras", "personal", "prl", "propuestas", "informes", "copiloto"],
+    nav: ["panel", "alertas", "ordenes", "mantenimiento", "activos", "clientes", "comercial", "facturacion", "compras", "personal", "prl", "propuestas", "informes", "copiloto", "manual"],
   },
   ti: {
     label: "TI · Administración del sistema",
     description: "Conexiones, auditoría y usuarios",
-    nav: ["panel", "alertas", "propuestas", "copiloto", "conexiones", "usuarios"],
+    nav: ["panel", "alertas", "propuestas", "copiloto", "conexiones", "usuarios", "manual"],
   },
   oficina_tecnica: {
     label: "Oficina técnica",
     description: "OT, activos, preventivos y ofertas",
-    nav: ["panel", "alertas", "ordenes", "mantenimiento", "activos", "clientes", "comercial", "propuestas", "informes", "copiloto"],
+    nav: ["panel", "alertas", "ordenes", "mantenimiento", "activos", "clientes", "comercial", "propuestas", "informes", "copiloto", "manual"],
   },
   administracion: {
     label: "Administración y facturación",
     description: "Albaranes, facturas y clientes",
-    nav: ["panel", "alertas", "ordenes", "clientes", "facturacion", "propuestas", "informes", "copiloto"],
+    nav: ["panel", "alertas", "ordenes", "clientes", "facturacion", "propuestas", "informes", "copiloto", "manual"],
   },
   compras: {
     label: "Compras y almacén",
     description: "Pedidos, repuestos y proveedores",
-    nav: ["panel", "alertas", "ordenes", "activos", "compras", "copiloto"],
+    nav: ["panel", "alertas", "ordenes", "activos", "compras", "copiloto", "manual"],
   },
   rrhh: {
     label: "RR. HH. y personas",
     description: "Personal, fichajes, PRL y CAE",
-    nav: ["panel", "alertas", "personal", "prl", "copiloto"],
+    nav: ["panel", "alertas", "personal", "prl", "copiloto", "manual"],
   },
   campo: {
     label: "Técnico de campo",
     description: "Mis OT de hoy, ficha del activo, parte",
-    nav: ["campo", "activos", "copiloto"],
+    nav: ["campo", "activos", "copiloto", "manual"],
   },
 };
 
