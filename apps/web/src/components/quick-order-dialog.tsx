@@ -52,7 +52,7 @@ export function QuickOrderDialog({ clients, assets, create, onClose }: Props) {
     <motion.div className="fixed inset-0 z-[70] grid items-end justify-items-center bg-black/50 sm:items-center sm:p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <motion.div role="dialog" aria-modal="true" aria-labelledby="qo-title"
-        className="safe-bottom max-h-[92dvh] w-full max-w-lg overflow-auto rounded-t-3xl bg-surface p-6 shadow-2xl sm:rounded-3xl"
+        className="max-h-[92dvh] w-full max-w-lg overflow-auto rounded-t-3xl bg-surface p-6 pb-[calc(1.5rem_+_env(safe-area-inset-bottom))] shadow-2xl sm:rounded-3xl"
         initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }} transition={spring}>
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>

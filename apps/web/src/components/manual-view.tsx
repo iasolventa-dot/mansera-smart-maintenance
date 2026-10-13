@@ -172,7 +172,7 @@ export function ManualView({ chapters, roleLabel }: { chapters: ManualChapterVie
           <motion.div className="fixed inset-0 z-[55] lg:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <button aria-label="Cerrar el índice" onClick={() => setTocOpen(false)} className="absolute inset-0 bg-black/45" />
             <motion.div role="dialog" aria-modal="true" aria-label="Índice del manual" initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={spring}
-              className="safe-bottom absolute inset-x-0 bottom-0 max-h-[80dvh] overflow-auto rounded-t-3xl bg-surface p-5">
+              className="absolute inset-x-0 bottom-0 max-h-[80dvh] overflow-auto rounded-t-3xl bg-surface p-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))]">
               <div className="mb-2 flex items-center justify-between"><h2 className="text-lg font-extrabold">Índice</h2><button onClick={() => setTocOpen(false)} aria-label="Cerrar" className="grid size-11 place-items-center rounded-xl hover:bg-primary-soft"><X className="size-5" /></button></div>
               {toc}
             </motion.div>

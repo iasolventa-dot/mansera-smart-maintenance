@@ -30,6 +30,25 @@ test.describe("control de acceso", () => {
   });
 });
 
+test.describe("diálogo «Nueva orden de trabajo»", () => {
+  for (const width of [1440, 375]) {
+    test(`el botón no queda pegado al borde inferior (${width}px)`, async ({ page, context }) => {
+      await page.setViewportSize({ width, height: width > 400 ? 900 : 812 });
+      await loginAs(context, "direccion");
+      await page.goto("/ordenes?accion=ot");
+      await settle(page);
+      const dialog = page.getByRole("dialog", { name: "Nueva orden de trabajo" });
+      const pb = await dialog.evaluate((el) => parseFloat(getComputedStyle(el).paddingBottom));
+      expect(pb).toBeGreaterThanOrEqual(20);
+      await dialog.evaluate((el) => { el.scrollTop = el.scrollHeight; });
+      const box = await dialog.boundingBox();
+      const btn = await dialog.getByRole("button", { name: "Crear propuesta" }).boundingBox();
+      expect(box!.y + box!.height - (btn!.y + btn!.height)).toBeGreaterThanOrEqual(20);
+      await page.screenshot({ path: `test-results/dialogo-ot-${width}.png` });
+    });
+  }
+});
+
 test.describe("propuestas (humano en el circuito)", () => {
   test("una acción rápida crea una propuesta pendiente y se puede aprobar", async ({ page, context }) => {
     await loginAs(context, "direccion");

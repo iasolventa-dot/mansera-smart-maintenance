@@ -135,6 +135,7 @@ body {
     linear-gradient(160deg, #1f3f6e 0%, #183258 100%);
 }
 
+/* Solo para elementos SIN relleno inferior propio (p. ej. la barra de navegación): sobrescribe cualquier pb-*. */
 .safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
 
 @media (prefers-reduced-motion: reduce) {
