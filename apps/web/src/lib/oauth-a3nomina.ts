@@ -1,30 +1,39 @@
 import "server-only";
-import { randomBytes, timingSafeEqual } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { canPerform } from "@msm/core";
-import { ConnectorError, buildAuthorizeUrl, exchangeCode, idTokenNonceMatches } from "@msm/connectors";
+import { ConnectorError, buildAuthorizeUrl, checkCallback, exchangeCode, validateIdToken } from "@msm/connectors";
 import { getSession, realAuthEnabled, type Session } from "./session";
 import { adminConfigured, createAdminClient } from "./supabase/admin";
 import { createClient } from "./supabase/server";
 
 /**
  * Flujo «Conectar con Wolters Kluwer» de a3innuva Nómina (ADR-0013). Todo en el servidor:
- *  start    → comprueba TI real, genera state + nonce (cookie httpOnly 10 min) y redirige al login de WKA.
- *  callback → comprueba sesión, usuario y state; canjea el código con el client_secret (leído del Vault con la
- *             clave de servicio); comprueba el nonce; guarda el refresh token en el Vault y lo audita.
- * Nunca devuelve ni registra secretos: el navegador solo ve un código de resultado (`?oauth=...`).
+ *  start    (POST desde la propia aplicación) → TI real; state + nonce + client_id en una cookie httpOnly de 10 min → login WKA.
+ *  callback → comprueba state, usuario y organización (checkCallback); canjea el código con el client_secret leído del Vault
+ *             con la clave de servicio; valida el id_token (emisor, audiencia, caducidad, nonce); guarda el refresh token
+ *             atado al client_id usado (si TI cambió las credenciales entre medias, se rechaza). Fallos auditados.
+ * El navegador solo ve un código de resultado (`?oauth=...`); nunca secretos.
  */
 const APP = "a3nomina" as const;
-const COOKIE = "msm_oauth_a3nomina";
-const COOKIE_PATH = "/api/oauth/a3nomina";
+const SECURE = process.env.NODE_ENV === "production";
+/** `__Host-` impide que un subdominio hermano fije la cookie (exige Secure y path=/). En local no hay https. */
+const COOKIE = SECURE ? "__Host-msm_oauth_a3nomina" : "msm_oauth_a3nomina";
 
-export type OAuthOutcome = "ok" | "denegado" | "caducado" | "sin_clave_servicio" | "sin_credenciales" | "sin_permiso" | "error";
-
-const Pending = z.object({ state: z.string().min(32), nonce: z.string().min(32), org: z.uuid(), uid: z.uuid(), redirectUri: z.string().url() });
+export type OAuthOutcome = "ok" | "denegado" | "caducado" | "sin_clave_servicio" | "sin_credenciales" | "sin_permiso" | "credenciales_cambiadas" | "error";
 
 const random = () => randomBytes(32).toString("base64url");
-const sameText = (a: string, b: string) => a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
+
+/** Origen público fijo si existe (`APP_URL`); si no, el de la petición. Wolters Kluwer solo acepta direcciones registradas. */
+export const appOrigin = (requestOrigin: string) => {
+  const fixed = process.env.APP_URL;
+  try {
+    return fixed ? new URL(fixed).origin : requestOrigin;
+  } catch {
+    return requestOrigin;
+  }
+};
 
 async function tiContext(): Promise<{ ok: true; session: Session; orgId: string } | { ok: false; outcome: OAuthOutcome }> {
   const session = await getSession();
@@ -43,18 +52,24 @@ async function storedClientId(orgId: string): Promise<string | null> {
   return typeof id === "string" ? id : null;
 }
 
+async function audit(orgId: string, uid: string, outcome: OAuthOutcome | "id_token_invalido") {
+  try {
+    await createAdminClient().rpc("connection_audit_oauth", { p_org: orgId, p_app: APP, p_actor: uid, p_outcome: outcome });
+  } catch {
+    // La auditoría de un intento fallido no debe ocultar el resultado al usuario.
+  }
+}
+
 /** Inicio: devuelve la URL a la que redirigir (WKA) o el resultado si no se puede empezar. */
 export async function startA3NominaOAuth(origin: string): Promise<{ redirect: string } | { outcome: OAuthOutcome }> {
   const ctx = await tiContext();
   if (!ctx.ok) return { outcome: ctx.outcome };
   const clientId = await storedClientId(ctx.orgId);
   if (!clientId) return { outcome: "sin_credenciales" };
-  const pending = { state: random(), nonce: random(), org: ctx.orgId, uid: ctx.session.userId, redirectUri: `${origin}${COOKIE_PATH}/callback` };
+  const pending = { state: random(), nonce: random(), org: ctx.orgId, uid: ctx.session.userId, clientId, redirectUri: `${origin}/api/oauth/a3nomina/callback` };
   try {
     const url = buildAuthorizeUrl({ clientId, redirectUri: pending.redirectUri, state: pending.state, nonce: pending.nonce });
-    (await cookies()).set(COOKIE, JSON.stringify(pending), {
-      httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: COOKIE_PATH, maxAge: 600,
-    });
+    (await cookies()).set(COOKIE, JSON.stringify(pending), { httpOnly: true, secure: SECURE, sameSite: "lax", path: "/", maxAge: 600 });
     return { redirect: url };
   } catch {
     return { outcome: "error" };
@@ -65,39 +80,47 @@ export async function startA3NominaOAuth(origin: string): Promise<{ redirect: st
 export async function finishA3NominaOAuth(params: URLSearchParams): Promise<OAuthOutcome> {
   const store = await cookies();
   const raw = store.get(COOKIE)?.value;
-  store.delete({ name: COOKIE, path: COOKIE_PATH });
+  store.delete({ name: COOKIE, path: "/" });
 
   const ctx = await tiContext();
   if (!ctx.ok) return ctx.outcome;
-  if (params.get("error")) return "denegado";
-
-  let pending: z.infer<typeof Pending>;
-  try {
-    pending = Pending.parse(JSON.parse(raw ?? ""));
-  } catch {
-    return "caducado"; // sin cookie (más de 10 min, otro navegador) o manipulada
+  const check = checkCallback(raw, params, { uid: ctx.session.userId, org: ctx.orgId });
+  if (!check.ok) {
+    await audit(ctx.orgId, ctx.session.userId, check.outcome);
+    return check.outcome;
   }
-  const state = params.get("state") ?? "";
-  const code = params.get("code") ?? "";
-  if (!code || !sameText(state, pending.state) || pending.uid !== ctx.session.userId || pending.org !== ctx.orgId) return "caducado";
+  const { pending, code } = check;
 
   try {
-    const clientId = await storedClientId(ctx.orgId);
-    if (!clientId) return "sin_credenciales";
+    if ((await storedClientId(ctx.orgId)) !== pending.clientId) {
+      await audit(ctx.orgId, ctx.session.userId, "credenciales_cambiadas");
+      return "credenciales_cambiadas";
+    }
     const admin = createAdminClient();
     const { data: secretText, error: readErr } = await admin.rpc("connection_read_secret", { p_org: ctx.orgId, p_app: APP });
     if (readErr || typeof secretText !== "string") return "sin_credenciales";
     const secrets = z.object({ clientSecret: z.string().min(1) }).safeParse(JSON.parse(secretText));
     if (!secrets.success) return "sin_credenciales";
 
-    const tokens = await exchangeCode({ clientId, clientSecret: secrets.data.clientSecret }, code, pending.redirectUri);
-    if (!idTokenNonceMatches(tokens.idToken, pending.nonce)) return "error";
-
-    const { error: storeErr } = await admin.rpc("connection_store_oauth", { p_org: ctx.orgId, p_app: APP, p_refresh: tokens.refreshToken, p_actor: ctx.session.userId });
-    return storeErr ? "error" : "ok";
+    const tokens = await exchangeCode({ clientId: pending.clientId, clientSecret: secrets.data.clientSecret }, code, pending.redirectUri);
+    if (!validateIdToken(tokens.idToken, { nonce: pending.nonce, clientId: pending.clientId })) {
+      await audit(ctx.orgId, ctx.session.userId, "id_token_invalido");
+      return "error";
+    }
+    const { error: storeErr } = await admin.rpc("connection_store_oauth", {
+      p_org: ctx.orgId, p_app: APP, p_client_id: pending.clientId, p_refresh: tokens.refreshToken, p_actor: ctx.session.userId,
+    });
+    if (storeErr) {
+      const changed = storeErr.message?.includes("han cambiado");
+      await audit(ctx.orgId, ctx.session.userId, changed ? "credenciales_cambiadas" : "error");
+      return changed ? "credenciales_cambiadas" : "error";
+    }
+    return "ok";
   } catch (e) {
     // Solo el tipo de error, nunca el contenido (podría incluir datos del proveedor).
     console.error("[oauth a3nomina] fallo:", e instanceof ConnectorError ? e.kind : "inesperado");
-    return e instanceof ConnectorError && e.kind === "auth" ? "caducado" : "error";
+    const outcome: OAuthOutcome = e instanceof ConnectorError && e.kind === "auth" ? "caducado" : "error";
+    await audit(ctx.orgId, ctx.session.userId, outcome);
+    return outcome;
   }
 }

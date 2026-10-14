@@ -52,7 +52,7 @@ La nómina contiene los datos personales **más sensibles** del proyecto: salari
 - **Conexiones:** tarjeta propia. Se pueden guardar client_id (visible), client_secret y clave de suscripción (cifrados en Vault). La base de datos valida el formato (migración `a3nomina`).
 - **OAuth:** las piezas puras están hechas y probadas (`packages/connectors/src/a3nomina/oauth.ts`): URL de autorización, canje del código, renovación y cabeceras.
 - **Flujo «Conectar con Wolters Kluwer» construido (2026-10-14):** `/api/oauth/a3nomina/start` → login WKA → `/api/oauth/a3nomina/callback`.
-  - **Inicio:** solo TI real; `state` y `nonce` aleatorios en una cookie httpOnly de 10 min.
+  - **Inicio:** solo TI real, por POST desde la propia aplicación; `state`, `nonce` y client_id en una cookie `__Host-` httpOnly de 10 min.
   - **Retorno:** comprueba sesión, usuario y `state`; lee el client_secret con la clave de servicio; canjea el código; comprueba el `nonce`; guarda el refresh token en el Vault con `connection_store_oauth` (solo service_role, y solo en nombre de un TI) y lo audita sin valores.
   - El navegador solo ve un código de resultado.
   - **Sin probar contra Wolters Kluwer:** falta el cliente OAuth de MANSERA, que exige registrar la dirección de retorno `https://mansera-indol.vercel.app/api/oauth/a3nomina/callback` (o el dominio definitivo).

@@ -8,7 +8,7 @@ import type { ConnectionResult } from "@/app/actions";
 
 export type StoredConnection = {
   config: Record<string, string>;
-  status: "sin_probar" | "verificada" | "error" | "no_probable";
+  status: "sin_probar" | "autorizada" | "verificada" | "error" | "no_probable";
   lastCheckAt: string | null;
   lastCheckMessage: string | null;
   updatedAt: string;
@@ -29,6 +29,7 @@ type Props = {
 
 const STATUS = {
   sin_probar: { label: "Guardada, sin comprobar", cls: "bg-bg text-muted border border-border", Icon: CircleHelp },
+  autorizada: { label: "Autorizada (sin datos leídos aún)", cls: "bg-ok-soft text-ok-text", Icon: CircleCheck },
   verificada: { label: "Verificada", cls: "bg-ok-soft text-ok-text", Icon: CircleCheck },
   error: { label: "Error al comprobar", cls: "bg-bad-soft text-bad-text", Icon: CircleAlert },
   no_probable: { label: "Guardada (no comprobable desde la nube)", cls: "bg-warn-soft text-warn-text", Icon: CircleHelp },
@@ -165,9 +166,9 @@ export function ConnectionCard({ spec, stored, canEdit, readOnlyReason, oauthEna
               ) : canEdit ? (
                 <>
                   <p className="mt-1 text-muted">Se abrirá el inicio de sesión de Wolters Kluwer. Entra con una cuenta de MANSERA con acceso a la nómina y elige solo las empresas necesarias.</p>
-                  <a href={spec.oauthStartPath} className="mt-3 inline-flex min-h-12 items-center justify-center gap-2 rounded-[10px] bg-primary px-4 text-[15px] font-bold text-white hover:bg-primary-hover">
-                    <KeyRound className="size-4" aria-hidden="true" />{stored.status === "verificada" ? "Volver a conectar con Wolters Kluwer" : "Conectar con Wolters Kluwer"}
-                  </a>
+                  <form method="post" action={spec.oauthStartPath} className="mt-3">
+                    <Button type="submit"><KeyRound className="size-4" aria-hidden="true" />{stored.status === "verificada" || stored.status === "autorizada" ? "Volver a conectar con Wolters Kluwer" : "Conectar con Wolters Kluwer"}</Button>
+                  </form>
                 </>
               ) : (
                 <p className="mt-1 text-muted">Solo el perfil de TI puede autorizar la conexión.</p>

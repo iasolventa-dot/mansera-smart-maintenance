@@ -27,12 +27,13 @@ const OAUTH_MSG: Record<string, { ok: boolean; text: string }> = {
   sin_clave_servicio: { ok: false, text: "Falta la clave de servicio de Supabase en el servidor (variable SUPABASE_SERVICE_ROLE_KEY en Vercel)." },
   sin_credenciales: { ok: false, text: "Faltan las credenciales de a3innuva Nómina: guárdalas antes de conectar." },
   sin_permiso: { ok: false, text: "Solo el perfil de TI puede autorizar conexiones." },
+  credenciales_cambiadas: { ok: false, text: "Las credenciales de a3innuva Nómina cambiaron durante la autorización. Vuelve a pulsar «Conectar»." },
   error: { ok: false, text: "No se pudo completar la conexión con Wolters Kluwer. Inténtalo de nuevo o avisa a soporte." },
 };
 
 export default async function ConexionesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
-  const oauthMsg = typeof sp.oauth === "string" ? OAUTH_MSG[sp.oauth] : undefined;
+  const oauthMsg = typeof sp.oauth === "string" && Object.hasOwn(OAUTH_MSG, sp.oauth) ? OAUTH_MSG[sp.oauth] : undefined;
   const session = await requireAccess("conexiones");
   const conns = await getProvider().getConnections();
   const real = realAuthEnabled();

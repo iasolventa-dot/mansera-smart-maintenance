@@ -283,24 +283,29 @@ describe("connections + Vault (credenciales)", () => {
     expect(a?.app).toBe("a3nomina");
     await asUser(ids.ti1, () => db.query("select public.connection_delete($1, 'a3nomina')", [ids.org1]));
   });
-  it("OAuth: solo el servidor (service_role) guarda el refresh token, y solo en nombre de un TI", async () => {
+  it("OAuth: solo el servidor guarda el refresh token, solo en nombre de un TI y atado al client_id usado", async () => {
     const secrets = { clientSecret: "s".repeat(20), subscriptionKey: "k".repeat(32) };
-    await asUser(ids.ti1, () => db.query("select public.connection_save($1, 'a3nomina', $2::jsonb, $3)", [ids.org1, JSON.stringify({ clientId: "mansera-client" }), JSON.stringify(secrets)]));
-    const store = (actor: string) => db.query("select public.connection_store_oauth($1, 'a3nomina', $2, $3)", [ids.org1, "RT-PRUEBA-123", actor]);
-    // Ni TI desde el navegador puede llamarla.
-    await denied(() => asUser(ids.ti1, () => store(ids.ti1)));
+    const saveClient = (clientId: string) => asUser(ids.ti1, () => db.query("select public.connection_save($1, 'a3nomina', $2::jsonb, $3)", [ids.org1, JSON.stringify({ clientId }), JSON.stringify(secrets)]));
+    await saveClient("mansera-client");
+    const store = (actor: string, clientId = "mansera-client") => db.query("select public.connection_store_oauth($1, 'a3nomina', $2, $3, $4)", [ids.org1, clientId, "RT-PRUEBA-123", actor]);
     const asService = async <T,>(fn: () => Promise<T>) => { await db.exec("set role service_role"); try { return await fn(); } finally { await db.exec("reset role"); } };
-    // Con service_role, pero en nombre de alguien que no es TI de la organización: rechazado.
+    await denied(() => asUser(ids.ti1, () => store(ids.ti1))); // ni TI desde el navegador
     await expect(asService(() => store(ids.dir1))).rejects.toThrow(/solo TI/);
     await expect(asService(() => store(ids.ti2))).rejects.toThrow(/solo TI/);
+    await expect(asService(() => store(ids.ti1, "otro-client"))).rejects.toThrow(/han cambiado/); // credenciales cambiadas entre medias
     await asService(() => store(ids.ti1));
-    const [s] = await asService(() => rows("select public.connection_read_secret($1, 'a3nomina') as v", [ids.org1]));
-    const v = JSON.parse(String(s?.v));
-    expect(v).toMatchObject({ ...secrets, refreshToken: "RT-PRUEBA-123" }); // no se pierde lo anterior
+    const read = async () => JSON.parse(String((await asService(() => rows("select public.connection_read_secret($1, 'a3nomina') as v", [ids.org1])))[0]?.v));
+    expect(await read()).toMatchObject({ ...secrets, refreshToken: "RT-PRUEBA-123" }); // no se pierde lo anterior
     const [c] = await asUser(ids.ti1, () => rows("select status from public.connections where app = 'a3nomina'"));
-    expect(c?.status).toBe("verificada");
-    const audit = await rows("select after::text as a from public.audit_log where action = 'conexion.autorizar'");
-    expect(audit.map((x) => x.a).join(" ")).not.toContain("RT-PRUEBA");
+    expect(c?.status).toBe("autorizada"); // no «verificada» sin una lectura real
+    // Renovación programada: sin actor, también atada al client_id.
+    await denied(() => asUser(ids.ti1, () => db.query("select public.connection_rotate_oauth($1, 'a3nomina', 'mansera-client', 'RT-3')", [ids.org1])));
+    await asService(() => db.query("select public.connection_rotate_oauth($1, 'a3nomina', 'mansera-client', 'RT-NUEVO-456')", [ids.org1]));
+    expect((await read()).refreshToken).toBe("RT-NUEVO-456");
+    await asService(() => db.query("select public.connection_audit_oauth($1, 'a3nomina', $2, 'denegado')", [ids.org1, ids.ti1]));
+    const audit = await rows("select action, after::text as a from public.audit_log where action like 'conexion.%autoriz%' or action = 'conexion.renovar'");
+    expect(audit.map((x) => x.action)).toEqual(expect.arrayContaining(["conexion.autorizar", "conexion.renovar", "conexion.autorizar_fallida"]));
+    expect(audit.map((x) => x.a).join(" ")).not.toMatch(/RT-PRUEBA|RT-NUEVO/);
     await asUser(ids.ti1, () => db.query("select public.connection_delete($1, 'a3nomina')", [ids.org1]));
   });
   it("no se puede anotar una comprobación de una conexión que no existe", async () => {

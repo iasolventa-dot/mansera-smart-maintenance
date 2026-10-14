@@ -31,3 +31,4 @@ Estados: **HECHO** (fuente) · **HIPÓTESIS** · **VERIFICADO (spike)** · **REF
 | S-25 | a3innuva Nómina: OAuth Authorization Code con WKA, scope offline_access openid IDInfo WK.ES.A3EquipoContex, Ocp-Apim-Subscription-Key, token 60 min / refresh 30 días, límites Conectia 3.000/min | HECHO (docs a3developers); sin verificar con MANSERA | a3developers.wolterskluwer.es | 2026-10-14 |
 | S-26 | MANSERA tiene (o contratará) la suscripción Conectia y Wolters Kluwer le crea un cliente OAuth propio | HIPÓTESIS: preguntar | — | 2026-10-14 |
 | S-27 | URL base, rutas exactas y paginación de la API de nómina | DESCONOCIDO: el Swagger exige acceso al portal | — | 2026-10-14 |
+| S-28 | Emisor exacto del id_token de WKA, soporte de PKCE (S256) y rotación del refresh token | DESCONOCIDO: hoy se exige el dominio https://login.wolterskluwer.eu/; verificar con /.well-known/openid-configuration en el spike | — | 2026-10-14 |

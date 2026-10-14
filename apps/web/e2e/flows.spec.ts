@@ -221,15 +221,32 @@ test.describe("conexiones (credenciales)", () => {
 });
 
 test.describe("a3innuva Nómina (OAuth con Wolters Kluwer)", () => {
-  test("sin base de datos real el inicio de la autorización se niega en el servidor y se avisa", async ({ page, context }) => {
+  test("sin base de datos real el inicio de la autorización se niega en el servidor y se avisa", async ({ page, context, baseURL }) => {
     await loginAs(context, "ti");
-    await page.goto("/api/oauth/a3nomina/start");
-    await expect(page).toHaveURL(/\/conexiones\?oauth=sin_permiso$/);
+    const r = await page.request.post("/api/oauth/a3nomina/start", { headers: { Origin: new URL(baseURL!).origin }, maxRedirects: 0 });
+    expect(r.status()).toBe(303);
+    expect(r.headers().location).toMatch(/\/conexiones\?oauth=sin_permiso$/);
+    await page.goto("/conexiones?oauth=sin_permiso");
     await settle(page);
     await expect(page.getByRole("status").filter({ hasText: "Solo el perfil de TI" })).toBeVisible();
     const card = page.getByTestId("conexion-a3nomina");
     await expect(card.getByText("Primero guarda las credenciales")).toBeVisible();
-    await expect(card.getByRole("link", { name: /Conectar con Wolters Kluwer/ })).toHaveCount(0);
+    await expect(card.getByRole("button", { name: /Conectar con Wolters Kluwer/ })).toHaveCount(0);
+  });
+
+  test("el inicio solo se acepta por POST desde la propia aplicación", async ({ page, context }) => {
+    await loginAs(context, "ti");
+    const cross = await page.request.post("/api/oauth/a3nomina/start", { headers: { Origin: "https://otro-sitio.example" }, maxRedirects: 0 });
+    expect(cross.status()).toBe(403);
+    await page.goto("/api/oauth/a3nomina/start");
+    await expect(page).toHaveURL(/\/conexiones$/);
+  });
+
+  test("un código de resultado desconocido no pinta ningún aviso", async ({ page, context }) => {
+    await loginAs(context, "ti");
+    await page.goto("/conexiones?oauth=constructor");
+    await settle(page);
+    await expect(page.locator("p[role=status]")).toHaveCount(0);
   });
 
   test("el retorno sin state válido nunca canjea nada", async ({ page, context }) => {

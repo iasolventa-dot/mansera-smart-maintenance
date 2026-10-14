@@ -109,20 +109,30 @@ export function apiHeaders(accessToken: string, subscriptionKey: string): Record
 }
 
 /**
- * Comprueba el `nonce` del id_token. La firma no se verifica aquí: el token llega directamente del endpoint de token
- * de Wolters Kluwer por TLS y autenticado con el client_secret, caso en el que OpenID Connect Core (§3.1.3.7, punto 6)
- * permite confiar en la validación TLS del emisor en lugar de la firma.
+ * Valida el id_token según OpenID Connect Core §3.1.3.7. La FIRMA no se verifica aquí: el token llega directamente
+ * del endpoint de token por TLS y autenticado con el client_secret, caso en el que el punto 6 permite confiar en la
+ * validación TLS del emisor. Sí se comprueban los puntos obligatorios: emisor (2), audiencia (3), caducidad (9) y nonce (11).
+ * El emisor exacto no está documentado (se verificará en el spike con /.well-known): se exige el dominio de WKA.
  */
-export function idTokenNonceMatches(idToken: string | undefined, nonce: string): boolean {
+export function validateIdToken(idToken: string | undefined, o: { nonce: string; clientId: string; now?: number }): boolean {
   if (!idToken) return false;
   const part = idToken.split(".")[1];
   if (!part) return false;
+  let p: { nonce?: unknown; aud?: unknown; exp?: unknown; iss?: unknown; azp?: unknown };
   try {
-    const payload = JSON.parse(Buffer.from(part.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8")) as { nonce?: unknown };
-    return typeof payload.nonce === "string" && payload.nonce.length === nonce.length && payload.nonce === nonce;
+    p = JSON.parse(Buffer.from(part.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8")) as typeof p;
   } catch {
     return false;
   }
+  const nowSec = Math.floor((o.now ?? Date.now()) / 1000);
+  const aud = Array.isArray(p.aud) ? p.aud : [p.aud];
+  return (
+    typeof p.iss === "string" && p.iss.startsWith("https://login.wolterskluwer.eu/") &&
+    aud.includes(o.clientId) &&
+    (aud.length === 1 || p.azp === o.clientId) &&
+    typeof p.exp === "number" && p.exp > nowSec - 60 &&
+    typeof p.nonce === "string" && p.nonce === o.nonce
+  );
 }
 
 /** Margen de renovación: se renueva 5 min antes de caducar. */

@@ -7,8 +7,13 @@ MANSERA usa a3innuva Nómina (Wolters Kluwer, en la nube) además de A3ERP, PGMW
 2. **Dueño de los datos** (propuesta): nómina = contrato, IT oficial, coste de personal y formación; Sésame = presencia y fichajes. Las discrepancias se avisan a RR. HH., no se corrigen solas.
 3. **Solo lectura.** Ninguna escritura en la nómina sin un ADR propio y una propuesta validada (principio 4).
 4. **Minimización y agregación.** El conector solo declara los campos usados. Dirección y Administración ven costes agregados. El detalle individual es solo para RR. HH. Nada de nómina va al LLM.
-5. **Flujo OAuth:** TI guarda las credenciales → un usuario de MANSERA con WKA pulsa «Conectar con Wolters Kluwer» → la plataforma redirige a WKA con `state` y `nonce` → la ruta de retorno valida el `state`, canjea el código en el servidor y guarda el refresh token en Vault. Cada renovación guarda el refresh token devuelto. Si pasan 30 días sin uso, se pide reconectar.
-6. **Requisito nuevo:** la ruta de retorno y los conectores del servidor necesitan **`SUPABASE_SERVICE_ROLE_KEY`** (solo servidor, variable de entorno en Vercel) para leer el client_secret y escribir el refresh token. Hasta que el usuario la configure, el paso «Conectar» no se construye.
+5. **Flujo OAuth (construido 2026-10-14, revisado en seguridad):**
+   - TI guarda las credenciales y **pulsa «Conectar» desde su sesión** (solo TI real; POST con comprobación de origen). En la pantalla de WKA inicia sesión una cuenta de MANSERA con acceso a la nómina.
+   - La cookie `__Host-` (10 min) guarda `state`, `nonce` y el **client_id usado**.
+   - Al volver, el servidor comprueba el `state` (también ante `error=`), el usuario y la organización; canjea el código; valida el id_token (emisor del dominio WKA, audiencia, caducidad y nonce: OIDC Core §3.1.3.7); y guarda el refresh token **atado al client_id** (si TI cambió las credenciales entre medias, se rechaza).
+   - Estado «autorizada» hasta la primera lectura real. Se auditan los éxitos y los fallos.
+   - **Pendiente de spike:** emisor exacto, si WKA admite **PKCE** (S256; recomendado por RFC 9700; se activará si lo admite) y si rota el refresh token.
+6. **Clave de servicio:** `SUPABASE_SERVICE_ROLE_KEY` (o `SUPABASE_SECRET_KEY`), solo en el servidor; el usuario la configuró en Vercel el 2026-10-14. **Recomendado:** solo en Production (no en Preview) y `APP_URL` con el dominio definitivo.
 ## Alternativas
 - **Que TI pegue un access token a mano:** caduca en 60 min, así que no sirve.
 - **Pasar por un tercero** (Kombo, Factorial…): añade otro encargado del tratamiento para datos de nómina. Descartado salvo que no haya otra vía.
