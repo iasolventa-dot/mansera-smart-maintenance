@@ -283,6 +283,26 @@ describe("connections + Vault (credenciales)", () => {
     expect(a?.app).toBe("a3nomina");
     await asUser(ids.ti1, () => db.query("select public.connection_delete($1, 'a3nomina')", [ids.org1]));
   });
+  it("OAuth: solo el servidor (service_role) guarda el refresh token, y solo en nombre de un TI", async () => {
+    const secrets = { clientSecret: "s".repeat(20), subscriptionKey: "k".repeat(32) };
+    await asUser(ids.ti1, () => db.query("select public.connection_save($1, 'a3nomina', $2::jsonb, $3)", [ids.org1, JSON.stringify({ clientId: "mansera-client" }), JSON.stringify(secrets)]));
+    const store = (actor: string) => db.query("select public.connection_store_oauth($1, 'a3nomina', $2, $3)", [ids.org1, "RT-PRUEBA-123", actor]);
+    // Ni TI desde el navegador puede llamarla.
+    await denied(() => asUser(ids.ti1, () => store(ids.ti1)));
+    const asService = async <T,>(fn: () => Promise<T>) => { await db.exec("set role service_role"); try { return await fn(); } finally { await db.exec("reset role"); } };
+    // Con service_role, pero en nombre de alguien que no es TI de la organización: rechazado.
+    await expect(asService(() => store(ids.dir1))).rejects.toThrow(/solo TI/);
+    await expect(asService(() => store(ids.ti2))).rejects.toThrow(/solo TI/);
+    await asService(() => store(ids.ti1));
+    const [s] = await asService(() => rows("select public.connection_read_secret($1, 'a3nomina') as v", [ids.org1]));
+    const v = JSON.parse(String(s?.v));
+    expect(v).toMatchObject({ ...secrets, refreshToken: "RT-PRUEBA-123" }); // no se pierde lo anterior
+    const [c] = await asUser(ids.ti1, () => rows("select status from public.connections where app = 'a3nomina'"));
+    expect(c?.status).toBe("verificada");
+    const audit = await rows("select after::text as a from public.audit_log where action = 'conexion.autorizar'");
+    expect(audit.map((x) => x.a).join(" ")).not.toContain("RT-PRUEBA");
+    await asUser(ids.ti1, () => db.query("select public.connection_delete($1, 'a3nomina')", [ids.org1]));
+  });
   it("no se puede anotar una comprobación de una conexión que no existe", async () => {
     await expect(asUser(ids.ti1, () => db.query("select public.connection_record_test($1, 'sesame', 'verificada', 'x')", [ids.org1]))).rejects.toThrow(/no existe/);
   });

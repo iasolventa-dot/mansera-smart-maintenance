@@ -51,7 +51,11 @@ La nómina contiene los datos personales **más sensibles** del proyecto: salari
 ## Estado en la plataforma (2026-10-14)
 - **Conexiones:** tarjeta propia. Se pueden guardar client_id (visible), client_secret y clave de suscripción (cifrados en Vault). La base de datos valida el formato (migración `a3nomina`).
 - **OAuth:** las piezas puras están hechas y probadas (`packages/connectors/src/a3nomina/oauth.ts`): URL de autorización, canje del código, renovación y cabeceras.
-- **Falta la ruta de retorno** `/api/oauth/a3nomina/callback`. Necesita la **clave de servicio del servidor** (`SUPABASE_SERVICE_ROLE_KEY` en Vercel) para leer el client_secret y guardar el refresh token (ADR-0013).
+- **Flujo «Conectar con Wolters Kluwer» construido (2026-10-14):** `/api/oauth/a3nomina/start` → login WKA → `/api/oauth/a3nomina/callback`.
+  - **Inicio:** solo TI real; `state` y `nonce` aleatorios en una cookie httpOnly de 10 min.
+  - **Retorno:** comprueba sesión, usuario y `state`; lee el client_secret con la clave de servicio; canjea el código; comprueba el `nonce`; guarda el refresh token en el Vault con `connection_store_oauth` (solo service_role, y solo en nombre de un TI) y lo audita sin valores.
+  - El navegador solo ve un código de resultado.
+  - **Sin probar contra Wolters Kluwer:** falta el cliente OAuth de MANSERA, que exige registrar la dirección de retorno `https://mansera-indol.vercel.app/api/oauth/a3nomina/callback` (o el dominio definitivo).
 
 ## Incógnitas (preguntas para MANSERA / Wolters Kluwer)
 - ¿Tiene MANSERA la suscripción Conectia? ¿Cuánto cuesta? (un tercero cita «desde 13,5 €/mes», sin confirmar).

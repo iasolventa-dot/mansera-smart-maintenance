@@ -21,6 +21,8 @@ type Props = {
   canEdit: boolean;
   /** Motivo por el que no se puede editar, si procede. */
   readOnlyReason?: string;
+  /** La autorización OAuth solo existe con la base de datos real (no en la demostración local). */
+  oauthEnabled?: boolean;
   save: (app: string, values: Record<string, unknown>) => Promise<ConnectionResult>;
   remove: (app: string) => Promise<ConnectionResult>;
 };
@@ -34,7 +36,7 @@ const STATUS = {
 
 const input = "min-h-12 w-full rounded-[10px] border border-border bg-bg px-4 text-[16px] outline-none focus:border-primary disabled:opacity-60";
 
-export function ConnectionCard({ spec, stored, canEdit, readOnlyReason, save, remove }: Props) {
+export function ConnectionCard({ spec, stored, canEdit, readOnlyReason, oauthEnabled = false, save, remove }: Props) {
   const pending = spec.status === "pendiente_documentar";
   const inGateway = !pending && spec.credentialsIn === "gateway";
   const [values, setValues] = useState<Record<string, string>>({});
@@ -152,6 +154,26 @@ export function ConnectionCard({ spec, stored, canEdit, readOnlyReason, save, re
           ) : (
             <p className="mt-4 rounded-xl bg-bg p-3 text-[15px] text-muted">{readOnlyReason ?? "Solo el perfil de TI puede gestionar las credenciales."}</p>
           )}
+
+          {spec.oauthStartPath && !inGateway ? (
+            <div className="mt-4 rounded-xl border border-border bg-bg p-3 text-[15px]">
+              <p className="font-bold">Autorización con el proveedor</p>
+              {!stored ? (
+                <p className="mt-1 text-muted">Primero guarda las credenciales; después podrás conectar con la cuenta del proveedor.</p>
+              ) : !oauthEnabled ? (
+                <p className="mt-1 text-muted">En el modo demostración no se puede conectar con el proveedor.</p>
+              ) : canEdit ? (
+                <>
+                  <p className="mt-1 text-muted">Se abrirá el inicio de sesión de Wolters Kluwer. Entra con una cuenta de MANSERA con acceso a la nómina y elige solo las empresas necesarias.</p>
+                  <a href={spec.oauthStartPath} className="mt-3 inline-flex min-h-12 items-center justify-center gap-2 rounded-[10px] bg-primary px-4 text-[15px] font-bold text-white hover:bg-primary-hover">
+                    <KeyRound className="size-4" aria-hidden="true" />{stored.status === "verificada" ? "Volver a conectar con Wolters Kluwer" : "Conectar con Wolters Kluwer"}
+                  </a>
+                </>
+              ) : (
+                <p className="mt-1 text-muted">Solo el perfil de TI puede autorizar la conexión.</p>
+              )}
+            </div>
+          ) : null}
 
           <div id={`${uid}-resultado`} aria-live="polite" className="mt-3 text-[15px] font-semibold">
             {result ? (result.ok ? <p className={result.status === "error" ? "text-bad-text" : "text-ok-text"}>{result.message}</p> : <p className="text-bad-text">{result.error}</p>) : null}

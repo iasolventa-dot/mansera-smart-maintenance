@@ -20,7 +20,19 @@ const HEALTH: Record<ConnectionHealth, { label: string; cls: string; Icon: Lucid
 };
 const CAP = { verified: { l: "Verificado", t: "ok" }, assumed: { l: "Por verificar", t: "warn" }, "no-go": { l: "No disponible", t: "bad" } } as const;
 
-export default async function ConexionesPage() {
+const OAUTH_MSG: Record<string, { ok: boolean; text: string }> = {
+  ok: { ok: true, text: "Conectado con Wolters Kluwer: la autorización se ha guardado cifrada." },
+  denegado: { ok: false, text: "Se canceló o denegó la autorización en Wolters Kluwer. No se ha guardado nada." },
+  caducado: { ok: false, text: "La autorización caducó o no coincide (más de 10 minutos, otro navegador o código ya usado). Vuelve a pulsar «Conectar»." },
+  sin_clave_servicio: { ok: false, text: "Falta la clave de servicio de Supabase en el servidor (variable SUPABASE_SERVICE_ROLE_KEY en Vercel)." },
+  sin_credenciales: { ok: false, text: "Faltan las credenciales de a3innuva Nómina: guárdalas antes de conectar." },
+  sin_permiso: { ok: false, text: "Solo el perfil de TI puede autorizar conexiones." },
+  error: { ok: false, text: "No se pudo completar la conexión con Wolters Kluwer. Inténtalo de nuevo o avisa a soporte." },
+};
+
+export default async function ConexionesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const sp = await searchParams;
+  const oauthMsg = typeof sp.oauth === "string" ? OAUTH_MSG[sp.oauth] : undefined;
   const session = await requireAccess("conexiones");
   const conns = await getProvider().getConnections();
   const real = realAuthEnabled();
@@ -42,11 +54,12 @@ export default async function ConexionesPage() {
       <section aria-labelledby="cred-h" className="mb-8">
         <h2 id="cred-h" className="mb-1 text-[19px] font-extrabold">Credenciales de acceso</h2>
         <p className="mb-4 max-w-3xl text-[15px] text-muted">Datos que MANSERA proporciona para que la plataforma lea de cada aplicación. Las claves se guardan cifradas, no se pueden volver a ver y cada cambio queda en la auditoría. Los sistemas siguen siendo la fuente de verdad: aquí solo se conectan.</p>
+        {oauthMsg ? <p role="status" className={cn("mb-4 rounded-xl p-3 text-[15px] font-semibold", oauthMsg.ok ? "bg-ok-soft text-ok-text" : "bg-bad-soft text-bad-text")}>{oauthMsg.text}</p> : null}
         {!real ? <p className="mb-4 rounded-xl bg-warn-soft p-3 text-[15px] font-semibold text-warn-text">Modo demostración: puedes probar el formulario, pero no se guarda ninguna credencial.</p> : null}
         {loadError ? <p role="alert" className="mb-4 rounded-xl bg-bad-soft p-3 text-[15px] font-semibold text-bad-text">No se pudo leer el estado guardado de las conexiones. Las tarjetas pueden mostrar «Sin configurar» aunque haya credenciales; recarga la página o avisa a soporte.</p> : null}
         <div className="grid gap-4 xl:grid-cols-2">
           {connectorList().map((spec) => (
-            <ConnectionCard key={spec.app} spec={spec} stored={stored[spec.app] ?? null} canEdit={canEdit} readOnlyReason={readOnlyReason} save={saveConnection} remove={deleteConnection} />
+            <ConnectionCard key={spec.app} spec={spec} stored={stored[spec.app] ?? null} canEdit={canEdit} readOnlyReason={readOnlyReason} oauthEnabled={real} save={saveConnection} remove={deleteConnection} />
           ))}
         </div>
       </section>

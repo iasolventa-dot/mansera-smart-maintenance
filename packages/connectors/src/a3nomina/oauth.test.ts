@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { ConnectorError } from "../errors";
-import { WKA_SCOPE, apiHeaders, buildAuthorizeUrl, exchangeCode, needsRefresh, refreshTokens } from "./oauth";
+import { WKA_SCOPE, apiHeaders, buildAuthorizeUrl, exchangeCode, idTokenNonceMatches, needsRefresh, refreshTokens } from "./oauth";
 
 // Valores de relleno generados: no son credenciales reales.
 const client = { clientId: "mansera-client", clientSecret: "s".repeat(24) };
@@ -46,6 +46,14 @@ describe("a3innuva Nómina · OAuth (WKA)", () => {
     expect(JSON.stringify({ m: (err as Error).message })).not.toContain(client.clientSecret);
     await expect(exchangeCode(client, "C", REDIRECT, tokenReply(200, { nada: 1 }), T)).rejects.toMatchObject({ kind: "validation" });
     await expect(exchangeCode(client, "C", REDIRECT, tokenReply(503), T)).rejects.toMatchObject({ kind: "transient" });
+  });
+  it("comprueba el nonce del id_token (rechaza ausente, distinto o mal formado)", () => {
+    const jwt = (payload: unknown) => `x.${Buffer.from(JSON.stringify(payload)).toString("base64url")}.y`;
+    expect(idTokenNonceMatches(jwt({ nonce: NONCE }), NONCE)).toBe(true);
+    expect(idTokenNonceMatches(jwt({ nonce: "c".repeat(40) }), NONCE)).toBe(false);
+    expect(idTokenNonceMatches(jwt({}), NONCE)).toBe(false);
+    expect(idTokenNonceMatches(undefined, NONCE)).toBe(false);
+    expect(idTokenNonceMatches("no-es-un-jwt", NONCE)).toBe(false);
   });
   it("cabeceras de la API: Bearer + Ocp-Apim-Subscription-Key; renovación 5 min antes", () => {
     expect(apiHeaders("AT", "SUBKEY")).toMatchObject({ Authorization: "Bearer AT", "Ocp-Apim-Subscription-Key": "SUBKEY" });

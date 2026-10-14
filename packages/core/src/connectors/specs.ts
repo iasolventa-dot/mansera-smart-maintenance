@@ -35,6 +35,8 @@ export type ConnectorSpec = {
    * nunca salen de esa red ni pasan por la nube. Los campos describen lo que el gateway pedirá al instalarlo.
    */
   credentialsIn: "plataforma" | "gateway";
+  /** Si además de guardar credenciales hay que autorizar con el proveedor (OAuth), ruta del servidor que lo inicia. */
+  oauthStartPath?: string;
   /** Cómo sabemos que se llega al sistema (la API de A3ERP es un servicio dentro de la red de MANSERA). */
   transportNote: string;
   authSummary: string;
@@ -149,12 +151,13 @@ export const CONNECTOR_SPECS: Record<ConnectorApp, ConnectorSpec> = {
     transport: "cloud",
     credentialsIn: "plataforma",
     transportNote: "Servicio en la nube de Wolters Kluwer: se llama directamente desde el servidor de la aplicación (sin gateway).",
+    oauthStartPath: "/api/oauth/a3nomina/start",
     authSummary: "OAuth 2.0 (Authorization Code) con la cuenta Wolters Kluwer Account (WKA) de un usuario de MANSERA + cabecera Ocp-Apim-Subscription-Key de la suscripción Conectia. El token dura 60 min y se renueva con un refresh token (30 días).",
     howTo: [
       "Contratar la suscripción «Conectia» de a3innuva Nómina con Wolters Kluwer (o el distribuidor): da la clave de suscripción del portal a3developers.",
       "Solicitar a Wolters Kluwer, mediante su formulario, el cliente OAuth propio de MANSERA (client_id y client_secret) con esta dirección de retorno: https://<dominio de la plataforma>/api/oauth/a3nomina/callback.",
       "Guardar aquí el client_id, el client_secret y la clave de suscripción.",
-      "Después, un usuario de MANSERA con acceso a a3innuva Nómina pulsará «Conectar con Wolters Kluwer» y autorizará el acceso con su cuenta WKA (paso pendiente de construir: necesita la clave de servicio del servidor, ver ADR-0013).",
+      "Después, pulsa «Conectar con Wolters Kluwer» e inicia sesión con una cuenta WKA de MANSERA que tenga acceso a a3innuva Nómina (solo las empresas necesarias). La autorización se renueva sola; si pasan 30 días sin uso, habrá que volver a conectar.",
     ],
     fields: [
       { key: "clientId", label: "Client ID (cliente OAuth)", secret: false, required: true, help: "Identificador del cliente OAuth que Wolters Kluwer crea para MANSERA.", rule: { min: 3, max: 200, pattern: "^[A-Za-z0-9._-]+$", patternMessage: "Solo letras, números, puntos, guiones y guiones bajos" } },

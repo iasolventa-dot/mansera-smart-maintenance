@@ -108,5 +108,22 @@ export function apiHeaders(accessToken: string, subscriptionKey: string): Record
   return { Authorization: `Bearer ${accessToken}`, "Ocp-Apim-Subscription-Key": subscriptionKey, Accept: "application/json" };
 }
 
+/**
+ * Comprueba el `nonce` del id_token. La firma no se verifica aquí: el token llega directamente del endpoint de token
+ * de Wolters Kluwer por TLS y autenticado con el client_secret, caso en el que OpenID Connect Core (§3.1.3.7, punto 6)
+ * permite confiar en la validación TLS del emisor en lugar de la firma.
+ */
+export function idTokenNonceMatches(idToken: string | undefined, nonce: string): boolean {
+  if (!idToken) return false;
+  const part = idToken.split(".")[1];
+  if (!part) return false;
+  try {
+    const payload = JSON.parse(Buffer.from(part.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8")) as { nonce?: unknown };
+    return typeof payload.nonce === "string" && payload.nonce.length === nonce.length && payload.nonce === nonce;
+  } catch {
+    return false;
+  }
+}
+
 /** Margen de renovación: se renueva 5 min antes de caducar. */
 export const needsRefresh = (t: Pick<Tokens, "expiresAt">, now = Date.now()) => now >= t.expiresAt - 5 * 60_000;

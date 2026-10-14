@@ -219,3 +219,22 @@ test.describe("conexiones (credenciales)", () => {
     await expect(pgm.locator("form")).toHaveCount(0);
   });
 });
+
+test.describe("a3innuva Nómina (OAuth con Wolters Kluwer)", () => {
+  test("sin base de datos real el inicio de la autorización se niega en el servidor y se avisa", async ({ page, context }) => {
+    await loginAs(context, "ti");
+    await page.goto("/api/oauth/a3nomina/start");
+    await expect(page).toHaveURL(/\/conexiones\?oauth=sin_permiso$/);
+    await settle(page);
+    await expect(page.getByRole("status").filter({ hasText: "Solo el perfil de TI" })).toBeVisible();
+    const card = page.getByTestId("conexion-a3nomina");
+    await expect(card.getByText("Primero guarda las credenciales")).toBeVisible();
+    await expect(card.getByRole("link", { name: /Conectar con Wolters Kluwer/ })).toHaveCount(0);
+  });
+
+  test("el retorno sin state válido nunca canjea nada", async ({ page, context }) => {
+    await loginAs(context, "ti");
+    await page.goto("/api/oauth/a3nomina/callback?code=falso&state=falso");
+    await expect(page).toHaveURL(/\/conexiones\?oauth=(sin_permiso|caducado)$/);
+  });
+});

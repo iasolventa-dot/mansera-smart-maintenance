@@ -30,7 +30,7 @@
 3. Con respuestas: spikes (`scripts/spikes/`) → M1; luego M2 (`LiveDataProvider`, transporte del gateway).
 
 ## Decisiones abiertas
-- a3innuva Nómina (ADR-0013 propuesto): reparto de dueños con Sésame; contratar Conectia; añadir `SUPABASE_SERVICE_ROLE_KEY` en Vercel para el paso «Conectar con Wolters Kluwer».
+- a3innuva Nómina (ADR-0013 propuesto): reparto de dueños con Sésame; contratar Conectia y pedir el cliente OAuth con la dirección de retorno https://mansera-indol.vercel.app/api/oauth/a3nomina/callback. Flujo «Conectar» ya construido; clave de servicio configurada por el usuario en Vercel (2026-10-14, no verificable desde aquí). 8 migraciones aplicadas.
 - (Resuelto, ADR-0012) Credenciales de A3ERP/PGMWin: solo en el gateway; en la nube solo Trello y Sésame. 7 migraciones aplicadas.
 - A3ERP por `http` en la LAN enviaría usuario/contraseña sin cifrar (R-18): exigir https si el servicio lo admite (Q3).
 
