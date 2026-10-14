@@ -415,7 +415,7 @@ export const MANUAL: ManualChapter[] = [
         id: "credenciales",
         title: "Guardar las credenciales de una aplicación",
         panel: "conexiones",
-        keywords: ["credenciales", "contraseña", "token", "clave", "api", "conectar", "vault", "cifrado", "trello", "sésame", "a3erp", "pgmwin", "pendiente de documentar"],
+        keywords: ["credenciales", "contraseña", "token", "clave", "api", "conectar", "vault", "cifrado", "trello", "sésame", "a3erp", "a3innuva", "nómina", "wolters kluwer", "pgmwin", "pendiente de documentar"],
         steps: [
           "Abre **Conexiones**. En **Credenciales de acceso** hay una tarjeta por aplicación; despliega **Dónde conseguir las credenciales** para ver los pasos oficiales.",
           "Rellena los campos de la tarjeta (los marcados con candado son secretos) y pulsa **Guardar y comprobar**. La plataforma valida el formato, guarda los secretos cifrados y, si la aplicación está en la nube (Trello, Sésame), comprueba que entra en modo solo lectura.",
@@ -425,6 +425,7 @@ export const MANUAL: ManualChapter[] = [
         notes: [
           { kind: "info", text: "Solo el perfil de TI puede guardar o borrar credenciales. Cada cambio queda en la auditoría, sin los valores secretos." },
           { kind: "info", text: "A3ERP está dentro de la red de MANSERA: sus credenciales no se escriben en la plataforma, se introducen al instalar el gateway y no salen de esa red." },
+          { kind: "info", text: "a3innuva Nómina usa el inicio de sesión de Wolters Kluwer (WKA): además de guardar sus credenciales, un usuario de MANSERA tendrá que autorizar el acceso con su cuenta. Ese paso aún no está disponible." },
         ],
       },
       {

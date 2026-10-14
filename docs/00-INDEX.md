@@ -12,6 +12,7 @@ Lee solo lo que necesite la tarea. Orden recomendado para entender el proyecto d
 | `integraciones/02-a3erp.md` | A3ERP: Link API, incógnitas, plan | Trabajas con ERP |
 | `integraciones/03-trello.md` | Trello REST + webhooks, límites | Trabajas con Trello |
 | `integraciones/04-sesame.md` | Sésame HR API (Add On) | Trabajas con personal/fichajes |
+| `integraciones/06-a3innuva-nomina.md` | a3innuva Nómina (Wolters Kluwer): OAuth WKA, encaje en el flujo, privacidad | Trabajas con nómina, costes de personal o IT |
 | `integraciones/05-scada-iot.md` | SCADA/PLC/IoT (alcance futuro) | Piensas en datos industriales |
 | `05-modelo-datos.md` | Tablas propias de Supabase, enlaces entre entidades, RLS | Migraciones o consultas |
 | `06-seguridad-rgpd.md` | Amenazas, controles, RGPD, IA y privacidad | Cualquier cambio con datos/credenciales |

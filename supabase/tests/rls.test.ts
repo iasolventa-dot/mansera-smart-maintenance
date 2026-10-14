@@ -271,6 +271,18 @@ describe("connections + Vault (credenciales)", () => {
     await expect(call("trello", { apiKey: "a".repeat(32) }, JSON.stringify({ token: "t", otro: "x" }))).rejects.toThrow(/no válidos/);
     await expect(call("trello", { apiKey: "a".repeat(32) }, "{no es json")).rejects.toThrow(/secretos no válidos/);
   });
+  it("a3innuva Nómina: acepta client_id + secreto + clave de suscripción y rechaza formatos ajenos", async () => {
+    const call = (config: unknown, secrets: unknown) =>
+      asUser(ids.ti1, () => db.query("select public.connection_save($1, 'a3nomina', $2::jsonb, $3)", [ids.org1, JSON.stringify(config), JSON.stringify(secrets)]));
+    const secrets = { clientSecret: "s".repeat(20), subscriptionKey: "k".repeat(32) };
+    await expect(call({ clientId: "mansera-client" }, secrets)).resolves.toBeDefined();
+    await expect(call({ clientId: "con espacios" }, secrets)).rejects.toThrow(/no válidos/);
+    await expect(call({ clientId: "mansera-client" }, { clientSecret: "s".repeat(20) })).rejects.toThrow(/no válidos/);
+    await expect(call({ clientId: "mansera-client", baseUrl: "https://x" }, secrets)).rejects.toThrow(/no válidos/);
+    const [a] = await rows("select app from public.audit_log where app = 'a3nomina' and action = 'conexion.guardar'");
+    expect(a?.app).toBe("a3nomina");
+    await asUser(ids.ti1, () => db.query("select public.connection_delete($1, 'a3nomina')", [ids.org1]));
+  });
   it("no se puede anotar una comprobación de una conexión que no existe", async () => {
     await expect(asUser(ids.ti1, () => db.query("select public.connection_record_test($1, 'sesame', 'verificada', 'x')", [ids.org1]))).rejects.toThrow(/no existe/);
   });

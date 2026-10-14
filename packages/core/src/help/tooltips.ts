@@ -24,7 +24,7 @@ export const NAV_HINT: Record<NavId, Hint> = {
   propuestas: { title: "Propuestas", text: "Cambios pendientes de aprobar antes de escribirse en PGMWin o A3ERP. Nada se escribe sin una persona." },
   informes: { title: "Informes", text: "Informes mensuales de cliente: borrador, revisado o emitido." },
   copiloto: { title: "Copiloto de IA", text: "Pregunta a tus datos en lenguaje natural. Solo lee y cada respuesta cita su fuente." },
-  conexiones: { title: "Conexiones", text: "Estado, última sincronización y latencia de PGMWin, A3ERP, Trello y Sésame." },
+  conexiones: { title: "Conexiones", text: "Estado, credenciales, última sincronización y latencia de PGMWin, A3ERP, a3innuva Nómina, Trello y Sésame." },
   usuarios: { title: "Usuarios y auditoría", text: "Quién tiene acceso a qué, y el registro inmutable de quién hizo qué." },
   manual: { title: "Manual de usuario", text: "Guía paso a paso de cada tarea, con buscador." },
 };

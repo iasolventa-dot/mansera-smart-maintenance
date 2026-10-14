@@ -53,6 +53,7 @@ export async function probeConnection(app: ConnectorApp, config: Values, secrets
     case "trello": return probeTrello(config, secrets, fetchImpl);
     case "sesame": return probeSesame(config, secrets, fetchImpl);
     case "a3erp": return { status: "no_probable", message: "A3ERP se comprueba desde el gateway de la red de MANSERA, donde viven sus credenciales (ADR-0012)." };
+    case "a3nomina": return { status: "no_probable", message: "Credenciales guardadas. Para leer datos falta autorizar con una cuenta Wolters Kluwer (WKA) de MANSERA: paso «Conectar con Wolters Kluwer», pendiente (ADR-0013)." };
     case "pgmwin": return { status: "no_probable", message: "PGMWin está pendiente de documentar: no hay nada que comprobar todavía." };
   }
 }

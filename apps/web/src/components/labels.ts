@@ -1,7 +1,7 @@
 import type { SourceApp, WorkOrder } from "@msm/core";
 
 export const SOURCE_LABEL: Record<SourceApp, string> = {
-  pgmwin: "PGMWin", a3erp: "A3ERP", trello: "Trello", sesame: "Sésame", msm: "MSM",
+  pgmwin: "PGMWin", a3erp: "A3ERP", a3nomina: "a3innuva Nómina", trello: "Trello", sesame: "Sésame", msm: "MSM",
 };
 
 export const STATUS_LABEL: Record<WorkOrder["status"], string> = {

@@ -1,6 +1,6 @@
 # ESTADO ACTUAL DEL PROYECTO  (se imprime al iniciar/compactar sesión — mantener < 80 líneas)
 
-**Última actualización:** 2026-10-14 · conectores de lectura Trello y Sésame revisados (auditoría n.º 3); siguiente: a3innuva Nómina
+**Última actualización:** 2026-10-14 · a3innuva Nómina añadida al ecosistema (ADR-0013); conectores Trello/Sésame revisados
 **Fase/hito en curso:** M0 cerrado salvo confirmación del usuario · trabajo preparatorio de M1/M2 adelantado (borrador, sin G1)
 **Puerta superada:** G0 técnicamente cumplida; falta la confirmación EXPRESA del usuario (ADR-0002/0004 y aceptar el adelanto de M2: ADR-0010/0011)
 
@@ -10,7 +10,7 @@
 - `packages/connectors`: errores tipados, sondeo de credenciales (Trello, Sésame), **conectores de lectura de Trello** (mapeo configurable a ofertas) **y Sésame HR** (según su OpenAPI oficial; minimización RGPD de la ficha de empleado), con datos de ejemplo inventados y protocolo del gateway.
 - `apps/gateway`: ejecutor puro de trabajos (solo `a3erp.health` y `a3erp.login_check`). Sin transporte ni servicio de Windows.
 - 7 paneles por rol y 17 secciones (detalle en `docs/02`): alertas, órdenes (+«Nueva OT» → propuesta), mantenimiento, activos, clientes, comercial, facturación, compras, personal, PRL/CAE, propuestas, informes, copiloto, **conexiones**, usuarios y auditoría, manual.
-- **Conexiones → Credenciales de acceso** (ADR-0010): Trello y Sésame se guardan aquí; A3ERP «Se configura en el gateway» (ADR-0012); PGMWin «Pendiente de documentar». Secretos en Supabase Vault, solo TI, auditoría sin valores, validación en servidor Y en SQL. En demostración local el formulario funciona pero no guarda nada.
+- **Conexiones → Credenciales de acceso** (ADR-0010): Trello, Sésame y **a3innuva Nómina** (OAuth WKA, ADR-0013) se guardan aquí; A3ERP «Se configura en el gateway» (ADR-0012); PGMWin «Pendiente de documentar». Secretos en Supabase Vault, solo TI, auditoría sin valores, validación en servidor Y en SQL. En demostración local el formulario funciona pero no guarda nada.
 - Ayuda (ADR-0009): manual `/manual`, asistente con IA (modo guía sin `ANTHROPIC_API_KEY`) y tooltips centralizados.
 
 ## Infraestructura
@@ -30,6 +30,7 @@
 3. Con respuestas: spikes (`scripts/spikes/`) → M1; luego M2 (`LiveDataProvider`, transporte del gateway).
 
 ## Decisiones abiertas
+- a3innuva Nómina (ADR-0013 propuesto): reparto de dueños con Sésame; contratar Conectia; añadir `SUPABASE_SERVICE_ROLE_KEY` en Vercel para el paso «Conectar con Wolters Kluwer».
 - (Resuelto, ADR-0012) Credenciales de A3ERP/PGMWin: solo en el gateway; en la nube solo Trello y Sésame. 7 migraciones aplicadas.
 - A3ERP por `http` en la LAN enviaría usuario/contraseña sin cifrar (R-18): exigir https si el servicio lo admite (Q3).
 

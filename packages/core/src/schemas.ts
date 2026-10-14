@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /** Aplicación de origen de un dato. `msm` = datos propios de la plataforma. */
-export const SourceApp = z.enum(["pgmwin", "a3erp", "trello", "sesame", "msm"]);
+export const SourceApp = z.enum(["pgmwin", "a3erp", "a3nomina", "trello", "sesame", "msm"]);
 export type SourceApp = z.infer<typeof SourceApp>;
 
 /** Semáforo: siempre se muestra con color + icono + texto. */

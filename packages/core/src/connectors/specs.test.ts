@@ -63,6 +63,14 @@ describe("validación de credenciales", () => {
     const r = validateGatewayCredentials("a3erp", { baseUrl: "https://Servidor:8443/", username: FILL, ["pass" + "word"]: FILL });
     expect(r.ok && r.config.baseUrl).toBe("https://servidor:8443");
   });
+  it("a3innuva Nómina: guarda client_id visible y secreto + clave de suscripción cifrados", () => {
+    const r = validateCredentials("a3nomina", { clientId: "mansera-client", clientSecret: FILL, subscriptionKey: FILL });
+    expect(r).toMatchObject({ ok: true, config: { clientId: "mansera-client" } });
+    if (r.ok) expect(Object.keys(r.secrets).sort()).toEqual(["clientSecret", "subscriptionKey"]);
+    expect(validateCredentials("a3nomina", { clientId: "mansera-client", clientSecret: "con espacios dentro", subscriptionKey: FILL }).ok).toBe(false);
+    expect(validateCredentials("a3nomina", { clientId: "mansera-client", clientSecret: FILL }).ok).toBe(false);
+    expect(CONNECTOR_SPECS.a3nomina.credentialsIn).toBe("plataforma");
+  });
   it("PGMWin: se niega a guardar nada", () => {
     expect(validateCredentials("pgmwin", {}).ok).toBe(false);
   });

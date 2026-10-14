@@ -27,3 +27,7 @@ Estados: **HECHO** (fuente) · **HIPÓTESIS** · **VERIFICADO (spike)** · **REF
 | S-21 | /schedule/v1/work-entries?from=d&to=d filtra por la fecha de ENTRADA y en hora local | HIPÓTESIS: un turno de noche abierto desde ayer podría no aparecer; verificar en el spike | — | 2026-10-14 |
 | S-22 | absence-day-off / vacation-day-off solo incluyen días APROBADOS (no solicitudes pendientes) | HIPÓTESIS: no documentado; verificar en el spike | — | 2026-10-14 |
 | S-23 | Trello /boards/{id}/cards devuelve todas las tarjetas abiertas sin truncar | HIPÓTESIS: no hay detección de truncado; verificar con el tablero real | — | 2026-10-14 |
+| S-24 | MANSERA usa a3innuva Nómina | HECHO (usuario, comunicado por Cristina) | Usuario | 2026-10-14 |
+| S-25 | a3innuva Nómina: OAuth Authorization Code con WKA, scope offline_access openid IDInfo WK.ES.A3EquipoContex, Ocp-Apim-Subscription-Key, token 60 min / refresh 30 días, límites Conectia 3.000/min | HECHO (docs a3developers); sin verificar con MANSERA | a3developers.wolterskluwer.es | 2026-10-14 |
+| S-26 | MANSERA tiene (o contratará) la suscripción Conectia y Wolters Kluwer le crea un cliente OAuth propio | HIPÓTESIS: preguntar | — | 2026-10-14 |
+| S-27 | URL base, rutas exactas y paginación de la API de nómina | DESCONOCIDO: el Swagger exige acceso al portal | — | 2026-10-14 |

@@ -7,7 +7,7 @@ import { z } from "zod";
  * Un sistema sin documentación es `pendiente_documentar`: no tiene formulario, pero la base segura
  * (Vault + permisos + auditoría) es genérica y sirve en cuanto se documente.
  */
-export const CONNECTOR_APPS = ["pgmwin", "a3erp", "trello", "sesame"] as const;
+export const CONNECTOR_APPS = ["pgmwin", "a3erp", "a3nomina", "trello", "sesame"] as const;
 export type ConnectorApp = (typeof CONNECTOR_APPS)[number];
 
 export type FieldRule = { min: number; max: number; pattern?: string; patternMessage?: string; url?: boolean };
@@ -140,6 +140,47 @@ export const CONNECTOR_SPECS: Record<ConnectorApp, ConnectorSpec> = {
     testEndpoint: "POST {baseUrl}/api/login (Authorization: Basic …)",
     limits: ["El token JWT caduca (la duración no está documentada); no hay endpoint de refresco: se repite el login al recibir 401.", "Paginación con Page (desde 1) y PageSize; máximo no documentado."],
     unknown: ["Licencia o coste de la API y si MANSERA la tiene instalada (Q3).", "Si HTTP o HTTPS y qué certificado (no documentado).", "Permisos que necesita el usuario de integración.", "Duración del token.", "Un tercero (Chift) afirma que A3ERP no tiene API pública: lo contradice la documentación oficial; se confirma en la instalación de MANSERA."],
+  },
+
+  a3nomina: {
+    app: "a3nomina",
+    name: "a3innuva Nómina",
+    status: "documentado",
+    transport: "cloud",
+    credentialsIn: "plataforma",
+    transportNote: "Servicio en la nube de Wolters Kluwer: se llama directamente desde el servidor de la aplicación (sin gateway).",
+    authSummary: "OAuth 2.0 (Authorization Code) con la cuenta Wolters Kluwer Account (WKA) de un usuario de MANSERA + cabecera Ocp-Apim-Subscription-Key de la suscripción Conectia. El token dura 60 min y se renueva con un refresh token (30 días).",
+    howTo: [
+      "Contratar la suscripción «Conectia» de a3innuva Nómina con Wolters Kluwer (o el distribuidor): da la clave de suscripción del portal a3developers.",
+      "Solicitar a Wolters Kluwer, mediante su formulario, el cliente OAuth propio de MANSERA (client_id y client_secret) con esta dirección de retorno: https://<dominio de la plataforma>/api/oauth/a3nomina/callback.",
+      "Guardar aquí el client_id, el client_secret y la clave de suscripción.",
+      "Después, un usuario de MANSERA con acceso a a3innuva Nómina pulsará «Conectar con Wolters Kluwer» y autorizará el acceso con su cuenta WKA (paso pendiente de construir: necesita la clave de servicio del servidor, ver ADR-0013).",
+    ],
+    fields: [
+      { key: "clientId", label: "Client ID (cliente OAuth)", secret: false, required: true, help: "Identificador del cliente OAuth que Wolters Kluwer crea para MANSERA.", rule: { min: 3, max: 200, pattern: "^[A-Za-z0-9._-]+$", patternMessage: "Solo letras, números, puntos, guiones y guiones bajos" } },
+      { key: "clientSecret", label: "Client secret", secret: true, required: true, help: "Secreto del cliente OAuth. Se guarda cifrado y no se vuelve a mostrar.", rule: { min: 8, max: 400, pattern: "^\\S+$", patternMessage: "No debe llevar espacios" } },
+      { key: "subscriptionKey", label: "Clave de suscripción (Conectia)", secret: true, required: true, help: "Clave principal de la suscripción en el portal a3developers (cabecera Ocp-Apim-Subscription-Key). Se guarda cifrada.", rule: { min: 16, max: 200, pattern: "^\\S+$", patternMessage: "No debe llevar espacios" } },
+    ],
+    docs: [
+      { label: "a3developers · a3innuva Nómina: cómo empezar", url: "https://a3developers.wolterskluwer.es/doc/a3innuva-n%C3%B3mina/como-empezar/", checkedAt: "2026-10-14" },
+      { label: "a3developers · Autenticación OAuth 2.0", url: "https://a3developers.wolterskluwer.es/doc/a3innuva-n%C3%B3mina/OAuth/", checkedAt: "2026-10-14" },
+      { label: "a3developers · Endpoints", url: "https://a3developers.wolterskluwer.es/doc/a3innuva-n%C3%B3mina/endpoints", checkedAt: "2026-10-14" },
+      { label: "a3developers · Límites", url: "https://a3developers.wolterskluwer.es/doc/a3innuva-n%C3%B3mina/limites", checkedAt: "2026-10-14" },
+    ],
+    testEndpoint: "Tras autorizar con WKA: GET de las empresas a las que tiene acceso el usuario (endpoint de «Seguridad»)",
+    limits: [
+      "Suscripción Conectia: 3.000 peticiones/min y 150.000/día (documentado); otros planes: S 100/min, M 1.000/min, L 3.000/min.",
+      "Al superar el límite: HTTP 429 con cabecera Retry-After (documentado).",
+      "Token de acceso: 60 min; refresh token: 30 días (si no se usa en 30 días hay que volver a autorizar).",
+      "Solo TLS 1.2 o superior; la dirección de retorno debe ser https.",
+    ],
+    unknown: [
+      "Coste de Conectia y si MANSERA ya la tiene (un tercero cita «desde 13,5 €/mes»: sin confirmar).",
+      "URL base de la API y rutas exactas: están en un Swagger del portal a3developers que exige acceso.",
+      "Paginación (hay una página de paginación en el portal que no se ha podido leer).",
+      "Entorno de pruebas (empresa de pruebas) para no tocar la nómina real.",
+      "Si el cliente OAuth puede limitarse a SOLO LECTURA: el scope documentado (WK.ES.A3EquipoContex) no distingue lectura de escritura.",
+    ],
   },
 
   pgmwin: {

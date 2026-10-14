@@ -11,6 +11,7 @@ No rellenar con suposiciones. Cuando se responda, mover a `memory/SUPUESTOS.md` 
 | Q4 | ¿Tiene contratado el Add On de API de Sésame? Coste | Cristina → Sésame | Datos de personal |
 | Q5 | ¿Entornos de prueba para PGMWin y A3? | Cristina → proveedores | Seguridad de escrituras |
 | Q6 | Resultado/directrices de la auditoría de ciberseguridad | Cristina | Arquitectura permitida |
+| Q8 | a3innuva Nómina: ¿tienen la suscripción Conectia (coste)? ¿Puede Wolters Kluwer crear el cliente OAuth de MANSERA con nuestra dirección de retorno? ¿Qué usuario WKA autoriza y con qué empresas? ¿Hay empresa de pruebas? ¿Usan el módulo de formación? | Cristina → Wolters Kluwer | Coste de personal, IT y formación (ADR-0013) |
 | Q7 | Presupuesto real y fase comercial 1 acordada (remanente 8–9 k€ vs propuesta 13,5 k€) | Fran / Gerencia | Alcance y priorización |
 
 ## Importantes
