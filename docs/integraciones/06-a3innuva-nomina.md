@@ -55,7 +55,7 @@ La nómina contiene los datos personales **más sensibles** del proyecto: salari
   - **Inicio:** solo TI real, por POST desde la propia aplicación; `state`, `nonce` y client_id en una cookie `__Host-` httpOnly de 10 min.
   - **Retorno:** comprueba sesión, usuario y `state`; lee el client_secret con la clave de servicio; canjea el código; comprueba el `nonce`; guarda el refresh token en el Vault con `connection_store_oauth` (solo service_role, y solo en nombre de un TI) y lo audita sin valores.
   - El navegador solo ve un código de resultado.
-  - **Sin probar contra Wolters Kluwer:** falta el cliente OAuth de MANSERA, que exige registrar la dirección de retorno `https://mansera-indol.vercel.app/api/oauth/a3nomina/callback` (o el dominio definitivo).
+  - **Sin probar contra Wolters Kluwer:** falta el cliente OAuth de MANSERA, que exige registrar la dirección de retorno `https://mansera-smart.vercel.app/api/oauth/a3nomina/callback` (o el dominio definitivo).
 
 ## Incógnitas (preguntas para MANSERA / Wolters Kluwer)
 - ¿Tiene MANSERA la suscripción Conectia? ¿Cuánto cuesta? (un tercero cita «desde 13,5 €/mes», sin confirmar).

@@ -16,7 +16,7 @@
 ## Infraestructura
 - Supabase **Mansera** (ref synwtbopxwvggicrfjjj, eu-central-1): 6 migraciones aplicadas (núcleo, audit_log, roles, assistant_usage, connections_vault, hardening_auditoria). **Vault verificado en real** (2026-10-13): TI guarda, el secreto queda cifrado, solo `service_role` descifra; prueba en transacción deshecha, sin restos.
 - Advisor: `rls_auto_enable()` (del usuario, aceptado R-12); funciones de conexiones ejecutables por `authenticated` a propósito (comprueban TI dentro); contraseñas filtradas desactivado (R-11, panel de Supabase).
-- Vercel: proyecto `mansera` → https://mansera-indol.vercel.app (lo gestiona el usuario). Valores públicos de Supabase por defecto en `next.config.mjs` (R-15).
+- Vercel: proyecto `mansera` → https://mansera-smart.vercel.app (lo gestiona el usuario). Valores públicos de Supabase por defecto en `next.config.mjs` (R-15).
 - Usuarios: `demo@solventa.com` (Dirección) e `iasolventa@gmail.com` (TI). CI: lint, typecheck, test, build, e2e, gitleaks.
 
 ## Calidad
@@ -31,10 +31,10 @@
 
 ## Datos reales (ADR-0014)
 - Personal ← Sésame y Comercial ← Trello en cuanto haya credenciales en Conexiones (Trello necesita además «Configurar tablero de ofertas»). Origen siempre visible. Caché por organización; reintentos y cupo por sistema. 10 migraciones aplicadas.
-- Acción del usuario: añadir `CRON_SECRET` en Vercel para la renovación diaria del token de nómina (vercel.json en raíz y en apps/web).
+- `CRON_SECRET` y clave de servicio configuradas en Vercel (comprobado 2026-10-14: la tarea responde 401 sin credenciales). Dominio principal ahora **https://mansera-smart.vercel.app** (el antiguo redirige).
 
 ## Decisiones abiertas
-- a3innuva Nómina (ADR-0013 propuesto): reparto de dueños con Sésame; contratar Conectia y pedir el cliente OAuth con la dirección de retorno https://mansera-indol.vercel.app/api/oauth/a3nomina/callback. Flujo «Conectar» ya construido; clave de servicio configurada por el usuario en Vercel (2026-10-14, no verificable desde aquí). 8 migraciones aplicadas.
+- a3innuva Nómina (ADR-0013 propuesto): reparto de dueños con Sésame; contratar Conectia y pedir el cliente OAuth con la dirección de retorno https://mansera-smart.vercel.app/api/oauth/a3nomina/callback. Flujo «Conectar» ya construido; clave de servicio configurada por el usuario en Vercel (2026-10-14, no verificable desde aquí). 8 migraciones aplicadas.
 - (Resuelto, ADR-0012) Credenciales de A3ERP/PGMWin: solo en el gateway; en la nube solo Trello y Sésame. 7 migraciones aplicadas.
 - A3ERP por `http` en la LAN enviaría usuario/contraseña sin cifrar (R-18): exigir https si el servicio lo admite (Q3).
 
