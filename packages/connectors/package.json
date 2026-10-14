@@ -9,7 +9,9 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "spike:sesame": "tsx scripts/spike-sesame.ts",
+    "spike:trello": "tsx scripts/spike-trello.ts"
   },
   "dependencies": {
     "@msm/core": "workspace:*",
@@ -17,6 +19,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "vitest": "^5.0.4"
   }

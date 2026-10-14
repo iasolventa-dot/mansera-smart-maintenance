@@ -88,6 +88,10 @@ export function createSesameClient(creds: SesameCredentials, fetchImpl: FetchLik
       clearTimeout(timer);
     }
     if (!res.ok) throw errorFromStatus("Sésame HR", res.status, res.headers.get("retry-after"));
+    // Comprobado el 2026-10-14: una región inexistente responde 200 con HTML de mantenimiento.
+    if (!(res.headers.get("content-type") ?? "").includes("json")) {
+      throw new ConnectorError("unavailable", "Sésame HR no respondió con datos: revisa la región o si el servicio está en mantenimiento.");
+    }
     return res.json().catch(() => undefined);
   }
 
@@ -117,6 +121,10 @@ export function createSesameClient(creds: SesameCredentials, fetchImpl: FetchLik
       if (!parsed.success) throw new ConnectorError("validation", "Sésame HR devolvió datos con un formato inesperado.");
       return parsed.data.data.company;
     },
+    /** Tipos de ausencia configurados (para decidir con MANSERA cuáles son «baja», S-18). Sin datos personales. */
+    absenceTypes: () => all("/schedule/v1/absence-types?status=active", z.object({ id: z.string(), name: z.string() })),
+    /** Departamentos (sin personas). */
+    departments: () => all("/core/v3/departments", Ref),
     /** Todo lo que necesita la sección Personal para un día (`date`) y el mes en curso hasta ese día. */
     async snapshot(date: string): Promise<SesameSnapshot> {
       const d = day(date);

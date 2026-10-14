@@ -2,6 +2,7 @@
 
 Formato: `AAAA-MM-DD · hito · qué se hizo · decisiones · pendientes`. Mantener breve (≤ 6 líneas por entrada).
 
+- 2026-10-14 · M1 (preparación) · Spikes de Trello y Sésame reescritos sobre los conectores reales (`pnpm --filter @msm/connectors spike:*`); probados en real con token inventado: 401 en ambos (S-19). Fallo real encontrado y corregido: región de Sésame inexistente devolvía 200 HTML y el sondeo lo habría dado por «verificada» (S-20).
 - 2026-10-14 · M2 (preparación) · El usuario aporta la documentación oficial de Sésame (apidocs.sesametime.com, con OpenAPI). Conector de lectura de Sésame: Bearer, región validada, paginación, errores tipados, y minimización (descarta DNI, nº SS, IBAN, salario… al recibir); mapeo a «Personal» sin deducir bajas (nuevo estado «Sin fichar ahora»); ficha de Conexiones y sondeo (muestra la empresa del token) actualizados · Pendiente: S-05 pago, permisos del token, tipos de ausencia reales.
 - 2026-10-13 · M2 (preparación) · Conector de lectura de Trello: cliente con auth por cabecera, Zod y errores tipados; mapeo configurable tarjeta→oferta que marca «incompletas» en vez de inventar; sondeo de Trello también por cabecera · Pendiente: estructura real de tableros (pregunta E), probar con credenciales de prueba.
 - 2026-10-13 · Decisión delegada por el usuario: credenciales de A3ERP solo en el gateway (ADR-0012); la plataforma y la BD ya no las aceptan; gateway con `loadConfig` validado. Cuenta demo recreada por el usuario: vuelta a asignar a Dirección («Demo SOLVENTA»).

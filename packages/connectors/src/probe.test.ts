@@ -44,7 +44,7 @@ describe("comprobación de Trello", () => {
 
 describe("comprobación de Sésame HR", () => {
   it("usa Bearer y /core/v3/info en el host de la región", async () => {
-    const f = reply(200);
+    const f = vi.fn(async (_u: string, _i?: RequestInit) => new Response(JSON.stringify({ data: { company: { id: "x", name: "Empresa Ejemplo S.L." } } }), { status: 200 }));
     const r = await probeSesame({ region: "eu1" }, { token: TOKEN }, f);
     expect(r.status).toBe("verificada");
     expect(String(f.mock.calls[0]![0])).toBe("https://api-eu1.sesametime.com/core/v3/info");
@@ -55,6 +55,12 @@ describe("comprobación de Sésame HR", () => {
     const r = await probeSesame({ region: "eu1" }, { token: TOKEN }, f);
     expect(r.message).toContain("Empresa Ejemplo S.L.");
     expect(r.message).not.toContain(TOKEN);
+  });
+  it("región inexistente: 200 con HTML de mantenimiento NO cuenta como verificada (comprobado en real)", async () => {
+    const html = vi.fn(async (_u: string, _i?: RequestInit) => new Response("<!DOCTYPE html><html><title>Sesame</title></html>", { status: 200, headers: { "content-type": "text/html" } }));
+    const r = await probeSesame({ region: "zz9" }, { token: TOKEN }, html);
+    expect(r.status).toBe("error");
+    expect(r.message).toContain("región");
   });
   it("una región maliciosa no puede cambiar el host (anti-SSRF)", async () => {
     for (const region of ["a.evil.com/x#", "eu1.evil.com", "../x", "eu1@evil.com", "-eu1", "E U"]) {

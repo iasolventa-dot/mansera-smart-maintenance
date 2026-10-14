@@ -63,10 +63,12 @@ export async function probeSesame(config: Values, secrets: Values, fetchImpl: Fe
   try {
     const { res, ms } = await timed(fetchImpl, url, { method: "GET", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", Accept: "application/json" } });
     if (res.status === 200) {
-      // /core/v3/info devuelve la empresa del token (documentado): se muestra para confirmar que es la cuenta correcta.
+      // /core/v3/info devuelve la empresa del token (documentado). Comprobado el 2026-10-14: una región inexistente
+      // responde 200 con una página HTML de mantenimiento, así que sin la empresa en JSON NO se da por verificada.
       const body = (await res.json().catch(() => null)) as { data?: { company?: { name?: unknown } } } | null;
       const company = typeof body?.data?.company?.name === "string" ? body.data.company.name.slice(0, 80) : null;
-      return { status: "verificada", message: company ? `Conexión correcta con Sésame HR (empresa: ${company}).` : "Conexión correcta con Sésame HR.", latencyMs: ms };
+      if (!company) return { status: "error", message: "Sésame HR no devolvió los datos esperados: revisa la región (aparece en el panel de tokens de Sésame) o vuelve a intentarlo más tarde." };
+      return { status: "verificada", message: `Conexión correcta con Sésame HR (empresa: ${company}).`, latencyMs: ms };
     }
     return describeHttp("Sésame HR", res.status);
   } catch (e) {

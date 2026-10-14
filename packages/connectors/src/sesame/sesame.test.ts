@@ -20,7 +20,7 @@ function fakeSesame(over: Partial<Record<string, unknown>> = {}) {
       "/core/v3/offices": R.offices, "/schedule/v1/reports/worked-hours": R.workedHours, ...over,
     };
     const body = routes[u.pathname];
-    return body === undefined ? new Response("{}", { status: 404 }) : new Response(JSON.stringify(body), { status: 200 });
+    return body === undefined ? new Response("{}", { status: 404 }) : new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } });
   });
 }
 
@@ -54,7 +54,7 @@ describe("cliente de Sésame HR (solo lectura)", () => {
       const p = Number(u.searchParams.get("page"));
       pagesSeen.push(p);
       const e = R.employees.data[p - 1];
-      return new Response(JSON.stringify({ data: [e], meta: { currentPage: p, lastPage: 3 } }), { status: 200 });
+      return new Response(JSON.stringify({ data: [e], meta: { currentPage: p, lastPage: 3 } }), { status: 200, headers: { "content-type": "application/json" } });
     });
     const snap = await createSesameClient(creds, f).snapshot(R.date);
     expect(pagesSeen).toEqual([1, 2, 3]);
@@ -63,9 +63,13 @@ describe("cliente de Sésame HR (solo lectura)", () => {
   it("se detiene si hay demasiadas páginas", async () => {
     const endless = vi.fn(async (url: string, _init?: RequestInit) => {
       const p = Number(new URL(url).searchParams.get("page"));
-      return new Response(JSON.stringify({ data: [], meta: { currentPage: p, lastPage: 9999 } }), { status: 200 });
+      return new Response(JSON.stringify({ data: [], meta: { currentPage: p, lastPage: 9999 } }), { status: 200, headers: { "content-type": "application/json" } });
     });
     await expect(createSesameClient(creds, endless).snapshot("2026-10-14")).rejects.toMatchObject({ kind: "validation", message: expect.stringContaining("páginas") });
+  });
+  it("región inexistente (200 con HTML, comprobado en real) = error claro, no datos", async () => {
+    const html = vi.fn(async (_u: string, _i?: RequestInit) => new Response("<!DOCTYPE html>", { status: 200, headers: { "content-type": "text/html" } }));
+    await expect(createSesameClient({ region: "zz9", token: TOKEN }, html).info()).rejects.toMatchObject({ kind: "unavailable", message: expect.stringContaining("región") });
   });
   it("una fecha mal formada no llega a la red", async () => {
     const f = fakeSesame();

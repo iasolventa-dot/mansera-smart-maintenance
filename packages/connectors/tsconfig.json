@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noEmit": true,
@@ -10,7 +14,12 @@
     "moduleResolution": "bundler",
     "isolatedModules": true,
     "esModuleInterop": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "scripts"
+  ]
 }
