@@ -7,7 +7,7 @@
 ## Qué existe (verificado: lint, typecheck, 99 tests unitarios [core 71 · connectors 23 · gateway 5] + 37 de RLS + ~295 E2E; build)
 - Monorepo pnpm + Turborepo: `apps/web` (Next 16, React 19, Tailwind 4, Motion), `apps/gateway`, `packages/{core,ui,connectors}`, `supabase/`.
 - `packages/core`: esquemas Zod, contrato `DataProvider`, permisos por rol (`access.ts`, `canPerform`), `demo/` con datos FICTICIOS, ayuda (`help/`), catálogo de conectores (`connectors/specs.ts`).
-- `packages/connectors`: errores tipados, sondeo de credenciales (Trello, Sésame), **conector de lectura de Trello** (cliente + mapeo configurable a ofertas, datos de ejemplo inventados) y protocolo del gateway.
+- `packages/connectors`: errores tipados, sondeo de credenciales (Trello, Sésame), **conectores de lectura de Trello** (mapeo configurable a ofertas) **y Sésame HR** (según su OpenAPI oficial; minimización RGPD de la ficha de empleado), con datos de ejemplo inventados y protocolo del gateway.
 - `apps/gateway`: ejecutor puro de trabajos (solo `a3erp.health` y `a3erp.login_check`). Sin transporte ni servicio de Windows.
 - 7 paneles por rol y 17 secciones (detalle en `docs/02`): alertas, órdenes (+«Nueva OT» → propuesta), mantenimiento, activos, clientes, comercial, facturación, compras, personal, PRL/CAE, propuestas, informes, copiloto, **conexiones**, usuarios y auditoría, manual.
 - **Conexiones → Credenciales de acceso** (ADR-0010): Trello y Sésame se guardan aquí; A3ERP «Se configura en el gateway» (ADR-0012); PGMWin «Pendiente de documentar». Secretos en Supabase Vault, solo TI, auditoría sin valores, validación en servidor Y en SQL. En demostración local el formulario funciona pero no guarda nada.

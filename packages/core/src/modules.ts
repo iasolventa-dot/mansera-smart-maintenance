@@ -96,7 +96,8 @@ export const Employee = z.object({
   name: z.string(),
   position: z.string(),
   department: z.string(),
-  today: z.enum(["trabajando", "ausente", "vacaciones", "baja", "libra"]),
+  /** `sin_fichar` = sin fichaje activo ni ausencia registrada (no se supone que «libra»). */
+  today: z.enum(["trabajando", "ausente", "vacaciones", "baja", "libra", "sin_fichar"]),
   clockIn: z.string().nullable(),
   site: z.string().nullable(),
   hoursMonth: z.number(),

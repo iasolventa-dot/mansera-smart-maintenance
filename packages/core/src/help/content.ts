@@ -310,7 +310,7 @@ export const MANUAL: ManualChapter[] = [
         keywords: ["empleado", "fichaje", "plantilla", "ausencia", "vacaciones", "baja", "horas", "absentismo", "sésame"],
         steps: [
           "Abre **Personal**. Arriba: presentes hoy, ausentes, horas del mes y absentismo.",
-          "Cada tarjeta muestra a la persona, su puesto, su estado de hoy (trabajando, libra, vacaciones, baja…), la hora de entrada, el centro y las horas del mes.",
+          "Cada tarjeta muestra a la persona, su puesto, su estado de hoy (trabajando, sin fichar ahora, vacaciones, ausente, baja…), la hora de entrada, el centro y las horas del mes.",
         ],
       },
       {

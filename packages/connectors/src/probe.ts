@@ -62,7 +62,12 @@ export async function probeSesame(config: Values, secrets: Values, fetchImpl: Fe
   const url = `https://api-${region}.sesametime.com/core/v3/info`;
   try {
     const { res, ms } = await timed(fetchImpl, url, { method: "GET", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", Accept: "application/json" } });
-    if (res.status === 200) return { status: "verificada", message: "Conexión correcta con Sésame HR.", latencyMs: ms };
+    if (res.status === 200) {
+      // /core/v3/info devuelve la empresa del token (documentado): se muestra para confirmar que es la cuenta correcta.
+      const body = (await res.json().catch(() => null)) as { data?: { company?: { name?: unknown } } } | null;
+      const company = typeof body?.data?.company?.name === "string" ? body.data.company.name.slice(0, 80) : null;
+      return { status: "verificada", message: company ? `Conexión correcta con Sésame HR (empresa: ${company}).` : "Conexión correcta con Sésame HR.", latencyMs: ms };
+    }
     return describeHttp("Sésame HR", res.status);
   } catch (e) {
     return describeNetwork("Sésame HR", e);

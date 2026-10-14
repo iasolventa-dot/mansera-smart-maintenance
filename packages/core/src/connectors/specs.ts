@@ -88,20 +88,27 @@ export const CONNECTOR_SPECS: Record<ConnectorApp, ConnectorSpec> = {
       "Un administrador entra en app.sesametime.com → Configuración (Settings) → Integraciones (Integrations) → API.",
       "Pulsa «Crear token» (Generate token) y cópialo en el momento. Solo los administradores pueden generarlo.",
       "Crea un token propio para esta integración (no reutilices el de otra). Si se revoca, la aplicación recibirá 401.",
-      "Anota la región de la cuenta: forma parte de la dirección (https://api-{región}.sesametime.com).",
+      "Anota la región de la cuenta: aparece en el mismo panel de tokens (app.sesametime.com/admin/configuration/integrations/api-tokens). Por defecto es «eu1».",
     ],
     fields: [
-      { key: "region", label: "Región de la cuenta", secret: false, required: true, placeholder: "p. ej. eu1", help: "Va en la URL de la API. La documentación no enumera los valores válidos: confírmalo con Sésame o en la sección API de la cuenta.", rule: { min: 2, max: 20, pattern: "^[a-z0-9-]+$", patternMessage: "Solo minúsculas, números y guiones" } },
+      { key: "region", label: "Región de la cuenta", secret: false, required: true, placeholder: "p. ej. eu1", help: "Va en la URL de la API. La especificación oficial indica «eu1» por defecto; la tuya aparece en el panel de tokens de Sésame.", rule: { min: 2, max: 20, pattern: "^[a-z0-9-]+$", patternMessage: "Solo minúsculas, números y guiones" } },
       { key: "token", label: "Token de API", secret: true, required: true, help: "Se guarda cifrado y no se vuelve a mostrar.", rule: { min: 20, max: 600, pattern: "^\\S+$", patternMessage: "No debe llevar espacios" } },
     ],
     docs: [
+      { label: "Sésame · Introducción", url: "https://apidocs.sesametime.com/introduction", checkedAt: "2026-10-14" },
+      { label: "Sésame · Especificación OpenAPI", url: "https://apidocs.sesametime.com/openapi.json", checkedAt: "2026-10-14" },
       { label: "Sésame · Autenticación", url: "https://apidocs.sesametime.com/authentication", checkedAt: D },
       { label: "Sésame · Inicio rápido", url: "https://apidocs.sesametime.com/quickstart", checkedAt: D },
       { label: "Sésame · Límites de peticiones", url: "https://apidocs.sesametime.com/rate-limiting", checkedAt: D },
     ],
     testEndpoint: "GET https://api-{región}.sesametime.com/core/v3/info",
-    limits: ["1.000 peticiones por minuto por empresa, compartidas entre todos los tokens (documentado)."],
-    unknown: ["Valores válidos de región (la documentación no los lista).", "Permisos/alcances del token (no descritos).", "Si el acceso a la API es un complemento de pago (Q4): la documentación consultada no lo menciona.", "Webhooks y paginación completa (no aparecen en el inicio rápido)."],
+    limits: [
+      "1.000 peticiones por minuto por empresa, compartidas entre todos los tokens (documentado).",
+      "Paginación con page y limit; la respuesta indica la última página (documentado).",
+      "Webhooks (altas/bajas de empleados y fichajes) existen, pero se activan pidiéndolo a soporte de Sésame (documentado).",
+      "Sésame avisa de que los endpoints actuales se irán sustituyendo por una versión nueva (changelog 2026): hay que vigilar los avisos de retirada.",
+    ],
+    unknown: ["Qué permisos tiene cada token: existe el error 403 «el token no tiene permisos», pero no se describe cómo se asignan.", "Si el acceso a la API es un complemento de pago: la documentación no lo menciona.", "Lista completa de regiones (solo consta «eu1» por defecto).", "Tamaño máximo de página (limit) no documentado."],
   },
 
   a3erp: {

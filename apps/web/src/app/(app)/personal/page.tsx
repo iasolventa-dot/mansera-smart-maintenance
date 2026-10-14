@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Personal" };
 
 const TODAY: Record<Employee["today"], { label: string; tone: "ok" | "info" | "warn" | "bad" | "neutral" }> = {
   trabajando: { label: "Trabajando", tone: "ok" }, libra: { label: "Libra", tone: "neutral" }, vacaciones: { label: "Vacaciones", tone: "info" },
-  baja: { label: "Baja", tone: "bad" }, ausente: { label: "Ausente", tone: "warn" },
+  baja: { label: "Baja", tone: "bad" }, ausente: { label: "Ausente", tone: "warn" }, sin_fichar: { label: "Sin fichar ahora", tone: "neutral" },
 };
 
 export default async function PersonalPage() {

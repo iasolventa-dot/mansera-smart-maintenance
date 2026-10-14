@@ -8,7 +8,7 @@ Estados: **HECHO** (fuente) · **HIPÓTESIS** · **VERIFICADO (spike)** · **REF
 | S-02 | No hay integración actual PGMWin↔A3 | HECHO | Usuario / acta | 2026-09-15 |
 | S-03 | PGMWin ofrecerá una vía de integración (API/webservice) utilizable | HIPÓTESIS | Premisa del usuario; investigación previa no halló API pública | — |
 | S-04 | A3ERP Link API disponible (módulo con licencia) y contratado en MANSERA | HIPÓTESIS (existencia de la API: HECHO, docs oficiales a3erpapi.appcloud.es; contratación en MANSERA: sin confirmar) | Docs oficiales | 2026-10-13 |
-| S-05 | Sésame API es Add On de pago | HECHO según fuente previa; la documentación consultada el 2026-10-13 (apidocs.sesametime.com) no lo menciona: SIN CONFIRMAR | Docs | 2026-10-13 |
+| S-05 | Sésame API es Add On de pago | SIN CONFIRMAR: ni la documentación de 2026-10-13 ni la oficial ampliada (2026-10-14, aportada por el usuario) lo mencionan; preguntar a Sésame | Docs | 2026-10-14 |
 | S-06 | Trello: 300 req/10 s por clave, 100/10 s por token; webhooks pueden duplicarse/perderse | HECHO (docs, reverificar) | Docs oficiales | — |
 | S-07 | PGMWin y A3 están en servidor local | HIPÓTESIS | Pendiente Q1 | — |
 | S-08 | Existe red local con todos los usuarios | HIPÓTESIS | Pendiente Q1 | — |
@@ -17,6 +17,8 @@ Estados: **HECHO** (fuente) · **HIPÓTESIS** · **VERIFICADO (spike)** · **REF
 | S-11 | A3ERP: login POST /api/login (Basic) → JWT Bearer; servicio de Windows en la red del cliente | HECHO (docs oficiales); sin verificar en MANSERA | a3erpapi.appcloud.es | 2026-10-13 |
 | S-12 | Trello: key+token; Sésame: Bearer en https://api-{región}.sesametime.com | HECHO (docs oficiales); sin verificar con cuentas de MANSERA (las pruebas del sondeo usan respuestas simuladas) | developer.atlassian.com · apidocs.sesametime.com | 2026-10-13 |
 | S-13 | PGMWin no tiene documentación pública de integración | HECHO (búsquedas 2026-10-13); formato de conexión PENDIENTE DE DOCUMENTAR | — | 2026-10-13 |
-| S-14 | Valores válidos de región de Sésame y alcances del token | HIPÓTESIS: la regla aceptada es [a-z0-9-]; por confirmar | — | 2026-10-13 |
+| S-14 | Región de Sésame y permisos del token | PARCIAL: región por defecto «eu1» y visible en el panel de tokens (HECHO, OpenAPI oficial); permisos del token existen (error 403) pero no se documenta cómo se asignan (HIPÓTESIS) | OpenAPI oficial | 2026-10-14 |
 | S-15 | MANSERA guarda importe, cliente y probabilidad de cada oferta en campos personalizados de Trello | HIPÓTESIS: si no es así, el mapeo deja las ofertas como «incompletas» (no inventa); confirmar con la pregunta E | — | 2026-10-13 |
 | S-16 | La API de Trello acepta la cabecera Authorization: OAuth oauth_consumer_key/oauth_token | HECHO (docs Atlassian); sin verificar con la cuenta de MANSERA | developer.atlassian.com | 2026-10-13 |
+| S-17 | Sésame admite limit=100 por página | HIPÓTESIS (el máximo no está documentado); el conector pagina con meta.lastPage y se detiene a las 50 páginas | — | 2026-10-14 |
+| S-18 | Una «baja» se puede distinguir de otras ausencias en Sésame | HIPÓTESIS: el endpoint de días de ausencia solo trae el nombre del tipo; el conector NO deduce bajas (muestra «ausente») hasta ver los tipos reales de MANSERA | — | 2026-10-14 |

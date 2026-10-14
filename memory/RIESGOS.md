@@ -22,3 +22,4 @@ Probabilidad/Impacto: B/M/A. Revisar al cierre de cada hito.
 | R-17 | El Vault simulado de los tests no valida el cifrado real; la comprobación (sondeo) está probada solo con respuestas simuladas | B | M | Verificar en Supabase real al subir credenciales de prueba; spike M1 | Abierto |
 | R-18 | La API de A3ERP por http en la LAN enviaría usuario y contraseña en claro (Basic) | M | A | Exigir https si el servicio lo admite (Q3); si no, red segmentada y usuario de solo lectura | Abierto |
 | R-19 | Dos posibles dueños de las credenciales de A3ERP (Vault en la nube o almacén local del gateway) | M | M | ADR-0012: solo en el gateway; la plataforma y la BD las rechazan | Cerrado |
+| R-20 | Sésame retirará progresivamente los endpoints actuales (changelog 2026) | M | M | Conector aislado con validación Zod (falla controlado si cambian); revisar el changelog en cada hito; migrar a v4 cuando cubra lo necesario | Abierto |

@@ -1,0 +1,323 @@
+{
+  "_aviso": "RESPUESTAS DE EJEMPLO INVENTADAS con el formato de la especificación oficial de Sésame. No son datos de MANSERA.",
+  "date": "2026-10-14",
+  "info": {
+    "data": {
+      "company": {
+        "id": "00000000-0000-4000-8000-000000000900",
+        "name": "Empresa Ejemplo S.L.",
+        "notificationEmail": "x@example.invalid"
+      }
+    },
+    "meta": {
+      "currentPage": 1,
+      "lastPage": 1,
+      "total": 1,
+      "perPage": 1
+    }
+  },
+  "employees": {
+    "data": [
+      {
+        "id": "00000000-0000-4000-8000-000000000001",
+        "firstName": "Persona",
+        "lastName": "Ejemplo Uno",
+        "secondLastName": null,
+        "email": "persona1@example.invalid",
+        "workStatus": "online",
+        "status": "active",
+        "jobChargeName": "Técnico de mantenimiento",
+        "code": 1,
+        "nid": "FICTICIO-NID-1",
+        "ssn": "FICTICIO-SSN-1",
+        "accountNumber": "FICTICIO-IBAN-1",
+        "salaryRange": "FICTICIO-SALARIO",
+        "dateOfBirth": "1900-01-01",
+        "address": "FICTICIO-DIRECCION",
+        "personalMail": "ficticio1@example.invalid",
+        "phone": "FICTICIO-TEL"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000002",
+        "firstName": "Persona",
+        "lastName": "Ejemplo Dos",
+        "secondLastName": null,
+        "email": "persona2@example.invalid",
+        "workStatus": "offline",
+        "status": "active",
+        "jobChargeName": "Técnica electricista",
+        "code": 2,
+        "nid": "FICTICIO-NID-2",
+        "ssn": "FICTICIO-SSN-2",
+        "accountNumber": "FICTICIO-IBAN-2",
+        "salaryRange": "FICTICIO-SALARIO",
+        "dateOfBirth": "1900-01-01",
+        "address": "FICTICIO-DIRECCION",
+        "personalMail": "ficticio2@example.invalid",
+        "phone": "FICTICIO-TEL"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000003",
+        "firstName": "Persona",
+        "lastName": "Ejemplo Tres",
+        "secondLastName": null,
+        "email": "persona3@example.invalid",
+        "workStatus": "offline",
+        "status": "active",
+        "jobChargeName": null,
+        "code": 3,
+        "nid": "FICTICIO-NID-3",
+        "ssn": "FICTICIO-SSN-3",
+        "accountNumber": "FICTICIO-IBAN-3",
+        "salaryRange": "FICTICIO-SALARIO",
+        "dateOfBirth": "1900-01-01",
+        "address": "FICTICIO-DIRECCION",
+        "personalMail": "ficticio3@example.invalid",
+        "phone": "FICTICIO-TEL"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000004",
+        "firstName": "Persona",
+        "lastName": "Ejemplo Cuatro",
+        "secondLastName": null,
+        "email": "persona4@example.invalid",
+        "workStatus": "offline",
+        "status": "active",
+        "jobChargeName": "Administrativa",
+        "code": 4,
+        "nid": "FICTICIO-NID-4",
+        "ssn": "FICTICIO-SSN-4",
+        "accountNumber": "FICTICIO-IBAN-4",
+        "salaryRange": "FICTICIO-SALARIO",
+        "dateOfBirth": "1900-01-01",
+        "address": "FICTICIO-DIRECCION",
+        "personalMail": "ficticio4@example.invalid",
+        "phone": "FICTICIO-TEL"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000005",
+        "firstName": "Persona",
+        "lastName": "Ejemplo Cinco",
+        "secondLastName": null,
+        "email": "persona5@example.invalid",
+        "workStatus": "remote",
+        "status": "active",
+        "jobChargeName": "Frigorista",
+        "code": 5,
+        "nid": "FICTICIO-NID-5",
+        "ssn": "FICTICIO-SSN-5",
+        "accountNumber": "FICTICIO-IBAN-5",
+        "salaryRange": "FICTICIO-SALARIO",
+        "dateOfBirth": "1900-01-01",
+        "address": "FICTICIO-DIRECCION",
+        "personalMail": "ficticio5@example.invalid",
+        "phone": "FICTICIO-TEL"
+      }
+    ],
+    "meta": {
+      "currentPage": 1,
+      "lastPage": 1,
+      "total": 5,
+      "perPage": 100
+    }
+  },
+  "departments": {
+    "data": [
+      {
+        "id": "00000000-0000-4000-8000-000000000101",
+        "employee": {
+          "id": "00000000-0000-4000-8000-000000000001",
+          "firstName": "Persona"
+        },
+        "department": {
+          "id": "00000000-0000-4000-8000-000000000201",
+          "name": "Campo"
+        }
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000102",
+        "employee": {
+          "id": "00000000-0000-4000-8000-000000000002",
+          "firstName": "Persona"
+        },
+        "department": {
+          "id": "00000000-0000-4000-8000-000000000201",
+          "name": "Campo"
+        }
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000104",
+        "employee": {
+          "id": "00000000-0000-4000-8000-000000000004",
+          "firstName": "Persona"
+        },
+        "department": {
+          "id": "00000000-0000-4000-8000-000000000202",
+          "name": "Oficina"
+        }
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000105",
+        "employee": {
+          "id": "00000000-0000-4000-8000-000000000005",
+          "firstName": "Persona"
+        },
+        "department": {
+          "id": "00000000-0000-4000-8000-000000000201",
+          "name": "Campo"
+        }
+      }
+    ],
+    "meta": {
+      "currentPage": 1,
+      "lastPage": 1,
+      "total": 4,
+      "perPage": 100
+    }
+  },
+  "absences": {
+    "data": [
+      {
+        "id": "00000000-0000-4000-8000-000000000301",
+        "date": "2026-10-14",
+        "seconds": 28800,
+        "employee": {
+          "id": "00000000-0000-4000-8000-000000000003",
+          "nid": "FICTICIO-NID-3",
+          "ssn": "FICTICIO-SSN-3",
+          "accountNumber": "FICTICIO-IBAN-3",
+          "salaryRange": "FICTICIO-SALARIO",
+          "dateOfBirth": "1900-01-01",
+          "address": "FICTICIO-DIRECCION",
+          "personalMail": "ficticio3@example.invalid",
+          "phone": "FICTICIO-TEL"
+        },
+        "calendar": {
+          "id": "00000000-0000-4000-8000-000000000401",
+          "absenceType": {
+            "id": "00000000-0000-4000-8000-000000000501",
+            "name": "Asuntos propios"
+          }
+        }
+      }
+    ],
+    "meta": {
+      "currentPage": 1,
+      "lastPage": 1,
+      "total": 1,
+      "perPage": 100
+    }
+  },
+  "vacations": {
+    "data": [
+      {
+        "id": "00000000-0000-4000-8000-000000000302",
+        "date": "2026-10-14",
+        "seconds": 28800,
+        "employee": {
+          "id": "00000000-0000-4000-8000-000000000004"
+        },
+        "calendar": {
+          "id": "00000000-0000-4000-8000-000000000402"
+        }
+      }
+    ],
+    "meta": {
+      "currentPage": 1,
+      "lastPage": 1,
+      "total": 1,
+      "perPage": 100
+    }
+  },
+  "workEntries": {
+    "data": [
+      {
+        "id": "00000000-0000-4000-8000-000000000601",
+        "employee": {
+          "id": "00000000-0000-4000-8000-000000000001",
+          "nid": "FICTICIO-NID-1",
+          "ssn": "FICTICIO-SSN-1",
+          "accountNumber": "FICTICIO-IBAN-1",
+          "salaryRange": "FICTICIO-SALARIO",
+          "dateOfBirth": "1900-01-01",
+          "address": "FICTICIO-DIRECCION",
+          "personalMail": "ficticio1@example.invalid",
+          "phone": "FICTICIO-TEL"
+        },
+        "workEntryIn": {
+          "date": "2026-10-14T07:58:00+02:00",
+          "officeId": "00000000-0000-4000-8000-000000000701"
+        },
+        "workEntryOut": null,
+        "workedSeconds": 0
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000605",
+        "employee": {
+          "id": "00000000-0000-4000-8000-000000000005"
+        },
+        "workEntryIn": {
+          "date": "2026-10-14T08:15:00+02:00",
+          "officeId": null
+        },
+        "workEntryOut": null,
+        "workedSeconds": 0
+      }
+    ],
+    "meta": {
+      "currentPage": 1,
+      "lastPage": 1,
+      "total": 2,
+      "perPage": 100
+    }
+  },
+  "offices": {
+    "data": [
+      {
+        "id": "00000000-0000-4000-8000-000000000701",
+        "name": "Centro Ejemplo Norte",
+        "address": "FICTICIO"
+      }
+    ],
+    "meta": {
+      "currentPage": 1,
+      "lastPage": 1,
+      "total": 1,
+      "perPage": 100
+    }
+  },
+  "workedHours": {
+    "data": [
+      {
+        "employeeId": "00000000-0000-4000-8000-000000000001",
+        "secondsWorked": 374400,
+        "secondsToWork": 0,
+        "secondsBalance": 0
+      },
+      {
+        "employeeId": "00000000-0000-4000-8000-000000000002",
+        "secondsWorked": 354600,
+        "secondsToWork": 0,
+        "secondsBalance": 0
+      },
+      {
+        "employeeId": "00000000-0000-4000-8000-000000000004",
+        "secondsWorked": 216000,
+        "secondsToWork": 0,
+        "secondsBalance": 0
+      },
+      {
+        "employeeId": "00000000-0000-4000-8000-000000000005",
+        "secondsWorked": 324000,
+        "secondsToWork": 0,
+        "secondsBalance": 0
+      }
+    ],
+    "meta": {
+      "currentPage": 1,
+      "lastPage": 1,
+      "total": 4,
+      "perPage": 100
+    }
+  }
+}

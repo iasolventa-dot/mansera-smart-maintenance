@@ -50,6 +50,12 @@ describe("comprobación de Sésame HR", () => {
     expect(String(f.mock.calls[0]![0])).toBe("https://api-eu1.sesametime.com/core/v3/info");
     expect((f.mock.calls[0]![1] as RequestInit).headers).toMatchObject({ Authorization: `Bearer ${TOKEN}` });
   });
+  it("muestra la empresa del token para confirmar que es la cuenta correcta", async () => {
+    const f = vi.fn(async (_u: string, _i?: RequestInit) => new Response(JSON.stringify({ data: { company: { id: "x", name: "Empresa Ejemplo S.L." } } }), { status: 200 }));
+    const r = await probeSesame({ region: "eu1" }, { token: TOKEN }, f);
+    expect(r.message).toContain("Empresa Ejemplo S.L.");
+    expect(r.message).not.toContain(TOKEN);
+  });
   it("una región maliciosa no puede cambiar el host (anti-SSRF)", async () => {
     for (const region of ["a.evil.com/x#", "eu1.evil.com", "../x", "eu1@evil.com", "-eu1", "E U"]) {
       const f = reply(200);
