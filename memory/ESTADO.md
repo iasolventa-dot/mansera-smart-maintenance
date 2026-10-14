@@ -1,6 +1,6 @@
 # ESTADO ACTUAL DEL PROYECTO  (se imprime al iniciar/compactar sesión — mantener < 80 líneas)
 
-**Última actualización:** 2026-10-14 · a3innuva Nómina añadida al ecosistema (ADR-0013); conectores Trello/Sésame revisados
+**Última actualización:** 2026-10-14 · datos reales listos para Personal (Sésame) y Comercial (Trello) con caché (ADR-0014); OAuth de nómina endurecido
 **Fase/hito en curso:** M0 cerrado salvo confirmación del usuario · trabajo preparatorio de M1/M2 adelantado (borrador, sin G1)
 **Puerta superada:** G0 técnicamente cumplida; falta la confirmación EXPRESA del usuario (ADR-0002/0004 y aceptar el adelanto de M2: ADR-0010/0011)
 
@@ -28,6 +28,10 @@
 1. Usuario: confirmar ADR-0002/0004 y aceptar (o no) ADR-0010/0011; probar en Conexiones con credenciales de PRUEBA de Trello o Sésame (solo lectura).
 2. Pasar el cuestionario de integración a MANSERA (pendiente de respuesta; versión sin códigos entregada en el chat).
 3. Con respuestas: spikes (`scripts/spikes/`) → M1; luego M2 (`LiveDataProvider`, transporte del gateway).
+
+## Datos reales (ADR-0014)
+- Personal ← Sésame y Comercial ← Trello en cuanto haya credenciales en Conexiones (Trello necesita además «Configurar tablero de ofertas»). Origen siempre visible. Caché por organización; reintentos y cupo por sistema. 10 migraciones aplicadas.
+- Acción del usuario: añadir `CRON_SECRET` en Vercel para la renovación diaria del token de nómina (vercel.json en raíz y en apps/web).
 
 ## Decisiones abiertas
 - a3innuva Nómina (ADR-0013 propuesto): reparto de dueños con Sésame; contratar Conectia y pedir el cliente OAuth con la dirección de retorno https://mansera-indol.vercel.app/api/oauth/a3nomina/callback. Flujo «Conectar» ya construido; clave de servicio configurada por el usuario en Vercel (2026-10-14, no verificable desde aquí). 8 migraciones aplicadas.

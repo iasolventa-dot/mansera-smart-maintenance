@@ -255,3 +255,21 @@ test.describe("a3innuva Nómina (OAuth con Wolters Kluwer)", () => {
     await expect(page).toHaveURL(/\/conexiones\?oauth=(sin_permiso|caducado)$/);
   });
 });
+
+test.describe("tareas programadas", () => {
+  test("la renovación de tokens no se puede disparar desde fuera", async ({ request }) => {
+    const r = await request.get("/api/cron/oauth-refresh", { headers: { Authorization: "Bearer inventado" } });
+    expect([401, 503]).toContain(r.status());
+  });
+});
+
+test.describe("origen de los datos", () => {
+  for (const [path, role] of [["/personal", "rrhh"], ["/comercial", "direccion"]] as const) {
+    test(`${path} dice que los datos son de ejemplo mientras no hay conexión real`, async ({ page, context }) => {
+      await loginAs(context, role);
+      await page.goto(path);
+      await settle(page);
+      await expect(page.getByTestId("data-source")).toContainText("Datos de ejemplo");
+    });
+  }
+});

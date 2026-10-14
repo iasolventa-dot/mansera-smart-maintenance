@@ -317,3 +317,27 @@ describe("connections + Vault (credenciales)", () => {
     expect(await rows("select 1 from vault.secrets")).toEqual([]);
   });
 });
+
+describe("caché de conectores y configuración", () => {
+  const asService = async <T,>(fn: () => Promise<T>) => { await db.exec("set role service_role"); try { return await fn(); } finally { await db.exec("reset role"); } };
+  it("la caché solo la toca el servidor: ningún usuario la lee ni la escribe", async () => {
+    await asService(() => db.query("insert into public.connector_snapshots (org_id, app, kind, payload) values ($1, 'sesame', 'people', '{\"n\":1}')", [ids.org1]));
+    for (const uid of [ids.ti1, ids.dir1, ids.campo1]) {
+      await denied(() => asUser(uid, () => rows("select * from public.connector_snapshots")));
+      await denied(() => asUser(uid, () => db.exec(`insert into public.connector_snapshots (org_id, app, kind, payload) values ('${ids.org1}', 'trello', 'offers', '{}')`)));
+    }
+  });
+  it("la configuración la guarda solo TI de su organización, se audita e invalida la caché", async () => {
+    const save = (uid: string, org = ids.org1) => asUser(uid, () => db.query("select public.connector_settings_save($1, 'sesame', $2::jsonb)", [org, '{"x":1}']));
+    await denied(() => save(ids.dir1));
+    await denied(() => save(ids.ti2));
+    await save(ids.ti1);
+    expect(await asUser(ids.ti1, () => rows("select app from public.connector_settings"))).toEqual([{ app: "sesame" }]);
+    expect(await asUser(ids.dir1, () => rows("select app from public.connector_settings"))).toEqual([]);
+    expect(await asService(() => rows("select 1 from public.connector_snapshots where app = 'sesame'"))).toEqual([]);
+    const [a] = await rows("select action from public.audit_log where action = 'conector.configurar'");
+    expect(a?.action).toBe("conector.configurar");
+    await denied(() => asUser(ids.ti1, () => db.exec("update public.connector_settings set settings = '{}'")));
+  });
+});
+

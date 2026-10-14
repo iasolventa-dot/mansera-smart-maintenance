@@ -3,12 +3,14 @@ import { CircleCheck, CircleHelp, OctagonAlert, TriangleAlert, type LucideIcon }
 import type { ConnectionHealth } from "@msm/core";
 import { Badge, Card, Item, Stagger, cn } from "@msm/ui";
 import { connectorList, type ConnectorApp } from "@msm/core";
-import { deleteConnection, saveConnection } from "@/app/actions";
+import { deleteConnection, loadTrelloStructure, saveConnection, saveTrelloMapping } from "@/app/actions";
+import { TrelloMappingForm, type TrelloMappingValue } from "@/components/trello-mapping-form";
 import { ConnectionCard, type StoredConnection } from "@/components/connection-card";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader, ago } from "@/components/page-header";
 import { getProvider } from "@/lib/data";
 import { realAuthEnabled, requireAccess } from "@/lib/session";
+import { liveHealth } from "@/lib/live";
 
 export const metadata: Metadata = { title: "Conexiones" };
 
@@ -35,14 +37,19 @@ export default async function ConexionesPage({ searchParams }: { searchParams: P
   const sp = await searchParams;
   const oauthMsg = typeof sp.oauth === "string" && Object.hasOwn(OAUTH_MSG, sp.oauth) ? OAUTH_MSG[sp.oauth] : undefined;
   const session = await requireAccess("conexiones");
-  const conns = await getProvider().getConnections();
+  const demoConns = await getProvider().getConnections();
+  const realConns = await liveHealth(session, demoConns);
+  const conns = realConns ?? demoConns;
   const real = realAuthEnabled();
   // Sin Supabase (demostración local) el formulario se puede probar, pero el servidor no guarda nada.
   const canEdit = session.realRole === "ti" && session.role === "ti" && (!real || !!session.orgId);
   const readOnlyReason = session.realRole !== "ti" ? "Solo el perfil de TI puede gestionar las credenciales." : session.role !== "ti" ? "Estás viendo una vista previa: vuelve al perfil de TI para gestionar credenciales." : undefined;
   const stored: Partial<Record<ConnectorApp, StoredConnection>> = {};
   let loadError = false;
+  let trelloMapping: TrelloMappingValue | null = null;
   if (real && session.orgId) {
+    const { data: ts } = await (await createClient()).from("connector_settings").select("settings").eq("org_id", session.orgId).eq("app", "trello").maybeSingle();
+    trelloMapping = (ts?.settings as TrelloMappingValue | undefined) ?? null;
     const { data, error } = await (await createClient()).from("connections").select("app, config, status, last_check_at, last_check_message, updated_at").eq("org_id", session.orgId);
     if (error) loadError = true;
     for (const r of data ?? []) {
@@ -60,11 +67,15 @@ export default async function ConexionesPage({ searchParams }: { searchParams: P
         {loadError ? <p role="alert" className="mb-4 rounded-xl bg-bad-soft p-3 text-[15px] font-semibold text-bad-text">No se pudo leer el estado guardado de las conexiones. Las tarjetas pueden mostrar «Sin configurar» aunque haya credenciales; recarga la página o avisa a soporte.</p> : null}
         <div className="grid gap-4 xl:grid-cols-2">
           {connectorList().map((spec) => (
-            <ConnectionCard key={spec.app} spec={spec} stored={stored[spec.app] ?? null} canEdit={canEdit} readOnlyReason={readOnlyReason} oauthEnabled={real} save={saveConnection} remove={deleteConnection} />
+            <ConnectionCard key={spec.app} spec={spec} stored={stored[spec.app] ?? null} canEdit={canEdit} readOnlyReason={readOnlyReason} oauthEnabled={real} save={saveConnection} remove={deleteConnection}>
+              {spec.app === "trello" && canEdit && real && stored.trello && ["verificada", "autorizada"].includes(stored.trello.status) ? (
+                <TrelloMappingForm initial={trelloMapping} load={loadTrelloStructure} save={saveTrelloMapping} />
+              ) : null}
+            </ConnectionCard>
           ))}
         </div>
       </section>
-      <h2 className="mb-3 text-[19px] font-extrabold">Estado de la sincronización <span className="text-[14px] font-normal text-muted">(datos de ejemplo)</span></h2>
+      <h2 className="mb-3 text-[19px] font-extrabold">Estado de la sincronización {realConns ? null : <span className="text-[14px] font-normal text-muted">(datos de ejemplo)</span>}</h2>
       <Stagger className="grid gap-4 xl:grid-cols-2">
         {conns.map((c) => {
           const h = HEALTH[c.health];

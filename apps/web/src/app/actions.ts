@@ -4,11 +4,12 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { canPerform, ConnectorAppSchema, homeFor, NewWorkOrderInput, Role, validateCredentials, type CopilotAnswer, type SearchHit } from "@msm/core";
-import { probeConnection } from "@msm/connectors";
+import { ConnectorError, TrelloOfferMapping, createTrelloClient, limiterFor, probeConnection } from "@msm/connectors";
 import { getProvider } from "@/lib/data";
 import { askAssistantServer, type AssistantResult } from "@/lib/assistant";
 import { applyOverlay, recordCreated, recordDecision } from "@/lib/demo-state";
 import { createClient } from "@/lib/supabase/server";
+import { adminConfigured, createAdminClient } from "@/lib/supabase/admin";
 import { endSession, realAuthEnabled, requireSession, setPreviewRole, startDemoSession } from "@/lib/session";
 
 const Credentials = z.object({ email: z.email().max(200), password: z.string().min(1).max(200) });
@@ -138,4 +139,60 @@ export async function deleteConnection(appId: string): Promise<ConnectionResult>
   if (error) return { ok: false, error: "No se pudo eliminar la conexión." };
   revalidatePath("/conexiones");
   return { ok: true, message: "Credenciales eliminadas.", status: "no_probable" };
+}
+
+/* ───────── Configuración del tablero de ofertas de Trello (solo TI; lectura de estructura, sin tarjetas) ───────── */
+export type TrelloStructure =
+  | { ok: true; boards: { id: string; name: string }[]; lists?: { id: string; name: string }[]; fields?: { id: string; name: string; type: string }[] }
+  | { ok: false; error: string };
+
+async function trelloAdminClient(orgId: string) {
+  const admin = createAdminClient();
+  const { data: conn } = await admin.from("connections").select("config").eq("org_id", orgId).eq("app", "trello").maybeSingle();
+  const { data: secret } = await admin.rpc("connection_read_secret", { p_org: orgId, p_app: "trello" });
+  const apiKey = (conn?.config as { apiKey?: string } | null)?.apiKey;
+  const token = typeof secret === "string" ? (JSON.parse(secret) as { token?: string }).token : undefined;
+  if (!apiKey || !token) return null;
+  return createTrelloClient({ apiKey, token }, fetch, { limiter: limiterFor("trello", apiKey), retry: { retries: 1 } });
+}
+
+/** Lee tableros y, si se indica uno, sus listas y campos personalizados (para elegir el mapeo). */
+export async function loadTrelloStructure(boardId?: string): Promise<TrelloStructure> {
+  const session = await requireSession();
+  if (!canPerform(session.role, "configurarConexiones")) return { ok: false, error: "Tu perfil no puede configurar conexiones." };
+  const ctx = await connectionContext();
+  if (!ctx.ok) return { ok: false, error: ctx.error };
+  if (!adminConfigured()) return { ok: false, error: "Falta la clave de servicio de Supabase en el servidor." };
+  try {
+    const client = await trelloAdminClient(ctx.orgId);
+    if (!client) return { ok: false, error: "Primero guarda las credenciales de Trello." };
+    const boards = (await client.boards()).map((b) => ({ id: b.id, name: b.name }));
+    if (!boardId) return { ok: true, boards };
+    const s = await client.board(boardId);
+    return { ok: true, boards, lists: s.lists.map((l) => ({ id: l.id, name: l.name })), fields: s.customFields.map((f) => ({ id: f.id, name: f.name, type: f.type })) };
+  } catch (e) {
+    return { ok: false, error: e instanceof ConnectorError ? e.message : "No se pudo leer Trello." };
+  }
+}
+
+/** Guarda el mapeo (validado con Zod y contra la estructura real del tablero). */
+export async function saveTrelloMapping(input: unknown): Promise<ConnectionResult> {
+  const session = await requireSession();
+  if (!canPerform(session.role, "configurarConexiones")) return { ok: false, error: "Tu perfil no puede configurar conexiones." };
+  const ctx = await connectionContext();
+  if (!ctx.ok) return { ok: false, error: ctx.error };
+  const m = TrelloOfferMapping.safeParse(input);
+  if (!m.success) return { ok: false, error: "La configuración no es válida." };
+  const s = await loadTrelloStructure(m.data.boardId);
+  if (!s.ok) return { ok: false, error: s.error };
+  const lists = new Set(s.lists?.map((l) => l.id)), fields = new Map(s.fields?.map((f) => [f.id, f.type]));
+  if (Object.keys(m.data.stageByList).some((id) => !lists.has(id))) return { ok: false, error: "Hay listas que no pertenecen al tablero." };
+  const { amount, probability, client } = m.data.fields;
+  if ((amount && fields.get(amount) !== "number") || (probability && fields.get(probability) !== "number")) return { ok: false, error: "Importe y probabilidad deben ser campos de tipo número en Trello." };
+  if (client && !fields.has(client)) return { ok: false, error: "El campo de cliente no pertenece al tablero." };
+  const { error } = await (await createClient()).rpc("connector_settings_save", { p_org: ctx.orgId, p_app: "trello", p_settings: m.data });
+  if (error) return { ok: false, error: "No se pudo guardar la configuración." };
+  revalidatePath("/conexiones");
+  revalidatePath("/comercial");
+  return { ok: true, message: "Tablero de ofertas configurado. Comercial mostrará los datos reales en la próxima visita.", status: "verificada" };
 }

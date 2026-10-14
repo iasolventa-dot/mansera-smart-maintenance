@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ConnectorError } from "../errors";
 import { getJson, type FetchLike } from "../http";
+import { withRetry, type CallPolicy } from "../policy";
 
 /**
  * Cliente de SOLO LECTURA de la API REST de Trello (https://developer.atlassian.com/cloud/trello/rest/).
@@ -58,14 +59,18 @@ export type BoardSnapshot = { lists: TrelloList[]; cards: TrelloCard[]; customFi
 const KEY_RE = /^[A-Za-z0-9]{16,64}$/;
 const TOKEN_RE = /^[!-~]{20,400}$/;
 
-export function createTrelloClient(creds: TrelloCredentials, fetchImpl: FetchLike = fetch) {
+export function createTrelloClient(creds: TrelloCredentials, fetchImpl: FetchLike = fetch, policy: CallPolicy = {}) {
   if (!KEY_RE.test(creds.apiKey) || !TOKEN_RE.test(creds.token) || creds.token.includes('"')) {
     throw new ConnectorError("validation", "Las credenciales de Trello no tienen un formato válido.");
   }
   const headers = { Authorization: `OAuth oauth_consumer_key="${creds.apiKey}", oauth_token="${creds.token}"`, Accept: "application/json" };
 
   async function get<T>(path: string, schema: z.ZodType<T>): Promise<T> {
-    const parsed = schema.safeParse(await getJson(fetchImpl, `${API}${path}`, { app: "Trello", headers }));
+    const body = await withRetry(async () => {
+      await policy.limiter?.take();
+      return getJson(fetchImpl, `${API}${path}`, { app: "Trello", headers });
+    }, { retries: 0, ...policy.retry });
+    const parsed = schema.safeParse(body);
     if (!parsed.success) throw new ConnectorError("validation", "Trello devolvió datos con un formato inesperado (¿cambio de versión de la API?).");
     return parsed.data;
   }

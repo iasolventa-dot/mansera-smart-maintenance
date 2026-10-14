@@ -34,6 +34,19 @@ describe("cliente de Sésame HR (solo lectura)", () => {
     expect((init!.headers as Record<string, string>).Authorization).toBe(`Bearer ${TOKEN}`);
     expect(init!.method).toBe("GET");
   });
+  it("con política: reintenta un 503 pasajero y respeta el cupo", async () => {
+    let n = 0;
+    const flaky = vi.fn(async (_u: string, _i?: RequestInit) => (++n === 1 ? new Response("{}", { status: 503 }) : new Response(JSON.stringify(R.info), { status: 200, headers: { "content-type": "application/json" } })));
+    const slept: number[] = [];
+    const clock = { now: () => 0, sleep: async (ms: number) => { slept.push(ms); } };
+    let taken = 0;
+    const limiter = { take: async () => { taken++; } } as unknown as import("../policy").RateLimiter;
+    const r = await createSesameClient(creds, flaky, { limiter, retry: { retries: 2, clock, random: () => 1 } }).info();
+    expect(r.name).toBe("Empresa Ejemplo S.L.");
+    expect(n).toBe(2);
+    expect(taken).toBe(2); // cada intento consume cupo
+    expect(slept).toHaveLength(1);
+  });
   it("una región maliciosa se rechaza antes de llamar a nadie", () => {
     for (const region of ["eu1.evil.com", "eu1/x", "-eu1", "EU1"]) {
       expect(() => createSesameClient({ region, token: TOKEN }, fakeSesame()), region).toThrow(ConnectorError);

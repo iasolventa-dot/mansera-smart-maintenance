@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ConnectorError } from "../errors";
 import { getJson, type FetchLike } from "../http";
+import { withRetry, type CallPolicy } from "../policy";
 
 /**
  * Cliente de SOLO LECTURA de la API pública de Sésame HR (especificación OpenAPI oficial «Sesame Public API 3.0.0»,
@@ -87,13 +88,16 @@ function realDate(d: string): boolean {
   return t.getUTCFullYear() === y && t.getUTCMonth() === m - 1 && t.getUTCDate() === day;
 }
 
-export function createSesameClient(creds: SesameCredentials, fetchImpl: FetchLike = fetch) {
+export function createSesameClient(creds: SesameCredentials, fetchImpl: FetchLike = fetch, policy: CallPolicy = {}) {
   // La región forma parte del nombre de host: se valida para que nunca pueda salirse de sesametime.com.
   if (!SESAME_REGION_RE.test(creds.region)) throw new ConnectorError("validation", "La región de Sésame no es válida.");
   if (!TOKEN_RE.test(creds.token)) throw new ConnectorError("validation", "El token de Sésame no tiene un formato válido.");
   const base = `https://api-${creds.region}.sesametime.com`;
   const headers = { Authorization: `Bearer ${creds.token}`, Accept: "application/json", "Content-Type": "application/json" };
-  const raw = (path: string) => getJson(fetchImpl, `${base}${path}`, { app: "Sésame HR", headers, requireJson: true, notJsonMessage: "Sésame HR no devolvió datos: revisa la región (aparece en el panel de tokens de Sésame) o si el servicio está en mantenimiento." });
+  const raw = (path: string) => withRetry(async () => {
+    await policy.limiter?.take();
+    return getJson(fetchImpl, `${base}${path}`, { app: "Sésame HR", headers, requireJson: true, notJsonMessage: "Sésame HR no devolvió datos: revisa la región (aparece en el panel de tokens de Sésame) o si el servicio está en mantenimiento." })
+  }, { retries: 0, ...policy.retry });
 
   /** Recorre todas las páginas (con tope), comprobando que la API respeta `page`, y valida cada elemento. */
   async function all<T>(path: string, item: z.ZodType<T>): Promise<T[]> {

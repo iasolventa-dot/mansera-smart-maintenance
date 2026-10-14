@@ -5,6 +5,8 @@ import { Avatar, Badge, BarList, Card, CardTitle, Item, LineChart, Stagger, Stat
 import { PageHeader } from "@/components/page-header";
 import { getProvider } from "@/lib/data";
 import { requireAccess } from "@/lib/session";
+import { livePeople } from "@/lib/live";
+import { DataSource } from "@/components/data-source";
 
 export const metadata: Metadata = { title: "Personal" };
 
@@ -14,8 +16,9 @@ const TODAY: Record<Employee["today"], { label: string; tone: "ok" | "info" | "w
 };
 
 export default async function PersonalPage() {
-  await requireAccess("personal");
-  const p = await getProvider().getPeople();
+  const session = await requireAccess("personal");
+  const live = await livePeople(session);
+  const p = live?.data ?? (await getProvider().getPeople());
   const working = p.employees.filter((e) => e.today === "trabajando").length;
   const away = p.employees.filter((e) => ["ausente", "vacaciones", "baja"].includes(e.today)).length;
   const withoutHours = p.employees.filter((e) => e.hoursMonth === null).length;
@@ -26,14 +29,19 @@ export default async function PersonalPage() {
   return (
     <>
       <PageHeader title="Personal" subtitle="Fichajes y ausencias de Sésame HR, junto a dónde está cada técnico" />
+      <DataSource source={live?.source ?? null} />
       <Stagger className="mb-6 grid grid-cols-[repeat(auto-fit,minmax(min(100%,205px),1fr))] gap-4">
         <StatCard label="Presentes hoy" value={working} note={`de ${p.employees.length} en plantilla`} />
         <StatCard label="Ausentes" value={away} status={away > 2 ? "warn" : undefined} note="vacaciones, bajas y permisos" />
         <StatCard label="Horas del mes" value={p.employees.reduce((t, e) => t + (e.hoursMonth ?? 0), 0)} unit="h" note={withoutHours ? `${withoutHours} sin dato de horas` : undefined} />
-        <StatCard label="Absentismo" value={absNow ?? 0} unit="%" decimals={1} trend={absDelta === null ? undefined : { delta: absDelta, unit: " puntos", label: "vs. mes anterior", goodWhen: "down" }} />
+        {absNow === null ? (
+          <StatCard label="Absentismo" value={0} unit="%" note="sin dato todavía" />
+        ) : (
+          <StatCard label="Absentismo" value={absNow} unit="%" decimals={1} trend={absDelta === null ? undefined : { delta: absDelta, unit: " puntos", label: "vs. mes anterior", goodWhen: "down" }} />
+        )}
       </Stagger>
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
-        <Card><CardTitle>Absentismo por mes (%)</CardTitle><LineChart data={p.absenceByMonth} title="Absentismo por mes" height={180} /></Card>
+        <Card><CardTitle>Absentismo por mes (%)</CardTitle>{p.absenceByMonth.length ? <LineChart data={p.absenceByMonth} title="Absentismo por mes" height={180} /> : <p className="text-[15px] text-muted">Sin dato todavía: el histórico mensual se calculará con las ausencias de Sésame.</p>}</Card>
         <Card><CardTitle>Horas por departamento (mes)</CardTitle><BarList data={p.hoursByDept} unit="num" /></Card>
       </div>
       <Stagger className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">

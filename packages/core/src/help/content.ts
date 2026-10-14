@@ -421,6 +421,8 @@ export const MANUAL: ManualChapter[] = [
           "Rellena los campos de la tarjeta (los marcados con candado son secretos) y pulsa **Guardar y comprobar**. La plataforma valida el formato, guarda los secretos cifrados y, si la aplicación está en la nube (Trello, Sésame), comprueba que entra en modo solo lectura.",
           "Para cambiar una credencial usa **Reemplazar credenciales** (hay que escribirlas todas de nuevo: las anteriores no se pueden ver). **Eliminar** las borra del almacén cifrado.",
           "**PGMWin** aparece como **Pendiente de documentar**: no hay documentación pública de su API y no se piden credenciales hasta saber el formato.",
+          "En **Trello**, tras guardar las credenciales, pulsa **Configurar tablero de ofertas**: elige el tablero, qué lista es cada etapa y qué campos guardan importe, cliente y probabilidad. Las tarjetas a las que les falte un dato no se muestran (se avisa de cuántas son).",
+          "Cuando una conexión funciona, **Personal** (Sésame) y **Comercial** (Trello) muestran los datos reales con la hora de la última lectura; si no, indican que son **datos de ejemplo**.",
         ],
         notes: [
           { kind: "info", text: "Solo el perfil de TI puede guardar o borrar credenciales. Cada cambio queda en la auditoría, sin los valores secretos." },

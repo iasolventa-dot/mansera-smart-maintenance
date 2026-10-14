@@ -24,6 +24,8 @@ type Props = {
   /** La autorización OAuth solo existe con la base de datos real (no en la demostración local). */
   oauthEnabled?: boolean;
   save: (app: string, values: Record<string, unknown>) => Promise<ConnectionResult>;
+  /** Configuración adicional del conector (p. ej. el tablero de ofertas de Trello). */
+  children?: React.ReactNode;
   remove: (app: string) => Promise<ConnectionResult>;
 };
 
@@ -37,7 +39,7 @@ const STATUS = {
 
 const input = "min-h-12 w-full rounded-[10px] border border-border bg-bg px-4 text-[16px] outline-none focus:border-primary disabled:opacity-60";
 
-export function ConnectionCard({ spec, stored, canEdit, readOnlyReason, oauthEnabled = false, save, remove }: Props) {
+export function ConnectionCard({ spec, stored, canEdit, readOnlyReason, oauthEnabled = false, save, remove, children }: Props) {
   const pending = spec.status === "pendiente_documentar";
   const inGateway = !pending && spec.credentialsIn === "gateway";
   const [values, setValues] = useState<Record<string, string>>({});
@@ -175,6 +177,8 @@ export function ConnectionCard({ spec, stored, canEdit, readOnlyReason, oauthEna
               )}
             </div>
           ) : null}
+
+          {children}
 
           <div id={`${uid}-resultado`} aria-live="polite" className="mt-3 text-[15px] font-semibold">
             {result ? (result.ok ? <p className={result.status === "error" ? "text-bad-text" : "text-ok-text"}>{result.message}</p> : <p className="text-bad-text">{result.error}</p>) : null}
