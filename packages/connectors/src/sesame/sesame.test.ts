@@ -16,11 +16,11 @@ function fakeSesame(over: Partial<Record<string, unknown>> = {}) {
     const u = new URL(url);
     const routes: Record<string, unknown> = {
       "/core/v3/info": R.info, "/core/v3/employees": R.employees, "/core/v3/employee-department-assignations": R.departments,
-      "/schedule/v1/absence-day-off": R.absences, "/schedule/v1/vacation-day-off": R.vacations, "/schedule/v1/work-entries": R.workEntries,
+      "/schedule/v1/absence-day-off": R.absences, "/schedule/v1/absence-types": R.absenceTypes, "/schedule/v1/vacation-day-off": R.vacations, "/schedule/v1/work-entries": R.workEntries,
       "/core/v3/offices": R.offices, "/schedule/v1/reports/worked-hours": R.workedHours, ...over,
     };
     const body = routes[u.pathname];
-    return body === undefined ? new Response("{}", { status: 404 }) : new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } });
+    return body === undefined ? new Response("{}", { status: 404, headers: { "content-type": "application/json" } }) : new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } });
   });
 }
 
@@ -46,11 +46,19 @@ describe("cliente de Sésame HR (solo lectura)", () => {
       expect(dump, k).not.toContain(k);
     }
   });
+  it("si la API ignora «page» se detiene en vez de duplicar datos", async () => {
+    const stuck = vi.fn(async (_url: string, _init?: RequestInit) => new Response(JSON.stringify({ data: [], meta: { currentPage: 1, lastPage: 3 } }), { status: 200, headers: { "content-type": "application/json" } }));
+    await expect(createSesameClient(creds, stuck).departments()).rejects.toMatchObject({ kind: "validation", message: expect.stringContaining("paginación") });
+  });
+  it("un fichaje con fecha mal formada es un error de formato controlado, no un fallo del mapeo", async () => {
+    const bad = { ...R.workEntries, data: [{ ...R.workEntries.data[0], workEntryIn: { date: "ayer por la mañana" } }] };
+    await expect(createSesameClient(creds, fakeSesame({ "/schedule/v1/work-entries": bad })).snapshot(R.date)).rejects.toMatchObject({ kind: "validation" });
+  });
   it("recorre todas las páginas que indica meta.lastPage", async () => {
     const pagesSeen: number[] = [];
     const f = vi.fn(async (url: string, _init?: RequestInit) => {
       const u = new URL(url);
-      if (u.pathname !== "/core/v3/employees") return (await fakeSesame()(url))!;
+      if (u.pathname !== "/core/v3/employees") return fakeSesame()(url);
       const p = Number(u.searchParams.get("page"));
       pagesSeen.push(p);
       const e = R.employees.data[p - 1];
@@ -71,9 +79,11 @@ describe("cliente de Sésame HR (solo lectura)", () => {
     const html = vi.fn(async (_u: string, _i?: RequestInit) => new Response("<!DOCTYPE html>", { status: 200, headers: { "content-type": "text/html" } }));
     await expect(createSesameClient({ region: "zz9", token: TOKEN }, html).info()).rejects.toMatchObject({ kind: "unavailable", message: expect.stringContaining("región") });
   });
-  it("una fecha mal formada no llega a la red", async () => {
+  it("una fecha mal formada o imposible no llega a la red", async () => {
     const f = fakeSesame();
     await expect(createSesameClient(creds, f).snapshot("2026-10-14&limit=99999")).rejects.toMatchObject({ kind: "validation" });
+    await expect(createSesameClient(creds, f).snapshot("2026-13-45")).rejects.toMatchObject({ kind: "validation" });
+    await expect(createSesameClient(creds, f).snapshot("2026-02-30")).rejects.toMatchObject({ kind: "validation" });
     expect(f).not.toHaveBeenCalled();
   });
   it("errores tipados según la documentación (401, 403, 429, 503)", async () => {
@@ -81,7 +91,7 @@ describe("cliente de Sésame HR (solo lectura)", () => {
     await expect(createSesameClient(creds, st(401)).info()).rejects.toMatchObject({ kind: "auth" });
     await expect(createSesameClient(creds, st(403)).info()).rejects.toMatchObject({ kind: "auth" });
     await expect(createSesameClient(creds, st(429, { "retry-after": "30" })).info()).rejects.toMatchObject({ kind: "rate_limited", retryAfterSec: 30 });
-    await expect(createSesameClient(creds, st(503)).info()).rejects.toMatchObject({ kind: "unavailable" });
+    await expect(createSesameClient(creds, st(503)).info()).rejects.toMatchObject({ kind: "transient", retryable: true });
   });
 });
 
@@ -92,17 +102,21 @@ describe("mapeo Sésame → Personal (datos de ejemplo)", () => {
     const by = Object.fromEntries(p.employees.map((e) => [e.name, e]));
     expect(by["Persona Ejemplo Uno"]).toMatchObject({ today: "trabajando", position: "Técnico de mantenimiento", department: "Campo", clockIn: "07:58", site: "Centro Ejemplo Norte", hoursMonth: 104 });
     expect(by["Persona Ejemplo Dos"]).toMatchObject({ today: "sin_fichar", clockIn: null, hoursMonth: 98.5 });
-    expect(by["Persona Ejemplo Tres"]).toMatchObject({ today: "ausente", position: "Sin puesto en Sésame", department: "Sin departamento en Sésame", hoursMonth: 0 });
+    expect(by["Persona Ejemplo Tres"]).toMatchObject({ today: "ausente", position: "Sin puesto en Sésame", department: "Sin departamento en Sésame", hoursMonth: null });
+    expect(by["Persona Ejemplo Seis"]).toMatchObject({ today: "baja" }); // tipo con categoría documentada sick_leave
+    expect(by["Persona Ejemplo Siete"]).toMatchObject({ today: "trabajando" }); // 2 h de médico, pero ha fichado: no es «ausente»
     expect(by["Persona Ejemplo Cuatro"]).toMatchObject({ today: "vacaciones", department: "Oficina" });
     expect(by["Persona Ejemplo Cinco"]).toMatchObject({ today: "trabajando", clockIn: "08:15", site: null });
   });
-  it("nunca deduce «baja» ni «libra» y avisa de quién no tiene horas", async () => {
+  it("«baja» solo por la categoría oficial del tipo; nunca «libra»; avisa de quién no tiene horas", async () => {
     const p = mapPeople(await createSesameClient(creds, fakeSesame()).snapshot(R.date));
-    expect(p.employees.some((e) => e.today === "baja" || e.today === "libra")).toBe(false);
-    expect(p.missingHours).toEqual(["00000000-0000-4000-8000-000000000003"]);
+    expect(p.employees.filter((e) => e.today === "baja").map((e) => e.name)).toEqual(["Persona Ejemplo Seis"]);
+    expect(p.employees.some((e) => e.today === "libra")).toBe(false);
+    expect(p.missingHours).toEqual(["00000000-0000-4000-8000-000000000003", "00000000-0000-4000-8000-000000000006", "00000000-0000-4000-8000-000000000007"]);
   });
   it("horas por departamento a partir del informe de Sésame", async () => {
     const p = mapPeople(await createSesameClient(creds, fakeSesame()).snapshot(R.date));
-    expect(p.hoursByDept).toEqual([{ label: "Campo", value: 293 }, { label: "Oficina", value: 60 }, { label: "Sin departamento en Sésame", value: 0 }]);
+    // Solo horas conocidas: «Sin departamento» no aparece con un 0 inventado.
+    expect(p.hoursByDept).toEqual([{ label: "Campo", value: 293 }, { label: "Oficina", value: 60 }]);
   });
 });

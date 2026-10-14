@@ -39,6 +39,19 @@ describe("mapeo Trello → ofertas (datos de ejemplo)", () => {
     expect(r.unmappedLists).toEqual(["Archivo"]);
     expect(JSON.stringify(r)).not.toContain("Tarjeta en lista no mapeada");
   });
+  it("la fecha límite se toma en hora de Madrid (cerca de medianoche)", () => {
+    const late = { ...snap, cards: snap.cards.map((c) => (c.name.startsWith("Mantenimiento") ? { ...c, due: "2026-11-19T23:30:00.000Z" } : c)) };
+    expect(mapOffers(late, mapping).offers.find((o) => o.title.startsWith("Mantenimiento"))?.dueDate).toBe("2026-11-20");
+  });
+  it("un importe en un campo de TEXTO no se interpreta (no se adivina «12.500»)", () => {
+    const textAmount = { ...snap, customFields: snap.customFields.map((f) => (f.id === id(0xc1) ? { ...f, type: "text" } : f)) };
+    const r2 = mapOffers(textAmount, mapping);
+    expect(r2.offers).toEqual([]);
+    expect(r2.incomplete[0]?.missing).toContain("importe (el campo de Trello debe ser de tipo número)");
+  });
+  it("cada oferta guarda el enlace a su tarjeta (trazabilidad)", () => {
+    expect(r.offers.every((o) => o.url?.startsWith("https://trello.com/c/"))).toBe(true);
+  });
   it("sin campos configurados, todo queda incompleto y lo dice", () => {
     const bare = mapOffers(snap, TrelloOfferMapping.parse({ boardId: id(0xb0), stageByList: mapping.stageByList }));
     expect(bare.offers).toEqual([]);
@@ -66,17 +79,40 @@ describe("cliente de Trello (solo lectura)", () => {
     expect(f).toHaveBeenCalledTimes(4);
     expect(mapOffers(s, mapping).offers).toHaveLength(2);
   });
-  it("un identificador de tablero manipulado no llega a la red", async () => {
+  it("credenciales con formato peligroso para una cabecera se rechazan antes de la red", () => {
+    for (const bad of [{ ...creds, token: 'abc"def'.padEnd(30, "x") }, { ...creds, token: "x".repeat(20) + String.fromCharCode(10) + "X-Inyectada: 1" }, { ...creds, apiKey: "con espacios y mas de 16" }]) {
+      expect(() => createTrelloClient(bad, ok({}))).toThrow(ConnectorError);
+    }
+  });
+  it("un identificador de tablero manipulado no llega a la red (error tipado)", async () => {
     const f = ok([]);
-    await expect(createTrelloClient(creds, f).board("../../members/me")).rejects.toThrow();
+    await expect(createTrelloClient(creds, f).board("../../members/me")).rejects.toMatchObject({ kind: "validation" });
     expect(f).not.toHaveBeenCalled();
   });
   it("errores tipados: 401 auth, 429 con Retry-After, 503 indisponible, formato inesperado", async () => {
     const st = (s: number, h: Record<string, string> = {}) => vi.fn(async (_u: string, _i?: RequestInit) => new Response("{}", { status: s, headers: h }));
     await expect(createTrelloClient(creds, st(401)).me()).rejects.toMatchObject({ kind: "auth" });
     await expect(createTrelloClient(creds, st(429, { "retry-after": "7" })).me()).rejects.toMatchObject({ kind: "rate_limited", retryAfterSec: 7, retryable: true });
-    await expect(createTrelloClient(creds, st(503)).me()).rejects.toMatchObject({ kind: "unavailable" });
+    await expect(createTrelloClient(creds, st(503)).me()).rejects.toMatchObject({ kind: "transient", retryable: true });
+    await expect(createTrelloClient(creds, st(500)).me()).rejects.toMatchObject({ kind: "unavailable", retryable: false });
     await expect(createTrelloClient(creds, ok({ inesperado: true })).me()).rejects.toMatchObject({ kind: "validation" });
+  });
+  it("el tiempo límite cubre también un cuerpo que llega muy despacio", async () => {
+    vi.useFakeTimers();
+    try {
+      const slow = vi.fn(async (_u: string, init?: RequestInit) => new Response(new ReadableStream({
+        start(c) { c.enqueue(new TextEncoder().encode("[")); init?.signal?.addEventListener("abort", () => c.error(new DOMException("aborted", "AbortError"))); },
+      }), { status: 200 }));
+      const p = createTrelloClient(creds, slow).me().catch((e: unknown) => e);
+      await vi.advanceTimersByTimeAsync(16_000);
+      expect(await p).toMatchObject({ kind: "transient", message: expect.stringContaining("tardó") });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+  it("una respuesta enorme se corta (tope de tamaño)", async () => {
+    const huge = vi.fn(async (_u: string, _i?: RequestInit) => new Response("x".repeat(11 * 1024 * 1024), { status: 200 }));
+    await expect(createTrelloClient(creds, huge).me()).rejects.toMatchObject({ kind: "validation", message: expect.stringContaining("demasiado grande") });
   });
   it("un fallo de red es transitorio y su mensaje no contiene credenciales", async () => {
     const f = vi.fn(async (_u: string, _i?: RequestInit): Promise<Response> => { throw new TypeError(`fetch failed ${creds.token}`); });

@@ -1,6 +1,6 @@
 # ESTADO ACTUAL DEL PROYECTO  (se imprime al iniciar/compactar sesión — mantener < 80 líneas)
 
-**Última actualización:** 2026-10-13 · auditoría independiente n.º 2 corregida; base de conectores y gateway preparada
+**Última actualización:** 2026-10-14 · conectores de lectura Trello y Sésame revisados (auditoría n.º 3); siguiente: a3innuva Nómina
 **Fase/hito en curso:** M0 cerrado salvo confirmación del usuario · trabajo preparatorio de M1/M2 adelantado (borrador, sin G1)
 **Puerta superada:** G0 técnicamente cumplida; falta la confirmación EXPRESA del usuario (ADR-0002/0004 y aceptar el adelanto de M2: ADR-0010/0011)
 

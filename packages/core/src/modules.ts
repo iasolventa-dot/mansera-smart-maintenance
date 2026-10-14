@@ -39,6 +39,8 @@ export const Offer = z.object({
   owner: z.string(),
   dueDate: z.string(),
   source: SourceApp,
+  /** Enlace al registro en la aplicación de origen (trazabilidad). */
+  url: z.string().url().optional(),
 });
 export type Offer = z.infer<typeof Offer>;
 
@@ -100,7 +102,8 @@ export const Employee = z.object({
   today: z.enum(["trabajando", "ausente", "vacaciones", "baja", "libra", "sin_fichar"]),
   clockIn: z.string().nullable(),
   site: z.string().nullable(),
-  hoursMonth: z.number(),
+  /** null = Sésame no da el dato (se muestra «sin dato», nunca 0). */
+  hoursMonth: z.number().nullable(),
 });
 export type Employee = z.infer<typeof Employee>;
 export const PeopleOverview = z.object({

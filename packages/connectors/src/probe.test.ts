@@ -1,12 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 import { probeConnection, probeSesame, probeTrello } from "./probe";
 
-const reply = (status: number) => vi.fn(async (_url: string, _init?: RequestInit) => new Response("{}", { status }));
+const reply = (status: number, body: unknown = {}) => vi.fn(async (_url: string, _init?: RequestInit) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } }));
+const ME = { id: "0".repeat(24), fullName: "Cuenta de servicio" };
 const TOKEN = "tok_SECRETO_1234567890abcdef";
 
 describe("comprobación de Trello", () => {
   it("usa la URL documentada y devuelve verificada con 200", async () => {
-    const f = reply(200);
+    const f = reply(200, ME);
     const r = await probeTrello({ apiKey: "k".repeat(32) }, { token: TOKEN }, f);
     expect(r.status).toBe("verificada");
     const url = String(f.mock.calls[0]![0]);
@@ -15,7 +16,7 @@ describe("comprobación de Trello", () => {
     expect((f.mock.calls[0]![1] as RequestInit).headers).toMatchObject({ Authorization: expect.stringContaining(`oauth_token="${TOKEN}"`) });
   });
   it("no sigue redirecciones ni deja en caché", async () => {
-    const f = reply(200);
+    const f = reply(200, ME);
     await probeTrello({ apiKey: "k".repeat(32) }, { token: TOKEN }, f);
     const init = f.mock.calls[0]![1] as RequestInit;
     expect(init.redirect).toBe("error");
@@ -44,14 +45,14 @@ describe("comprobación de Trello", () => {
 
 describe("comprobación de Sésame HR", () => {
   it("usa Bearer y /core/v3/info en el host de la región", async () => {
-    const f = vi.fn(async (_u: string, _i?: RequestInit) => new Response(JSON.stringify({ data: { company: { id: "x", name: "Empresa Ejemplo S.L." } } }), { status: 200 }));
+    const f = vi.fn(async (_u: string, _i?: RequestInit) => new Response(JSON.stringify({ data: { company: { id: "x", name: "Empresa Ejemplo S.L." } } }), { status: 200, headers: { "content-type": "application/json" } }));
     const r = await probeSesame({ region: "eu1" }, { token: TOKEN }, f);
     expect(r.status).toBe("verificada");
     expect(String(f.mock.calls[0]![0])).toBe("https://api-eu1.sesametime.com/core/v3/info");
     expect((f.mock.calls[0]![1] as RequestInit).headers).toMatchObject({ Authorization: `Bearer ${TOKEN}` });
   });
   it("muestra la empresa del token para confirmar que es la cuenta correcta", async () => {
-    const f = vi.fn(async (_u: string, _i?: RequestInit) => new Response(JSON.stringify({ data: { company: { id: "x", name: "Empresa Ejemplo S.L." } } }), { status: 200 }));
+    const f = vi.fn(async (_u: string, _i?: RequestInit) => new Response(JSON.stringify({ data: { company: { id: "x", name: "Empresa Ejemplo S.L." } } }), { status: 200, headers: { "content-type": "application/json" } }));
     const r = await probeSesame({ region: "eu1" }, { token: TOKEN }, f);
     expect(r.message).toContain("Empresa Ejemplo S.L.");
     expect(r.message).not.toContain(TOKEN);

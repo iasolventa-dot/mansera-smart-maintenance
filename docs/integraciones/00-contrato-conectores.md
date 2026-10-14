@@ -36,3 +36,7 @@ Nada puede marcarse `verified` sin un **spike** documentado en `memory/SUPUESTOS
 8. **Versionado:** cada conector registra la versión de la app contra la que se probó (PGMWin 26.0, A3 15.0.0.0…). Alerta si cambia.
 9. **Pruebas:** contrato (mismos tests contra mock y contra sandbox/real cuando exista), propiedad de idempotencia, simulación de caída y de rate limit.
 10. **Seguridad:** usuario de integración de mínimo privilegio, solo operaciones necesarias, todo cambio de escritura en `audit_log`.
+
+## Estado de implementación (2026-10-14, auditoría n.º 3)
+Hecho en `packages/connectors`: errores tipados (502/503/504 = transitorio), petición común `http.ts` (tiempo límite que cubre también el cuerpo, tope de 10 MB, sin redirecciones), validación Zod de cada respuesta, credenciales validadas antes de ir en cabecera, paginación con tope y comprobación de página.
+**Falta, y es OBLIGATORIO antes de que los conectores alimenten pantallas reales:** `capabilities()` y `health()`, reintentos con backoff + jitter para errores `retryable`, token bucket por conector (Sésame: 1.000/min por EMPRESA compartido), coalescencia de lecturas idénticas y caché/instantánea por organización (cada visita a «Personal» lanzaría ≥ 8 lecturas paginadas). Hoy los conectores solo los usan pruebas y spikes.

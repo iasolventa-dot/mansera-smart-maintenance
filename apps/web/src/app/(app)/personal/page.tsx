@@ -18,14 +18,19 @@ export default async function PersonalPage() {
   const p = await getProvider().getPeople();
   const working = p.employees.filter((e) => e.today === "trabajando").length;
   const away = p.employees.filter((e) => ["ausente", "vacaciones", "baja"].includes(e.today)).length;
+  const withoutHours = p.employees.filter((e) => e.hoursMonth === null).length;
+  // Tendencia calculada con los dos últimos meses (antes era un valor fijo).
+  const absNow = p.absenceByMonth.at(-1)?.value ?? null;
+  const absPrev = p.absenceByMonth.at(-2)?.value ?? null;
+  const absDelta = absNow !== null && absPrev !== null ? Math.round((absNow - absPrev) * 10) / 10 : null;
   return (
     <>
       <PageHeader title="Personal" subtitle="Fichajes y ausencias de Sésame HR, junto a dónde está cada técnico" />
       <Stagger className="mb-6 grid grid-cols-[repeat(auto-fit,minmax(min(100%,205px),1fr))] gap-4">
         <StatCard label="Presentes hoy" value={working} note={`de ${p.employees.length} en plantilla`} />
         <StatCard label="Ausentes" value={away} status={away > 2 ? "warn" : undefined} note="vacaciones, bajas y permisos" />
-        <StatCard label="Horas del mes" value={p.employees.reduce((t, e) => t + e.hoursMonth, 0)} unit="h" />
-        <StatCard label="Absentismo" value={p.absenceByMonth.at(-1)?.value ?? 0} unit="%" decimals={1} trend={{ delta: 0.5, unit: " puntos", label: "vs. mes anterior", goodWhen: "down" }} />
+        <StatCard label="Horas del mes" value={p.employees.reduce((t, e) => t + (e.hoursMonth ?? 0), 0)} unit="h" note={withoutHours ? `${withoutHours} sin dato de horas` : undefined} />
+        <StatCard label="Absentismo" value={absNow ?? 0} unit="%" decimals={1} trend={absDelta === null ? undefined : { delta: absDelta, unit: " puntos", label: "vs. mes anterior", goodWhen: "down" }} />
       </Stagger>
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
         <Card><CardTitle>Absentismo por mes (%)</CardTitle><LineChart data={p.absenceByMonth} title="Absentismo por mes" height={180} /></Card>
@@ -44,7 +49,7 @@ export default async function PersonalPage() {
                   <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13.5px] text-muted">
                     {e.clockIn ? <span className="flex items-center gap-1.5"><Clock className="size-4" aria-hidden="true" />Entrada {e.clockIn}</span> : null}
                     {e.site ? <span className="flex items-center gap-1.5"><MapPin className="size-4" aria-hidden="true" />{e.site}</span> : null}
-                    <span className="tabular-nums">{e.hoursMonth} h este mes</span>
+                    <span className="tabular-nums">{e.hoursMonth === null ? "Horas del mes: sin dato" : `${e.hoursMonth} h este mes`}</span>
                   </p>
                 </div>
               </article>

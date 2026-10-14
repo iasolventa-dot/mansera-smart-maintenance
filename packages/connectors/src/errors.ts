@@ -26,6 +26,8 @@ export function errorFromStatus(app: string, status: number, retryAfter: string 
     const s = Number(retryAfter);
     return new ConnectorError("rate_limited", `${app} ha limitado las peticiones (HTTP 429).`, Number.isFinite(s) && s > 0 ? s : undefined);
   }
+  // 502/503/504 = pasarela o mantenimiento: transitorio (se puede reintentar). 500 y demás 5xx: fallo del servicio.
+  if (status === 502 || status === 503 || status === 504) return new ConnectorError("transient", `${app} no está disponible ahora mismo (HTTP ${status}); se reintentará.`);
   if (status >= 500) return new ConnectorError("unavailable", `${app} no está disponible (HTTP ${status}).`);
   return new ConnectorError("validation", `${app} respondió con un resultado inesperado (HTTP ${status}).`);
 }

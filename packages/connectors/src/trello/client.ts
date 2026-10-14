@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { ConnectorError, errorFromStatus } from "../errors";
+import { ConnectorError } from "../errors";
+import { getJson, type FetchLike } from "../http";
 
 /**
  * Cliente de SOLO LECTURA de la API REST de Trello (https://developer.atlassian.com/cloud/trello/rest/).
@@ -8,7 +9,6 @@ import { ConnectorError, errorFromStatus } from "../errors";
  * - Toda respuesta se valida con Zod: si Trello cambia el formato, el conector falla de forma controlada.
  * ESTADO: según documentación oficial (2026-10-13), probado con datos de ejemplo anonimizados. Sin verificar con la cuenta de MANSERA (M1).
  */
-type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
 export type TrelloCredentials = { apiKey: string; token: string };
 
 const API = "https://api.trello.com/1";
@@ -31,7 +31,7 @@ export const TrelloCard = z.object({
   name: z.string(),
   idList: ID,
   closed: z.boolean(),
-  due: z.string().nullable(),
+  due: z.iso.datetime({ offset: true }).nullable(),
   dateLastActivity: z.string(),
   idMembers: z.array(ID),
   labels: z.array(z.object({ id: ID, name: z.string(), color: z.string().nullable() })),
@@ -43,7 +43,8 @@ export type TrelloCard = z.infer<typeof TrelloCard>;
 export const TrelloCustomField = z.object({
   id: ID,
   name: z.string(),
-  type: z.enum(["text", "number", "date", "checkbox", "list"]),
+  /** Tipos documentados: text, number, date, checkbox, list. Se acepta cualquiera para que un tipo nuevo no rompa la lectura. */
+  type: z.string(),
   options: z.array(z.object({ id: ID, value: z.object({ text: z.string() }) })).optional(),
 });
 export type TrelloCustomField = z.infer<typeof TrelloCustomField>;
@@ -53,25 +54,18 @@ export type TrelloMember = z.infer<typeof TrelloMember>;
 
 export type BoardSnapshot = { lists: TrelloList[]; cards: TrelloCard[]; customFields: TrelloCustomField[]; members: TrelloMember[]; fetchedAt: string };
 
-const TIMEOUT_MS = 15_000;
+/** Credenciales con formato seguro para ir en una cabecera (sin comillas, espacios ni saltos de línea). */
+const KEY_RE = /^[A-Za-z0-9]{16,64}$/;
+const TOKEN_RE = /^[!-~]{20,400}$/;
 
 export function createTrelloClient(creds: TrelloCredentials, fetchImpl: FetchLike = fetch) {
-  const auth = `OAuth oauth_consumer_key="${creds.apiKey}", oauth_token="${creds.token}"`;
+  if (!KEY_RE.test(creds.apiKey) || !TOKEN_RE.test(creds.token) || creds.token.includes('"')) {
+    throw new ConnectorError("validation", "Las credenciales de Trello no tienen un formato válido.");
+  }
+  const headers = { Authorization: `OAuth oauth_consumer_key="${creds.apiKey}", oauth_token="${creds.token}"`, Accept: "application/json" };
 
   async function get<T>(path: string, schema: z.ZodType<T>): Promise<T> {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-    let res: Response;
-    try {
-      res = await fetchImpl(`${API}${path}`, { method: "GET", headers: { Authorization: auth, Accept: "application/json" }, redirect: "error", cache: "no-store", signal: ctrl.signal });
-    } catch (e) {
-      const aborted = e instanceof DOMException && e.name === "AbortError";
-      throw new ConnectorError("transient", aborted ? "Trello tardó demasiado en responder." : "No se pudo contactar con Trello.");
-    } finally {
-      clearTimeout(timer);
-    }
-    if (!res.ok) throw errorFromStatus("Trello", res.status, res.headers.get("retry-after"));
-    const parsed = schema.safeParse(await res.json().catch(() => undefined));
+    const parsed = schema.safeParse(await getJson(fetchImpl, `${API}${path}`, { app: "Trello", headers }));
     if (!parsed.success) throw new ConnectorError("validation", "Trello devolvió datos con un formato inesperado (¿cambio de versión de la API?).");
     return parsed.data;
   }
@@ -82,12 +76,13 @@ export function createTrelloClient(creds: TrelloCredentials, fetchImpl: FetchLik
     boards: () => get("/members/me/boards?fields=name,closed&filter=open", z.array(z.object({ id: ID, name: z.string(), closed: z.boolean() }))),
     /** Todo lo necesario de un tablero en 4 peticiones (límite documentado: 100 peticiones/10 s por token). */
     async board(boardId: string): Promise<BoardSnapshot> {
-      const id = ID.parse(boardId);
+      const id = ID.safeParse(boardId);
+      if (!id.success) throw new ConnectorError("validation", "El identificador del tablero de Trello no es válido.");
       const [lists, cards, customFields, members] = await Promise.all([
-        get(`/boards/${id}/lists?filter=open&fields=name,closed,pos`, z.array(TrelloList)),
-        get(`/boards/${id}/cards?filter=open&customFieldItems=true&fields=name,idList,closed,due,dateLastActivity,idMembers,labels,shortUrl`, z.array(TrelloCard)),
-        get(`/boards/${id}/customFields`, z.array(TrelloCustomField)),
-        get(`/boards/${id}/members?fields=fullName`, z.array(TrelloMember)),
+        get(`/boards/${id.data}/lists?filter=open&fields=name,closed,pos`, z.array(TrelloList)),
+        get(`/boards/${id.data}/cards?filter=open&customFieldItems=true&fields=name,idList,closed,due,dateLastActivity,idMembers,labels,shortUrl`, z.array(TrelloCard)),
+        get(`/boards/${id.data}/customFields`, z.array(TrelloCustomField)),
+        get(`/boards/${id.data}/members?fields=fullName`, z.array(TrelloMember)),
       ]);
       return { lists, cards, customFields, members, fetchedAt: new Date().toISOString() };
     },

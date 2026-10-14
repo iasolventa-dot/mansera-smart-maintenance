@@ -34,12 +34,22 @@ function fieldValue(card: TrelloCard, fieldId: string | undefined, snap: BoardSn
   return v?.number ?? v?.text ?? v?.date ?? null;
 }
 
-/** Importe en euros: Trello guarda los números como texto con punto decimal. */
-function parseNumber(raw: string | null): number | null {
+/**
+ * Número de un campo personalizado de tipo «number» (Trello lo envía como texto con punto decimal, documentado).
+ * Un campo de texto NO se interpreta: «12.500» podría ser 12,5 o 12.500 €, y no se adivina.
+ */
+function numberField(card: TrelloCard, fieldId: string | undefined, snap: BoardSnapshot): number | "no_numerico" | null {
+  if (!fieldId) return null;
+  const def = snap.customFields.find((f) => f.id === fieldId);
+  if (def && def.type !== "number") return "no_numerico";
+  const raw = card.customFieldItems?.find((i) => i.idCustomField === fieldId)?.value?.number;
   if (raw == null || raw.trim() === "") return null;
-  const n = Number(raw.replace(",", "."));
+  const n = Number(raw);
   return Number.isFinite(n) ? n : null;
 }
+
+/** Fecha (AAAA-MM-DD) en hora peninsular española: un vencimiento a las 00:30 del día 20 en Madrid es el día 20. */
+const madridDate = (iso: string) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid" }).format(new Date(iso));
 
 export function mapOffers(snap: BoardSnapshot, mapping: TrelloOfferMapping): OffersResult {
   const offers: Offer[] = [];
@@ -52,20 +62,24 @@ export function mapOffers(snap: BoardSnapshot, mapping: TrelloOfferMapping): Off
     const stage = mapping.stageByList[card.idList];
     if (!stage || card.closed) continue;
     const missing: string[] = [];
-    const amount = parseNumber(fieldValue(card, mapping.fields.amount, snap));
+    const amountRaw = numberField(card, mapping.fields.amount, snap);
+    const probRaw = numberField(card, mapping.fields.probability, snap);
+    const amount = typeof amountRaw === "number" ? amountRaw : null;
+    const probability = typeof probRaw === "number" ? probRaw : null;
     const client = fieldValue(card, mapping.fields.client, snap)?.trim() || null;
-    const probability = parseNumber(fieldValue(card, mapping.fields.probability, snap));
     const owner = card.idMembers.map((id) => members.get(id)).find(Boolean) ?? null;
-    if (amount === null || amount < 0) missing.push(mapping.fields.amount ? "importe" : "importe (campo sin configurar)");
+    if (amountRaw === "no_numerico") missing.push("importe (el campo de Trello debe ser de tipo número)");
+    else if (amount === null || amount < 0) missing.push(mapping.fields.amount ? "importe" : "importe (campo sin configurar)");
     if (!client) missing.push(mapping.fields.client ? "cliente" : "cliente (campo sin configurar)");
-    if (probability === null || probability < 0 || probability > 100) missing.push(mapping.fields.probability ? "probabilidad (0-100)" : "probabilidad (campo sin configurar)");
+    if (probRaw === "no_numerico") missing.push("probabilidad (el campo de Trello debe ser de tipo número)");
+    else if (probability === null || probability < 0 || probability > 100) missing.push(mapping.fields.probability ? "probabilidad (0-100)" : "probabilidad (campo sin configurar)");
     if (!owner) missing.push("responsable (miembro de la tarjeta)");
     if (!card.due) missing.push("fecha límite");
     if (missing.length) {
       incomplete.push({ cardId: card.id, title: card.name, url: card.shortUrl, missing });
       continue;
     }
-    offers.push(Offer.parse({ id: card.id, title: card.name, client, amountEur: amount, stage, probability, owner, dueDate: card.due!.slice(0, 10), source: "trello" }));
+    offers.push(Offer.parse({ id: card.id, title: card.name, client, amountEur: amount, stage, probability, owner, dueDate: madridDate(card.due!), source: "trello", url: card.shortUrl }));
   }
   return { offers, incomplete, unmappedLists, fetchedAt: snap.fetchedAt };
 }

@@ -112,12 +112,50 @@
         "address": "FICTICIO-DIRECCION",
         "personalMail": "ficticio5@example.invalid",
         "phone": "FICTICIO-TEL"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000006",
+        "firstName": "Persona",
+        "lastName": "Ejemplo Seis",
+        "secondLastName": null,
+        "email": "persona6@example.invalid",
+        "workStatus": "offline",
+        "status": "active",
+        "jobChargeName": "Técnico de mantenimiento",
+        "code": 6,
+        "nid": "FICTICIO-NID-6",
+        "ssn": "FICTICIO-SSN-6",
+        "accountNumber": "FICTICIO-IBAN-6",
+        "salaryRange": "FICTICIO-SALARIO",
+        "dateOfBirth": "1900-01-01",
+        "address": "FICTICIO-DIRECCION",
+        "personalMail": "ficticio6@example.invalid",
+        "phone": "FICTICIO-TEL"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000007",
+        "firstName": "Persona",
+        "lastName": "Ejemplo Siete",
+        "secondLastName": null,
+        "email": "persona7@example.invalid",
+        "workStatus": "online",
+        "status": "active",
+        "jobChargeName": "Técnica electricista",
+        "code": 7,
+        "nid": "FICTICIO-NID-7",
+        "ssn": "FICTICIO-SSN-7",
+        "accountNumber": "FICTICIO-IBAN-7",
+        "salaryRange": "FICTICIO-SALARIO",
+        "dateOfBirth": "1900-01-01",
+        "address": "FICTICIO-DIRECCION",
+        "personalMail": "ficticio7@example.invalid",
+        "phone": "FICTICIO-TEL"
       }
     ],
     "meta": {
       "currentPage": 1,
       "lastPage": 1,
-      "total": 5,
+      "total": 7,
       "perPage": 100
     }
   },
@@ -175,6 +213,37 @@
       "perPage": 100
     }
   },
+  "absenceTypes": {
+    "data": [
+      {
+        "id": "00000000-0000-4000-8000-000000000501",
+        "name": "Asuntos propios",
+        "category": "permission",
+        "pickMode": "by_days",
+        "status": "active"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000502",
+        "name": "Incapacidad temporal",
+        "category": "sick_leave",
+        "pickMode": "by_days",
+        "status": "active"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000503",
+        "name": "Visita médica",
+        "category": "permission",
+        "pickMode": "by_time_range",
+        "status": "active"
+      }
+    ],
+    "meta": {
+      "currentPage": 1,
+      "lastPage": 1,
+      "total": 3,
+      "perPage": 100
+    }
+  },
   "absences": {
     "data": [
       {
@@ -199,12 +268,42 @@
             "name": "Asuntos propios"
           }
         }
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000306",
+        "date": "2026-10-14",
+        "seconds": 28800,
+        "employee": {
+          "id": "00000000-0000-4000-8000-000000000006"
+        },
+        "calendar": {
+          "id": "00000000-0000-4000-8000-000000000402",
+          "absenceType": {
+            "id": "00000000-0000-4000-8000-000000000502",
+            "name": "Incapacidad temporal"
+          }
+        }
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000307",
+        "date": "2026-10-14",
+        "seconds": 7200,
+        "employee": {
+          "id": "00000000-0000-4000-8000-000000000007"
+        },
+        "calendar": {
+          "id": "00000000-0000-4000-8000-000000000403",
+          "absenceType": {
+            "id": "00000000-0000-4000-8000-000000000503",
+            "name": "Visita médica"
+          }
+        }
       }
     ],
     "meta": {
       "currentPage": 1,
       "lastPage": 1,
-      "total": 1,
+      "total": 3,
       "perPage": 100
     }
   },
