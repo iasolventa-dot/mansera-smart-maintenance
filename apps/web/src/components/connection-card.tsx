@@ -53,14 +53,24 @@ export function ConnectionCard({ spec, stored, canEdit, readOnlyReason, oauthEna
     e.preventDefault();
     setResult(null);
     start(async () => {
-      const r = await save(spec.app, values);
-      setResult(r);
-      if (r.ok) setValues({}); // los secretos no se quedan en el navegador
+      try {
+        const r = await save(spec.app, values);
+        setResult(r);
+        if (r.ok) setValues({}); // los secretos no se quedan en el navegador
+      } catch {
+        setResult({ ok: false, error: "No se pudo contactar con el servidor. Comprueba la conexión e inténtalo de nuevo." });
+      }
     });
   };
   const del = () => {
     setConfirming(false);
-    start(async () => setResult(await remove(spec.app)));
+    start(async () => {
+      try {
+        setResult(await remove(spec.app));
+      } catch {
+        setResult({ ok: false, error: "No se pudo contactar con el servidor. Inténtalo de nuevo." });
+      }
+    });
   };
 
   return (
@@ -109,7 +119,7 @@ export function ConnectionCard({ spec, stored, canEdit, readOnlyReason, oauthEna
 
           {!inGateway && stored ? (
             <p className="mt-3 text-[14px] text-muted">
-              Guardada el {new Date(stored.updatedAt).toLocaleString("es-ES")}. {stored.lastCheckMessage ?? ""}
+              Guardada el {new Date(stored.updatedAt).toLocaleString("es-ES", { timeZone: "Europe/Madrid" })}. {stored.lastCheckMessage ?? ""}
               {Object.entries(stored.config).length ? <> · Datos visibles: {Object.entries(stored.config).map(([k, v]) => `${spec.fields.find((f) => f.key === k)?.label ?? k}: ${v}`).join(" · ")}</> : null}
             </p>
           ) : null}

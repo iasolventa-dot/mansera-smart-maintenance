@@ -1,6 +1,6 @@
 import "server-only";
 import { z } from "zod";
-import { Employee, Offer, Series, canAccess, type Connection, type PeopleOverview } from "@msm/core";
+import { Employee, Offer, Series, canSeeSickLeave, canUseRealData, type Connection, type PeopleOverview } from "@msm/core";
 import {
   ConnectorError, TrelloOfferMapping, createSesameClient, createTrelloClient, limiterFor, mapOffers, mapPeople,
   type IncompleteCard,
@@ -21,6 +21,8 @@ export type LiveSource = { app: "sesame" | "trello"; fetchedAt: string; stale: b
 export type Live<T> = { data: T; source: LiveSource };
 
 const TTL_MS = { people: 5 * 60_000, offers: 10 * 60_000 } as const;
+/** Más allá de esto no se sirven datos antiguos (y la purga diaria los borra): docs/14, retención. */
+const MAX_STALE_MS = 24 * 60 * 60_000;
 
 type ConnRow = { status: string; config: Record<string, string> };
 
@@ -63,7 +65,7 @@ async function cached<T>(orgId: string, app: LiveSource["app"], kind: keyof type
     console.error(`[live ${app}/${kind}] fallo:`, kindErr);
     const message = e instanceof ConnectorError ? e.message : "Fallo inesperado al leer.";
     await markConnection(orgId, app, false, message).catch(() => undefined);
-    if (prev?.success) return { data: prev.data, source: { app, fetchedAt: String(snap!.fetched_at), stale: true, note: message } };
+    if (prev?.success && age < MAX_STALE_MS) return { data: prev.data, source: { app, fetchedAt: String(snap!.fetched_at), stale: true, note: message } };
     return null;
   }
 }
@@ -74,20 +76,22 @@ const usable = (s: Session) => realAuthEnabled() && adminConfigured() && Boolean
 const PeopleCache = z.object({ employees: z.array(Employee), hoursByDept: z.array(Series), missingHours: z.array(z.string()) });
 
 export async function livePeople(session: Session): Promise<(Live<PeopleOverview> & { missingHours: number }) | null> {
-  if (!usable(session) || !canAccess(session.role, "personal")) return null;
+  if (!usable(session) || !canUseRealData(session.role, session.realRole, "personal")) return null;
   const orgId = session.orgId!;
   const conn = await connection(orgId, "sesame");
   if (!conn || conn.status === "sin_probar") return null;
   const r = await cached(orgId, "sesame", "people", PeopleCache, async () => {
     const s = await secrets(orgId, "sesame");
     if (!s?.token || !conn.config.region) throw new ConnectorError("auth", "Faltan las credenciales de Sésame HR.");
-    const client = createSesameClient({ region: conn.config.region, token: s.token }, fetch, { limiter: limiterFor("sesame", conn.config.region), retry: { retries: 2 } });
+    const client = createSesameClient({ region: conn.config.region, token: s.token }, fetch, { limiter: limiterFor("sesame", orgId), retry: { retries: 2 } });
     const p = mapPeople(await client.snapshot());
     return { employees: p.employees, hoursByDept: p.hoursByDept, missingHours: p.missingHours };
   });
   if (!r) return null;
   // El histórico mensual de absentismo no se calcula aún (necesita un año de ausencias): se muestra como «sin dato».
-  return { data: { employees: r.data.employees, hoursByDept: r.data.hoursByDept, absenceByMonth: [] }, source: r.source, missingHours: r.data.missingHours.length };
+  // La baja individual es dato de salud: fuera de RR. HH. se muestra como «ausente» (se filtra al servir, no en la caché).
+  const employees = canSeeSickLeave(session.realRole) ? r.data.employees : r.data.employees.map((e) => (e.today === "baja" ? { ...e, today: "ausente" as const } : e));
+  return { data: { employees, hoursByDept: r.data.hoursByDept, absenceByMonth: [] }, source: r.source, missingHours: r.data.missingHours.length };
 }
 
 /* ───────── Comercial ← Trello ───────── */
@@ -98,7 +102,7 @@ const OffersCache = z.object({
 });
 
 export async function liveOffers(session: Session): Promise<(Live<Offer[]> & { incomplete: IncompleteCard[]; unmappedLists: string[] }) | null> {
-  if (!usable(session) || !canAccess(session.role, "comercial")) return null;
+  if (!usable(session) || !canUseRealData(session.role, session.realRole, "comercial")) return null;
   const orgId = session.orgId!;
   const conn = await connection(orgId, "trello");
   if (!conn || conn.status === "sin_probar") return null;
@@ -108,7 +112,7 @@ export async function liveOffers(session: Session): Promise<(Live<Offer[]> & { i
   const r = await cached(orgId, "trello", "offers", OffersCache, async () => {
     const s = await secrets(orgId, "trello");
     if (!s?.token || !conn.config.apiKey) throw new ConnectorError("auth", "Faltan las credenciales de Trello.");
-    const client = createTrelloClient({ apiKey: conn.config.apiKey, token: s.token }, fetch, { limiter: limiterFor("trello", conn.config.apiKey), retry: { retries: 2 } });
+    const client = createTrelloClient({ apiKey: conn.config.apiKey, token: s.token }, fetch, { limiter: limiterFor("trello", `${orgId}:${conn.config.apiKey}`), retry: { retries: 2 } });
     const m = mapOffers(await client.board(mapping.data.boardId), mapping.data);
     return { offers: m.offers, incomplete: m.incomplete, unmappedLists: m.unmappedLists };
   });
@@ -124,7 +128,7 @@ const HEALTH: Record<string, Connection["health"]> = { verificada: "conectado", 
  * Las capacidades se muestran todas «por verificar» hasta los spikes (nada se marca verificado sin evidencia).
  */
 export async function liveHealth(session: Session, demo: Connection[]): Promise<Connection[] | null> {
-  if (!usable(session) || !canAccess(session.role, "conexiones")) return null;
+  if (!usable(session) || !canUseRealData(session.role, session.realRole, "conexiones")) return null;
   const admin = createAdminClient();
   const [{ data: rows }, { data: snaps }] = await Promise.all([
     admin.from("connections").select("app, status, last_check_message").eq("org_id", session.orgId!),

@@ -18,7 +18,7 @@ const STAGE_HINT: Record<OfferStage, string> = {
   borrador: "Ofertas que aún se están preparando.",
   enviada: "Ofertas ya enviadas al cliente, a la espera de respuesta.",
   negociacion: "Ofertas en conversación con el cliente: las más cercanas a cerrarse.",
-  ganada: "Ofertas aceptadas. Cada una genera una propuesta de orden de trabajo.",
+  ganada: "Ofertas aceptadas. Previsto: que cada una proponga su orden de trabajo (aún no disponible).",
   perdida: "Ofertas rechazadas o caducadas.",
 };
 

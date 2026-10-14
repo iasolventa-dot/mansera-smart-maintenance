@@ -49,4 +49,16 @@ Principio: **solo lo que no existe en las apps.** Todo con `org_id` (multi-tenan
 Una migración = un cambio; reversible o documentada; nombre `YYYYMMDDHHMM_descripcion.sql`; sin datos reales; ejecutar `supabase db lint` y advisors de seguridad antes de dar por buena.
 
 ## Estado de implementación
-Migraciones aplicadas en `supabase/migrations` (y en el proyecto Mansera): `orgs`, `profiles`, `memberships`, `audit_log`, roles `compras`/`rrhh` (RLS + tests en `supabase/tests`, motor PGlite; `pnpm test`). Funciones auxiliares en el esquema `private` (no expuesto por la API). El resto de tablas se añaden por hito.
+Migraciones en `supabase/migrations`, todas aplicadas en el proyecto Mansera. RLS y pruebas en `supabase/tests` (motor PGlite; `pnpm test`). Funciones auxiliares en el esquema `private`, no expuesto por la API.
+
+**Tablas:**
+| Tabla | Para qué | Quién lee / escribe |
+|---|---|---|
+| `orgs`, `profiles`, `memberships` | Organizaciones, perfiles y rol por organización (organización activa elegible) | Miembros leen; TI gestiona miembros |
+| `audit_log` | Auditoría inmutable (solo se permite anonimizar el autor al borrar un usuario) | Dirección y TI leen; **solo funciones del sistema escriben** |
+| `assistant_usage` | Contador diario del asistente (sin texto) | El propio usuario; función `assistant_log_use` |
+| `connections` | Credenciales: configuración visible + `secret_id` en Vault (columna no legible); estado (sin_probar, autorizada, verificada, error) | TI lee; escriben funciones definer (TI) y el servidor (service_role) |
+| `connector_settings` | Configuración no secreta de conectores (p. ej. tablero de ofertas de Trello) | TI lee; `connector_settings_save` (TI) |
+| `connector_snapshots` | Caché de lecturas minimizadas, 5-10 min de validez y 24 h como máximo (purga diaria) | Solo el servidor (service_role) |
+
+**Funciones del servidor (service_role):** `connection_read_secret`, `connection_store_oauth`, `connection_rotate_oauth`, `connection_audit_oauth` y `purge_connector_snapshots`.

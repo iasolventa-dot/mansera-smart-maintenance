@@ -56,7 +56,7 @@ export async function signOut(): Promise<void> {
 
 export async function decideProposal(formData: FormData): Promise<void> {
   const session = await requireSession();
-  if (!canPerform(session.role, "decidirPropuesta")) return; // permiso en servidor, no solo botón oculto
+  if (!canPerform(session.role, "decidirPropuesta") || !canPerform(session.realRole, "decidirPropuesta")) return; // permiso en servidor, no solo botón oculto
   const id = String(formData.get("id") ?? "");
   const decision = formData.get("decision") === "aprobada" ? "aprobada" : "rechazada";
   const current = (await applyOverlay(await getProvider().listProposals())).find((p) => p.id === id);
@@ -70,7 +70,7 @@ export type CreateOrderResult = { ok: true; id: string } | { ok: false; error: s
 /** Acción rápida: crea una PROPUESTA de OT (nunca escribe en PGMWin sin aprobación). */
 export async function createWorkOrder(input: NewWorkOrderInput): Promise<CreateOrderResult> {
   const session = await requireSession();
-  if (!canPerform(session.role, "crearOrden")) return { ok: false, error: "Tu perfil no puede crear órdenes de trabajo." };
+  if (!canPerform(session.role, "crearOrden") || !canPerform(session.realRole, "crearOrden")) return { ok: false, error: "Tu perfil no puede crear órdenes de trabajo." };
   const parsed = NewWorkOrderInput.safeParse(input);
   if (!parsed.success) return { ok: false, error: "Revisa los datos: falta cliente, activo o descripción." };
   const proposal = await getProvider().createWorkOrderProposal(parsed.data, session.name);
@@ -81,7 +81,7 @@ export async function createWorkOrder(input: NewWorkOrderInput): Promise<CreateO
 
 export async function askCopilot(question: string): Promise<CopilotAnswer> {
   const session = await requireSession();
-  if (!canPerform(session.role, "usarCopiloto")) {
+  if (!canPerform(session.role, "usarCopiloto") || !canPerform(session.realRole, "usarCopiloto")) {
     return { answer: "Tu perfil no tiene acceso al Copiloto de IA.", confidence: "baja", sources: [], noData: true };
   }
   const q = question.trim().slice(0, 500);
@@ -118,7 +118,7 @@ async function connectionContext(): Promise<{ ok: true; orgId: string } | { ok: 
  */
 export async function saveConnection(appId: string, values: Record<string, unknown>): Promise<ConnectionResult> {
   const session = await requireSession();
-  if (!canPerform(session.role, "configurarConexiones")) return { ok: false, error: "Tu perfil no puede gestionar conexiones." };
+  if (!canPerform(session.role, "configurarConexiones") || !canPerform(session.realRole, "configurarConexiones")) return { ok: false, error: "Tu perfil no puede gestionar conexiones." };
   const ctx = await connectionContext();
   if (!ctx.ok) return { ok: false, error: ctx.error };
   const app = ConnectorAppSchema.safeParse(appId);
@@ -138,7 +138,7 @@ export async function saveConnection(appId: string, values: Record<string, unkno
 
 export async function deleteConnection(appId: string): Promise<ConnectionResult> {
   const session = await requireSession();
-  if (!canPerform(session.role, "configurarConexiones")) return { ok: false, error: "Tu perfil no puede gestionar conexiones." };
+  if (!canPerform(session.role, "configurarConexiones") || !canPerform(session.realRole, "configurarConexiones")) return { ok: false, error: "Tu perfil no puede gestionar conexiones." };
   const ctx = await connectionContext();
   if (!ctx.ok) return { ok: false, error: ctx.error };
   const app = ConnectorAppSchema.safeParse(appId);
@@ -167,7 +167,7 @@ async function trelloAdminClient(orgId: string) {
 /** Lee tableros y, si se indica uno, sus listas y campos personalizados (para elegir el mapeo). */
 export async function loadTrelloStructure(boardId?: string): Promise<TrelloStructure> {
   const session = await requireSession();
-  if (!canPerform(session.role, "configurarConexiones")) return { ok: false, error: "Tu perfil no puede configurar conexiones." };
+  if (!canPerform(session.role, "configurarConexiones") || !canPerform(session.realRole, "configurarConexiones")) return { ok: false, error: "Tu perfil no puede configurar conexiones." };
   const ctx = await connectionContext();
   if (!ctx.ok) return { ok: false, error: ctx.error };
   if (!adminConfigured()) return { ok: false, error: "Falta la clave de servicio de Supabase en el servidor." };
@@ -186,7 +186,7 @@ export async function loadTrelloStructure(boardId?: string): Promise<TrelloStruc
 /** Guarda el mapeo (validado con Zod y contra la estructura real del tablero). */
 export async function saveTrelloMapping(input: unknown): Promise<ConnectionResult> {
   const session = await requireSession();
-  if (!canPerform(session.role, "configurarConexiones")) return { ok: false, error: "Tu perfil no puede configurar conexiones." };
+  if (!canPerform(session.role, "configurarConexiones") || !canPerform(session.realRole, "configurarConexiones")) return { ok: false, error: "Tu perfil no puede configurar conexiones." };
   const ctx = await connectionContext();
   if (!ctx.ok) return { ok: false, error: ctx.error };
   const m = TrelloOfferMapping.safeParse(input);

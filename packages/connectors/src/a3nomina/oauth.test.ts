@@ -40,6 +40,11 @@ describe("a3innuva Nómina · OAuth (WKA)", () => {
     expect(t.refreshToken).toBe("RT2");
     expect(new URLSearchParams(String(f.mock.calls[0]![1]!.body)).get("grant_type")).toBe("refresh_token");
   });
+  it("si la renovación no devuelve refresh token nuevo, conserva el anterior", async () => {
+    const t = await refreshTokens(client, "RT1", tokenReply(200, { access_token: "AT", expires_in: 3600, token_type: "Bearer" }), T);
+    expect(t.refreshToken).toBe("RT1");
+    await expect(exchangeCode(client, "C", REDIRECT, tokenReply(200, { access_token: "AT", expires_in: 3600, token_type: "Bearer" }), T)).rejects.toMatchObject({ kind: "validation" });
+  });
   it("código caducado o refresh token inválido (400) = volver a conectar; errores sin secretos", async () => {
     const err = await refreshTokens(client, "RT1", tokenReply(400, { error: "invalid_grant" }), T).catch((e: unknown) => e);
     expect(err).toMatchObject({ kind: "auth" });

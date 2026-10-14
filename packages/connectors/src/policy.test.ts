@@ -23,6 +23,11 @@ describe("reintentos", () => {
     await withRetry(async () => { if (++n < 2) throw new ConnectorError("rate_limited", "x", 7); return 1; }, { clock });
     expect(clock.slept).toEqual([7000]);
   });
+  it("si Retry-After pide más de 30 s, no reintenta antes de tiempo", async () => {
+    let n = 0;
+    await expect(withRetry(async () => { n++; throw new ConnectorError("rate_limited", "x", 120); }, { clock: fakeClock() })).rejects.toMatchObject({ retryAfterSec: 120 });
+    expect(n).toBe(1);
+  });
   it("no reintenta errores de credenciales ni de formato, ni excepciones ajenas", async () => {
     for (const e of [new ConnectorError("auth", "x"), new ConnectorError("validation", "x"), new Error("otro")]) {
       let n = 0;

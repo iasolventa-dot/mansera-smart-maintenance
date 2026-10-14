@@ -169,8 +169,10 @@ describe("audit_log (inmutable)", () => {
   const insert = (org: string, actor: string) =>
     `insert into public.audit_log (org_id, actor_id, app, action) values ('${org}', '${actor}', 'msm', 'prueba')`;
 
-  it("un miembro puede registrar un evento a su nombre en su organización", async () => {
-    await asUser(ids.campo1, () => db.exec(insert(ids.org1, ids.campo1)));
+  it("ningún usuario escribe directamente en la auditoría, ni siquiera a su nombre (solo funciones del sistema)", async () => {
+    await denied(() => asUser(ids.campo1, () => db.exec(insert(ids.org1, ids.campo1))));
+    await denied(() => asUser(ids.ti1, () => db.exec(insert(ids.org1, ids.ti1))));
+    await db.exec(insert(ids.org1, ids.campo1)); // el sistema sí (aquí, superusuario)
   });
   it("no puede suplantar a otro actor", async () => {
     await denied(() => asUser(ids.campo1, () => db.exec(insert(ids.org1, ids.ti1))));
@@ -338,6 +340,23 @@ describe("caché de conectores y configuración", () => {
     const [a] = await rows("select action from public.audit_log where action = 'conector.configurar'");
     expect(a?.action).toBe("conector.configurar");
     await denied(() => asUser(ids.ti1, () => db.exec("update public.connector_settings set settings = '{}'")));
+  });
+});
+
+describe("retención de la caché", () => {
+  const asService = async <T,>(fn: () => Promise<T>) => { await db.exec("set role service_role"); try { return await fn(); } finally { await db.exec("reset role"); } };
+  it("borrar la conexión borra también sus datos en caché", async () => {
+    await asUser(ids.ti1, () => db.query("select public.connection_save($1, 'sesame', $2::jsonb, $3)", [ids.org1, '{"region":"eu1"}', JSON.stringify({ token: "t".repeat(30) })]));
+    await asService(() => db.query("insert into public.connector_snapshots (org_id, app, kind, payload) values ($1, 'sesame', 'people', '{}') on conflict do nothing", [ids.org1]));
+    await asUser(ids.ti1, () => db.query("select public.connection_delete($1, 'sesame')", [ids.org1]));
+    expect(await asService(() => rows("select 1 from public.connector_snapshots where app = 'sesame'"))).toEqual([]);
+  });
+  it("la purga elimina cachés de más de 24 h y solo la ejecuta el servidor", async () => {
+    await asService(() => db.query("insert into public.connector_snapshots (org_id, app, kind, payload, fetched_at) values ($1, 'trello', 'offers', '{}', now() - interval '30 hours'), ($1, 'trello', 'fresh', '{}', now())", [ids.org1]));
+    await denied(() => asUser(ids.ti1, () => rows("select public.purge_connector_snapshots(24)")));
+    const [r] = await asService(() => rows("select public.purge_connector_snapshots(24) as n"));
+    expect(r?.n).toBe(1);
+    expect(await asService(() => rows("select kind from public.connector_snapshots where app = 'trello'"))).toEqual([{ kind: "fresh" }]);
   });
 });
 

@@ -38,7 +38,7 @@ export function TrelloMappingForm({ initial, load, save }: Props) {
 
   const run = (boardId?: string) => start(async () => {
     setError(null);
-    const r = await load(boardId);
+    const r = await load(boardId).catch(() => ({ ok: false as const, error: "No se pudo contactar con el servidor." }));
     if (!r.ok) return setError(r.error);
     setBoards(r.boards);
     setLists(r.lists ?? []);
@@ -58,7 +58,7 @@ export function TrelloMappingForm({ initial, load, save }: Props) {
     setDone(null);
     const stageByList = Object.fromEntries(Object.entries(value.stageByList).filter(([, s]) => s));
     const f = Object.fromEntries(Object.entries(value.fields).filter(([, id]) => id));
-    const r = await save({ boardId: value.boardId, stageByList, fields: f });
+    const r = await save({ boardId: value.boardId, stageByList, fields: f }).catch(() => ({ ok: false as const, error: "No se pudo contactar con el servidor." }));
     if (r.ok) setDone(r.message);
     else setError(r.error);
   });

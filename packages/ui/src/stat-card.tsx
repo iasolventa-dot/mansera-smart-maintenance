@@ -39,7 +39,8 @@ export function AnimatedNumber({ value, decimals = 0, className }: { value: numb
 
 type Props = {
   label: string;
-  value: number;
+  /** null = no hay dato: se muestra «—» (nunca un 0 que parezca real). */
+  value: number | null;
   unit?: "" | "€" | "%" | "h";
   decimals?: number;
   status?: "ok" | "warn" | "bad";
@@ -64,8 +65,8 @@ export function StatCard({ label, value, unit = "", decimals = 0, status, note, 
         {status && status !== "ok" ? <StatusPill status={status} className="!px-2 !py-0.5 !text-xs" hint={false} /> : null}
       </div>
       <p className="mt-2 text-[34px] font-extrabold leading-none tracking-tight text-text">
-        <AnimatedNumber value={value} decimals={decimals} />
-        {unit ? <span className={cn("font-extrabold", unit === "%" || unit === "€" ? "ml-1" : "ml-1.5 text-[26px]")}>{unit}</span> : null}
+        {value === null ? <span aria-label="sin dato">—</span> : <AnimatedNumber value={value} decimals={decimals} />}
+        {unit && value !== null ? <span className={cn("font-extrabold", unit === "%" || unit === "€" ? "ml-1" : "ml-1.5 text-[26px]")}>{unit}</span> : null}
       </p>
       {trend ? (
         <p className={cn("mt-3 flex items-center gap-1 text-sm font-bold", good ? "text-ok-text" : "text-bad-text")}>

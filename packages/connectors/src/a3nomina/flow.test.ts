@@ -30,6 +30,9 @@ describe("retorno de Wolters Kluwer (comprobación pura)", () => {
     expect(checkCallback(raw, q({ state: pending.state, code: "C" }), { ...ctx, uid: "10000000-0000-4000-8000-000000000009" })).toEqual({ ok: false, outcome: "caducado" });
     expect(checkCallback(raw, q({ state: pending.state, code: "C" }), { ...ctx, org: "00000000-0000-4000-8000-000000000009" })).toEqual({ ok: false, outcome: "caducado" });
   });
+  it("un state con caracteres multibyte de la misma longitud no rompe (caducado, no excepción)", () => {
+    expect(checkCallback(raw, q({ state: "é".repeat(43), code: "C" }), ctx)).toEqual({ ok: false, outcome: "caducado" });
+  });
   it("sin código = caducado", () => {
     expect(checkCallback(raw, q({ state: pending.state }), ctx)).toEqual({ ok: false, outcome: "caducado" });
   });

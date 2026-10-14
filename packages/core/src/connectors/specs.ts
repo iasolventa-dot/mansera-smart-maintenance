@@ -69,7 +69,7 @@ export const CONNECTOR_SPECS: Record<ConnectorApp, ConnectorSpec> = {
     ],
     fields: [
       { key: "apiKey", label: "Clave de API (key)", secret: false, required: true, placeholder: "32 caracteres", help: "Identifica la aplicación; en la documentación de Trello puede ser pública.", rule: { min: 16, max: 64, pattern: "^[A-Za-z0-9]+$", patternMessage: "Solo letras y números" } },
-      { key: "token", label: "Token de usuario (token)", secret: true, required: true, help: "Es la credencial que da acceso a los datos. Se guarda cifrado y no se vuelve a mostrar.", rule: { min: 20, max: 400, pattern: "^\\S+$", patternMessage: "No debe llevar espacios" } },
+      { key: "token", label: "Token de usuario (token)", secret: true, required: true, help: "Es la credencial que da acceso a los datos. Se guarda cifrado y no se vuelve a mostrar.", rule: { min: 20, max: 400, pattern: "^[!#-~]+$", patternMessage: "Solo caracteres ASCII visibles, sin espacios ni comillas" } },
       { key: "apiSecret", label: "Secreto de la aplicación (opcional)", secret: true, required: false, help: "Solo para verificar la firma de los webhooks de Trello.", rule: { min: 16, max: 200, pattern: "^\\S+$", patternMessage: "No debe llevar espacios" } },
     ],
     docs: [{ label: "Trello · Autorización de la REST API", url: "https://developer.atlassian.com/cloud/trello/guides/rest-api/authorization", checkedAt: D }],
@@ -93,8 +93,8 @@ export const CONNECTOR_SPECS: Record<ConnectorApp, ConnectorSpec> = {
       "Anota la región de la cuenta: aparece en el mismo panel de tokens (app.sesametime.com/admin/configuration/integrations/api-tokens). Por defecto es «eu1».",
     ],
     fields: [
-      { key: "region", label: "Región de la cuenta", secret: false, required: true, placeholder: "p. ej. eu1", help: "Va en la URL de la API. La especificación oficial indica «eu1» por defecto; la tuya aparece en el panel de tokens de Sésame.", rule: { min: 2, max: 20, pattern: "^[a-z0-9-]+$", patternMessage: "Solo minúsculas, números y guiones" } },
-      { key: "token", label: "Token de API", secret: true, required: true, help: "Se guarda cifrado y no se vuelve a mostrar.", rule: { min: 20, max: 600, pattern: "^\\S+$", patternMessage: "No debe llevar espacios" } },
+      { key: "region", label: "Región de la cuenta", secret: false, required: true, placeholder: "p. ej. eu1", help: "Va en la URL de la API. La especificación oficial indica «eu1» por defecto; la tuya aparece en el panel de tokens de Sésame.", rule: { min: 1, max: 20, pattern: "^[a-z0-9]([a-z0-9-]{0,18}[a-z0-9])?$", patternMessage: "Solo minúsculas, números y guiones (sin guion al principio ni al final)" } },
+      { key: "token", label: "Token de API", secret: true, required: true, help: "Se guarda cifrado y no se vuelve a mostrar.", rule: { min: 20, max: 600, pattern: "^[!-~]+$", patternMessage: "Solo caracteres ASCII visibles, sin espacios" } },
     ],
     docs: [
       { label: "Sésame · Introducción", url: "https://apidocs.sesametime.com/introduction", checkedAt: "2026-10-14" },

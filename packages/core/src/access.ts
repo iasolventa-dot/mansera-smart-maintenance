@@ -158,3 +158,16 @@ export const ACTION_SECTION: Record<ActionId, NavId> = {
   configurarConexiones: "conexiones",
 };
 export const canPerform = (role: Role, action: ActionId): boolean => canAccess(role, ACTION_SECTION[action]);
+
+/**
+ * Datos REALES de un sistema (Sésame, Trello…): solo con el perfil real y sin vista previa.
+ * La «vista previa como» otro perfil existe para enseñar la aplicación con datos de ejemplo; nunca debe abrir datos
+ * reales que el perfil real no puede ver (revisión completa 2026-10-14, bloqueante).
+ */
+export const canUseRealData = (role: Role, realRole: Role, section: NavId): boolean => role === realRole && canAccess(realRole, section);
+
+/**
+ * Dato de salud (art. 9 RGPD): saber que una persona concreta está «de baja» solo lo ve RR. HH.
+ * Para el resto de perfiles se muestra como «ausente» (ADR-0013 / R-21: agregados o sin detalle fuera de RR. HH.).
+ */
+export const canSeeSickLeave = (realRole: Role): boolean => realRole === "rrhh";

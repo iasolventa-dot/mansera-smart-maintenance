@@ -7,7 +7,7 @@ import { ConnectorError, errorFromStatus } from "./errors";
  * - sin redirecciones ni caché; los mensajes de error nunca incluyen la URL ni credenciales.
  */
 export type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
-export type GetJsonOptions = { app: string; headers: Record<string, string>; timeoutMs?: number; maxBytes?: number; requireJson?: boolean; notJsonMessage?: string };
+export type GetJsonOptions = { app: string; headers: Record<string, string>; timeoutMs?: number; maxBytes?: number; requireJson?: boolean; notJsonMessage?: string; method?: "GET" | "POST" };
 
 const DEFAULT_TIMEOUT = 15_000;
 const DEFAULT_MAX_BYTES = 10 * 1024 * 1024;
@@ -39,7 +39,7 @@ export async function getJson(fetchImpl: FetchLike, url: string, o: GetJsonOptio
   try {
     let res: Response;
     try {
-      res = await fetchImpl(url, { method: "GET", headers: o.headers, redirect: "error", cache: "no-store", signal: ctrl.signal });
+      res = await fetchImpl(url, { method: o.method ?? "GET", headers: o.headers, redirect: "error", cache: "no-store", signal: ctrl.signal });
     } catch {
       throw ctrl.signal.aborted
         ? new ConnectorError("transient", `${o.app} tardó demasiado en responder.`)

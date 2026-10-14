@@ -134,9 +134,20 @@ export const MANUAL: ManualChapter[] = [
         keywords: ["vista previa", "demo", "ver como", "cambiar rol", "otro perfil", "demostración", "datos de ejemplo"],
         steps: [
           "Si eres de **Dirección** o **TI**, abajo en el menú lateral (o en **Más**, en el móvil) aparece **Vista previa como**.",
-          "Elige un departamento y verás su panel y sus secciones tal y como las ve esa persona.",
+          "Elige un departamento y pulsa **Ver como este perfil**: verás su panel y sus secciones tal y como las ve esa persona.",
         ],
-        notes: [{ kind: "importante", text: "Solo existe mientras la aplicación muestre **datos de ejemplo** (distintivo naranja arriba). Con datos reales, cada persona ve únicamente lo suyo." }],
+        notes: [{ kind: "importante", text: "La vista previa muestra siempre **datos de ejemplo**: nunca abre datos reales de Sésame, Trello u otros sistemas que tu perfil no pueda ver. Para volver a tu perfil, elígelo en el mismo selector y pulsa **Ver como este perfil**." }],
+      },
+      {
+        id: "organizacion",
+        title: "Cambiar de organización",
+        panel: null,
+        keywords: ["organización", "empresa", "cambiar de empresa", "varias empresas", "multiempresa"],
+        steps: [
+          "Si perteneces a más de una organización, en el menú lateral (o en **Más**, en el móvil) aparece **Organización**.",
+          "Elige la organización y pulsa **Cambiar de organización**. Verás sus datos con el perfil que tengas en ella.",
+        ],
+        notes: [{ kind: "info", text: "Solo aparecen las organizaciones de las que eres miembro; la base de datos impide ver las de otras." }],
       },
       {
         id: "salir",
@@ -205,7 +216,7 @@ export const MANUAL: ManualChapter[] = [
           "Cada tarjeta muestra el código, el estado, la prioridad, si es correctivo o preventivo, el cliente, el activo, el centro, quién la lleva y cuándo vence.",
           "Pulsa una orden para abrir la **ficha del activo** afectado.",
         ],
-        notes: [{ kind: "info", text: "Las órdenes se leen de PGMWin: con la conexión real siempre ves el dato vigente y la aplicación no guarda una copia. Mientras se muestren «datos de ejemplo», son ficticios." }],
+        notes: [{ kind: "info", text: "Hoy las órdenes son **datos de ejemplo**: la conexión con PGMWin está pendiente de que el fabricante documente su integración. Cuando exista, se leerán de PGMWin, que seguirá siendo el dueño del dato." }],
       },
       {
         id: "mantenimiento",
@@ -270,7 +281,7 @@ export const MANUAL: ManualChapter[] = [
           "En el ordenador ves un **tablero por etapas**: Borrador, Enviada, Negociación, Ganada y Perdida, con el importe de cada columna. En el móvil, elige la etapa con los filtros.",
           "Cada oferta indica cliente, importe, probabilidad, responsable y fecha.",
         ],
-        notes: [{ kind: "info", text: "Una oferta que pasa a **Ganada** genera una **propuesta** de orden de trabajo en PGMWin, pendiente de tu aprobación." }],
+        notes: [{ kind: "info", text: "**Previsto (aún no disponible):** que una oferta que pase a **Ganada** genere una **propuesta** de orden de trabajo, pendiente de aprobación. Depende de la conexión con PGMWin." }],
       },
       {
         id: "facturacion",
@@ -278,9 +289,9 @@ export const MANUAL: ManualChapter[] = [
         panel: "facturacion",
         keywords: ["factura", "albarán", "facturar", "cobro", "vencida", "pendiente", "a3", "importe", "sin facturar"],
         steps: [
-          "Abre **Facturación**. Por defecto ves **Sin facturar**: los albaranes de PGMWin que aún no tienen factura en A3ERP.",
+          "Abre **Facturación**. Por defecto ves **Sin facturar**: albaranes que aún no tienen factura (hoy, **datos de ejemplo**; las lecturas reales de A3ERP están preparadas en el gateway y pendientes de instalarlo).",
           "Pulsa **Proponer factura** en un albarán: te lleva a **Propuestas**, donde se revisa y aprueba antes de escribir nada en A3ERP.",
-          "Los filtros **Vencidas**, **Emitidas** y **Cobradas** muestran el resto de facturas.",
+          "Los filtros **Vencidas**, **Emitidas** y **Cobradas** muestran el resto de facturas. Con datos reales, el estado de cobro dependerá de la cartera de A3ERP, aún por verificar.",
         ],
         notes: [{ kind: "importante", text: "Nunca se crea una factura sin aprobación humana. Mira **Aprobar o rechazar una propuesta**." }],
       },
@@ -427,7 +438,7 @@ export const MANUAL: ManualChapter[] = [
         notes: [
           { kind: "info", text: "Solo el perfil de TI puede guardar o borrar credenciales. Cada cambio queda en la auditoría, sin los valores secretos." },
           { kind: "info", text: "A3ERP está dentro de la red de MANSERA: sus credenciales no se escriben en la plataforma, se introducen al instalar el gateway y no salen de esa red." },
-          { kind: "info", text: "a3innuva Nómina usa el inicio de sesión de Wolters Kluwer (WKA): además de guardar sus credenciales, un usuario de MANSERA tendrá que autorizar el acceso con su cuenta. Ese paso aún no está disponible." },
+          { kind: "info", text: "a3innuva Nómina usa el inicio de sesión de Wolters Kluwer (WKA): además de guardar sus credenciales, un usuario de MANSERA tendrá que autorizar el acceso con su cuenta. Pulsa **Conectar con Wolters Kluwer** en su tarjeta (solo perfil TI). La autorización se renueva sola cada día; si caduca, la tarjeta lo indica y basta con volver a conectar." },
         ],
       },
       {
@@ -456,7 +467,7 @@ export const MANUAL: ManualChapter[] = [
         keywords: ["dato antiguo", "desactualizado", "no coincide", "no se actualiza", "hace minutos", "lento", "sincronización", "diferente"],
         steps: [
           "Mira en **Conexiones** (si tu perfil lo permite) si la aplicación de origen aparece como **Lenta** o **Sin conexión**: los datos pueden tener unos minutos de retraso.",
-          "Recarga la página. Con la conexión real, los datos se leen del programa de origen cada vez, no se guardan copias (con «datos de ejemplo» no hay conexión).",
+          "Mira la franja de origen de la pantalla: «Datos reales de … · leídos hace N min». Los datos se refrescan cada 5-10 minutos (se guarda una copia temporal para no saturar los sistemas); si un sistema falla, verás los últimos datos con un aviso. Con «Datos de ejemplo» no hay conexión.",
           "Si sigue sin coincidir, avisa a TI indicando la pantalla y el dato.",
         ],
         notes: [{ kind: "info", text: "El programa de origen (PGMWin, A3ERP, Trello o Sésame) siempre tiene la razón: esta aplicación solo lo muestra y lo enlaza." }],

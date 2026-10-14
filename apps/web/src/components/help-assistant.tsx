@@ -34,7 +34,7 @@ function Inline({ text, nav, onGo }: { text: string; nav: NavLite[]; onGo: (href
           const target = nav.find((n) => n.id === l[1]);
           if (!target) return null; // nunca se ofrece una pantalla que el rol no ve
           return (
-            <button key={i} onClick={() => onGo(target.href)} className="mx-0.5 my-1 inline-flex min-h-9 items-center gap-1 rounded-full bg-primary px-3.5 text-[14px] font-bold text-white hover:bg-primary-hover">
+            <button key={i} onClick={() => onGo(target.href)} className="mx-0.5 my-1 inline-flex min-h-11 items-center gap-1 rounded-full bg-primary px-3.5 text-[14px] font-bold text-white hover:bg-primary-hover">
               {l[2]} →
             </button>
           );
@@ -224,9 +224,9 @@ export function HelpAssistant({ nav, storageKey, ask, role }: Props) {
                   {mode === "ia" ? "Con IA · basado en el manual" : mode === "guia" || noAI ? "Modo guía · respuestas del manual" : "Pregúntame cómo usar la aplicación"}
                 </p>
               </div>
-              <Tooltip hint={HINT.newChat} side="bottom"><button onClick={() => { setMsgs([]); setMode(null); }} aria-label="Nueva conversación" className="grid size-10 place-items-center rounded-xl text-muted hover:bg-primary-soft"><RotateCcw className="size-[18px]" /></button></Tooltip>
-              <Tooltip hint={{ title: "Abrir el manual", text: "Lleva al manual en la tarea de la pantalla en la que estás." }} side="bottom"><Link href={manualHref} onClick={() => setOpen(false)} aria-label="Abrir el manual" className="grid size-10 place-items-center rounded-xl text-muted hover:bg-primary-soft"><BookOpen className="size-[18px]" /></Link></Tooltip>
-              <Tooltip hint={{ title: "Cerrar", text: "Cierra el asistente (también con Esc). La conversación se conserva mientras no cierres la pestaña." }} side="bottom"><button onClick={() => toggle(false)} aria-label="Cerrar (Esc)" className="grid size-10 place-items-center rounded-xl text-muted hover:bg-primary-soft"><X className="size-5" /></button></Tooltip>
+              <Tooltip hint={HINT.newChat} side="bottom"><button onClick={() => { setMsgs([]); setMode(null); }} aria-label="Nueva conversación" className="grid size-12 place-items-center rounded-xl text-muted hover:bg-primary-soft"><RotateCcw className="size-[18px]" /></button></Tooltip>
+              <Tooltip hint={{ title: "Abrir el manual", text: "Lleva al manual en la tarea de la pantalla en la que estás." }} side="bottom"><Link href={manualHref} onClick={() => setOpen(false)} aria-label="Abrir el manual" className="grid size-12 place-items-center rounded-xl text-muted hover:bg-primary-soft"><BookOpen className="size-[18px]" /></Link></Tooltip>
+              <Tooltip hint={{ title: "Cerrar", text: "Cierra el asistente (también con Esc). La conversación se conserva mientras no cierres la pestaña." }} side="bottom"><button onClick={() => toggle(false)} aria-label="Cerrar (Esc)" className="grid size-12 place-items-center rounded-xl text-muted hover:bg-primary-soft"><X className="size-5" /></button></Tooltip>
             </header>
 
             <div ref={box} className="flex-1 space-y-3 overflow-y-auto px-4 py-4" aria-live="polite">

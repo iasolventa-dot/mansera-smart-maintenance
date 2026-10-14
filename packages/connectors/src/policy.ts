@@ -57,7 +57,9 @@ export async function withRetry<T>(fn: () => Promise<T>, o: RetryOptions = {}): 
     } catch (e) {
       if (!(e instanceof ConnectorError) || !e.retryable || attempt >= retries) throw e;
       const backoff = Math.min(max, base * 2 ** attempt) * (0.5 + random() / 2); // «equal jitter»
-      const wait = e.retryAfterSec ? Math.min(30_000, e.retryAfterSec * 1000) : backoff;
+      // Si el proveedor pide esperar más de 30 s, no se reintenta antes de tiempo: se devuelve el error (la caché cubre).
+      if (e.retryAfterSec && e.retryAfterSec > 30) throw e;
+      const wait = e.retryAfterSec ? e.retryAfterSec * 1000 : backoff;
       await clock.sleep(wait);
     }
   }

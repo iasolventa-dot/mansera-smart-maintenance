@@ -11,6 +11,7 @@ import { PageHeader, ago } from "@/components/page-header";
 import { getProvider } from "@/lib/data";
 import { realAuthEnabled, requireAccess } from "@/lib/session";
 import { liveHealth } from "@/lib/live";
+import { TrelloOfferMapping } from "@msm/connectors";
 
 export const metadata: Metadata = { title: "Conexiones" };
 
@@ -49,7 +50,8 @@ export default async function ConexionesPage({ searchParams }: { searchParams: P
   let trelloMapping: TrelloMappingValue | null = null;
   if (real && session.orgId) {
     const { data: ts } = await (await createClient()).from("connector_settings").select("settings").eq("org_id", session.orgId).eq("app", "trello").maybeSingle();
-    trelloMapping = (ts?.settings as TrelloMappingValue | undefined) ?? null;
+    const parsed = TrelloOfferMapping.safeParse(ts?.settings);
+    trelloMapping = parsed.success ? (parsed.data as TrelloMappingValue) : null;
     const { data, error } = await (await createClient()).from("connections").select("app, config, status, last_check_at, last_check_message, updated_at").eq("org_id", session.orgId);
     if (error) loadError = true;
     for (const r of data ?? []) {

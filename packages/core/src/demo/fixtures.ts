@@ -99,7 +99,7 @@ export const PROPOSALS: Proposal[] = [
 ];
 
 export const CONNECTIONS: Connection[] = [
-  { source: "trello", name: "Trello", health: "conectado", transport: "directo", lastSyncAt: minutesAgo(2), latencyMs: 182, note: "Webhooks activos. Reconciliación cada 15 min.", capabilities: [{ name: "Leer tableros y tarjetas", state: "verified" }, { name: "Webhooks", state: "verified" }, { name: "Crear tarjetas", state: "assumed" }] },
+  { source: "trello", name: "Trello", health: "conectado", transport: "directo", lastSyncAt: minutesAgo(2), latencyMs: 182, note: "Ejemplo: así se verá cuando esté conectado (nada verificado todavía).", capabilities: [{ name: "Leer tableros y tarjetas", state: "assumed" }, { name: "Webhooks", state: "assumed" }, { name: "Crear tarjetas", state: "assumed" }] },
   { source: "sesame", name: "Sésame HR", health: "conectado", transport: "directo", lastSyncAt: minutesAgo(4), latencyMs: 241, capabilities: [{ name: "Leer empleados y fichajes", state: "assumed" }, { name: "Ausencias", state: "assumed" }] },
   { source: "a3erp", name: "A3ERP", health: "degradado", transport: "gateway", lastSyncAt: minutesAgo(12), latencyMs: 1420, note: "Gateway responde lento. Datos con hasta 12 min de antigüedad.", capabilities: [{ name: "Leer clientes y facturas", state: "assumed" }, { name: "Crear facturas (Link API)", state: "assumed" }] },
   { source: "a3nomina", name: "a3innuva Nómina", health: "pendiente", transport: "directo", note: "Pendiente de alta en Conectia y del cliente OAuth de Wolters Kluwer.", capabilities: [{ name: "Leer empleados, contratos e IT", state: "assumed" }, { name: "Leer costes de nómina (pagas)", state: "assumed" }, { name: "Escribir en la nómina", state: "no-go" }] },

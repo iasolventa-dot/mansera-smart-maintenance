@@ -37,8 +37,9 @@ export const SesameEmployee = z.object({
   lastName: z.string().nullable().optional(),
   jobChargeName: z.string().nullable().optional(),
   /** Estado de fichaje AHORA (no del día consultado). */
-  workStatus: z.enum(["online", "offline", "paused", "remote"]).nullable().optional(),
-  status: z.enum(["active", "inactive"]),
+  // Un valor nuevo de Sésame no debe tumbar toda la lectura: desconocido = sin dato.
+  workStatus: z.enum(["online", "offline", "paused", "remote"]).nullable().optional().catch(null),
+  status: z.enum(["active", "inactive"]).catch("active"), // se piden solo activos (status=active)
 });
 export type SesameEmployee = z.infer<typeof SesameEmployee>;
 const EmployeeRef = z.object({ id: z.string() });

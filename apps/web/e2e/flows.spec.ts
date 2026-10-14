@@ -273,3 +273,14 @@ test.describe("origen de los datos", () => {
     });
   }
 });
+
+test.describe("menú en el móvil", () => {
+  test("el técnico de campo puede cerrar sesión desde «Más» en un móvil", async ({ page, context }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await loginAs(context, "campo");
+    await page.goto("/campo");
+    await settle(page);
+    await page.getByRole("navigation", { name: "Principal" }).getByRole("button", { name: "Más" }).click();
+    await expect(page.getByRole("button", { name: "Cerrar sesión" })).toBeVisible();
+  });
+});

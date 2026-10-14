@@ -46,7 +46,7 @@ export const HINT = {
     media: { title: "Prioridad media", text: "Conviene tratarlo esta semana." },
     baja: { title: "Prioridad baja", text: "Informativo: sin urgencia." },
   },
-  demo: { title: "Datos de ejemplo", text: "Estás viendo datos ficticios para la demostración. Con datos reales este distintivo desaparece." },
+  demo: { title: "Demostración", text: "Los datos son de ejemplo (ficticios) salvo en las secciones que indiquen «Datos reales de …» con la hora de lectura." },
   search: { title: "Buscar o ir a… (Ctrl+K)", text: "Busca clientes, activos, órdenes, ofertas y personas, o salta a cualquier sección." },
   bell: { title: "Notificaciones", text: "Avisos recientes de tu departamento. Púlsalos para ir directamente al detalle." },
   helpHere: { title: "Ayuda de esta pantalla", text: "Abre el manual justo en la tarea de la pantalla en la que estás." },

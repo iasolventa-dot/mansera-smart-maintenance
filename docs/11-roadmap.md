@@ -36,6 +36,19 @@ Dependencias críticas: **M1 desbloquea M2–M7.** Si PGMWin resulta no-go para 
 ## M2 · Capa de conectores + Gateway (semanas 2–4)
 **Objetivo:** hablar con las apps, de forma segura y observable.
 **Entregables:** interfaz común + conectores Trello y Sésame (cloud) · conectores A3/PGMWin según M1 (cloud o vía gateway) · `apps/gateway` (servicio Windows, salientes, trabajos firmados, lista blanca, latido) · Vault de credenciales · panel de salud en Administración · reintentos/rate-limit/circuit breaker · tests de contrato + fixtures · registro de versión de app.
+**Estado (2026-10-14), adelantado sin pasar G1 a petición del usuario («todo lo que se pueda preparar»):**
+- **Hecho y probado con datos simulados:**
+  - Vault y Conexiones, con a3innuva Nómina (OAuth WKA) añadida al ecosistema.
+  - Conectores de lectura de Trello y Sésame.
+  - Lecturas de A3ERP en el gateway; protocolo y ejecutor del gateway.
+  - Reintentos, cupos y caché.
+  - Estado real de las conexiones; Personal y Comercial con datos reales cuando haya credenciales.
+- **Falta:**
+  - Transporte del gateway, que depende de Q1/Q6.
+  - Spikes reales (M1).
+  - `capabilities()` verificadas y registro de la versión de cada app.
+  - PGMWin (Q2).
+
 **Aceptación:** `health()` correcto de cada app visible en UI · lectura real de ≥ 3 entidades por app confirmada · apagar una app degrada con aviso sin romper · caída/recuperación del gateway probada · ningún secreto en logs.
 
 ## M3 · Panel unificado + vista 360 (semanas 3–5)

@@ -18,7 +18,10 @@ export type PendingOAuth = z.infer<typeof PendingOAuth>;
 
 export type CallbackCheck = { ok: true; code: string; pending: PendingOAuth } | { ok: false; outcome: "caducado" | "denegado" };
 
-const same = (a: string, b: string) => a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
+const same = (a: string, b: string) => {
+  const x = Buffer.from(a), y = Buffer.from(b);
+  return x.length === y.length && timingSafeEqual(x, y); // longitud en BYTES: con caracteres multibyte no lanza
+};
 
 export function checkCallback(rawPending: string | undefined, params: URLSearchParams, ctx: { uid: string; org: string }): CallbackCheck {
   let pending: PendingOAuth;

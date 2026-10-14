@@ -53,14 +53,14 @@ export function buildAuthorizeUrl(p: AuthorizeParams): string {
 
 export const TokenResponse = z.object({
   access_token: z.string().min(1),
-  refresh_token: z.string().min(1),
+  refresh_token: z.string().min(1).optional(),
   expires_in: z.number().int().positive(),
   token_type: z.string().regex(/^bearer$/i),
   id_token: z.string().optional(),
 });
 export type Tokens = { accessToken: string; refreshToken: string; expiresAt: number; idToken?: string };
 
-async function tokenRequest(fetchImpl: FetchLike, form: Record<string, string>, now: number): Promise<Tokens> {
+async function tokenRequest(fetchImpl: FetchLike, form: Record<string, string>, now: number, previousRefresh?: string): Promise<Tokens> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try {
@@ -83,7 +83,10 @@ async function tokenRequest(fetchImpl: FetchLike, form: Record<string, string>, 
     const parsed = TokenResponse.safeParse(await res.json().catch(() => undefined));
     if (!parsed.success) throw new ConnectorError("validation", "Wolters Kluwer devolvió una respuesta de token inesperada.");
     const t = parsed.data;
-    return { accessToken: t.access_token, refreshToken: t.refresh_token, expiresAt: now + t.expires_in * 1000, idToken: t.id_token };
+    // Al renovar, Wolters Kluwer puede no devolver un refresh token nuevo: se conserva el anterior.
+    const refreshToken = t.refresh_token ?? previousRefresh;
+    if (!refreshToken) throw new ConnectorError("validation", "Wolters Kluwer no devolvió un refresh token (¿falta offline_access?).");
+    return { accessToken: t.access_token, refreshToken, expiresAt: now + t.expires_in * 1000, idToken: t.id_token };
   } finally {
     clearTimeout(timer);
   }
@@ -99,7 +102,7 @@ export function exchangeCode(c: ClientCredentials, code: string, redirectUri: st
 
 /** Renueva el access token. Wolters Kluwer puede devolver un refresh token nuevo: hay que guardar SIEMPRE el devuelto. */
 export function refreshTokens(c: ClientCredentials, refreshToken: string, fetchImpl: FetchLike = fetch, now = Date.now()): Promise<Tokens> {
-  return tokenRequest(fetchImpl, { client_id: c.clientId, client_secret: c.clientSecret, refresh_token: refreshToken, grant_type: "refresh_token" }, now);
+  return tokenRequest(fetchImpl, { client_id: c.clientId, client_secret: c.clientSecret, refresh_token: refreshToken, grant_type: "refresh_token" }, now, refreshToken);
 }
 
 /** Cabeceras de cada llamada a la API de nómina (documentado). */

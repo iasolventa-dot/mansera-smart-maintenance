@@ -24,34 +24,42 @@ const call = async (fetchImpl: FetchLike, url: string, init: RequestInit) => {
   try { return await fetchImpl(url, { ...init, signal: ctrl.signal, redirect: "error" }); } finally { clearTimeout(t); }
 };
 
-/** Login en A3ERP (documentado) → token JWT. El token nunca sale del gateway. */
+/** Login en A3ERP (documentado) → token JWT. Tiempo límite y tope también al leer la respuesta. El token nunca sale del gateway. */
 async function a3Token(cfg: NonNullable<GatewayConfig["a3"]>, f: FetchLike): Promise<string> {
   const basic = Buffer.from(`${cfg.username}:${cfg.password}`).toString("base64");
-  let r: Response;
-  try {
-    r = await call(f, `${cfg.baseUrl}/api/login`, { method: "POST", headers: { Authorization: `Basic ${basic}` } });
-  } catch {
-    throw new ConnectorError("transient", "No se pudo contactar con el servicio de A3ERP.");
-  }
-  if (!r.ok) throw new ConnectorError("auth", `A3ERP rechazó el acceso (HTTP ${r.status}).`);
-  const parsed = LoginResponse.safeParse(await r.json().catch(() => null));
+  const raw = await getJson(f, `${cfg.baseUrl}/api/login`, { app: "A3ERP", method: "POST", headers: { Authorization: `Basic ${basic}`, Accept: "application/json" }, timeoutMs: TIMEOUT_MS, maxBytes: 64 * 1024 });
+  const parsed = LoginResponse.safeParse(raw);
   if (!parsed.success) throw new ConnectorError("validation", "A3ERP devolvió un login con formato inesperado.");
   return parsed.data.token;
 }
 
 const PAGE = 100;
-/** Lee páginas (cabeceras Page/PageSize documentadas) hasta `limite` o hasta una página incompleta. */
-async function a3Pages<T>(cfg: NonNullable<GatewayConfig["a3"]>, f: FetchLike, path: string, limite: number, map: (raw: unknown) => T[]): Promise<T[]> {
-  const token = await a3Token(cfg, f);
+/**
+ * Lee páginas con TAMAÑO FIJO (Page/PageSize documentados: cambiar PageSize en la última página desplazaría el
+ * resultado y duplicaría o perdería registros). Recorta al final. Si el token caduca (401), repite el login una vez.
+ */
+async function a3Pages<T>(cfg: NonNullable<GatewayConfig["a3"]>, f: FetchLike, path: string, limite: number, map: (raw: unknown) => T[]): Promise<{ items: T[]; truncado: boolean }> {
+  let token = await a3Token(cfg, f);
+  let relogged = false;
   const out: T[] = [];
   for (let page = 1; out.length < limite && page <= 50; page++) {
-    const size = Math.min(PAGE, limite - out.length);
-    const raw = await getJson(f, `${cfg.baseUrl}${path}`, { app: "A3ERP", headers: { Authorization: `Bearer ${token}`, Accept: "application/json", ...pageHeaders(page, size) }, timeoutMs: TIMEOUT_MS * 2 });
+    let raw: unknown;
+    try {
+      raw = await getJson(f, `${cfg.baseUrl}${path}`, { app: "A3ERP", headers: { Authorization: `Bearer ${token}`, Accept: "application/json", ...pageHeaders(page, PAGE) }, timeoutMs: TIMEOUT_MS * 2 });
+    } catch (e) {
+      if (e instanceof ConnectorError && e.kind === "auth" && !relogged) {
+        relogged = true;
+        token = await a3Token(cfg, f);
+        page--;
+        continue;
+      }
+      throw e;
+    }
     const items = map(raw);
     out.push(...items);
-    if (items.length < size) break;
+    if (items.length < PAGE) return { items: out.slice(0, limite), truncado: false };
   }
-  return out.slice(0, limite);
+  return { items: out.slice(0, limite), truncado: out.length >= limite };
 }
 
 const fail = (e: unknown) => ({ ok: false, status: "error" as const, message: e instanceof ConnectorError ? e.message : "Fallo inesperado al leer A3ERP." });
@@ -62,7 +70,8 @@ export const HANDLERS: Record<OpName, Handler> = {
     if (!cfg.a3) return { ok: false, status: "error", message: "A3ERP no está configurado en este gateway." };
     try {
       const r = await call(f, `${cfg.a3.baseUrl}/api`, { method: "GET" });
-      return r.status === 401 || r.status === 200
+      // Documentado: GET /api sin token responde 401 si el servicio está bien instalado (un 200 podría ser un proxy o una página).
+      return r.status === 401
         ? { ok: true, status: "ok", message: "El servicio de la API de A3ERP responde.", data: { http: r.status } }
         : { ok: false, status: "error", message: `El servicio respondió con HTTP ${r.status}.` };
     } catch { return { ok: false, status: "error", message: "No se pudo contactar con el servicio de A3ERP." }; }
@@ -81,16 +90,16 @@ export const HANDLERS: Record<OpName, Handler> = {
     if (!cfg.a3) return { ok: false, status: "error", message: "A3ERP no está configurado en este gateway." };
     try {
       const p = OPS["a3erp.documentos.list"].parse(params);
-      const docs = await a3Pages(cfg.a3, f, documentosPath(p.tipo, { desde: p.desde, hasta: p.hasta }), p.limite, (raw) => mapDocumentos(p.tipo, raw));
-      return { ok: true, status: "ok", message: `${docs.length} documentos leídos.`, data: { documentos: docs } };
+      const r = await a3Pages(cfg.a3, f, documentosPath(p.tipo, { desde: p.desde, hasta: p.hasta }), p.limite, (raw) => mapDocumentos(p.tipo, raw));
+      return { ok: true, status: "ok", message: `${r.items.length} documentos leídos${r.truncado ? " (hay más: se alcanzó el límite)" : ""}.`, data: { documentos: r.items, truncado: r.truncado } };
     } catch (e) { return fail(e); }
   },
   "a3erp.clientes.list": async (cfg, f, params) => {
     if (!cfg.a3) return { ok: false, status: "error", message: "A3ERP no está configurado en este gateway." };
     try {
       const p = OPS["a3erp.clientes.list"].parse(params);
-      const clientes = await a3Pages(cfg.a3, f, clientesPath(), p.limite, mapClientes);
-      return { ok: true, status: "ok", message: `${clientes.length} clientes leídos.`, data: { clientes } };
+      const r = await a3Pages(cfg.a3, f, clientesPath(), p.limite, mapClientes);
+      return { ok: true, status: "ok", message: `${r.items.length} clientes leídos${r.truncado ? " (hay más: se alcanzó el límite)" : ""}.`, data: { clientes: r.items, truncado: r.truncado } };
     } catch (e) { return fail(e); }
   },
 };

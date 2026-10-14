@@ -81,3 +81,15 @@ describe("validación de credenciales", () => {
     if (!r.ok) expect(r.errors.join(" ")).not.toContain(marker);
   });
 });
+
+describe("coherencia catálogo ↔ conector ↔ base de datos", () => {
+  it("lo que acepta el formulario también lo aceptan el conector y el SQL (región y tokens)", () => {
+    for (const region of ["-eu1", "eu1-", "eu.1"]) expect(validateCredentials("sesame", { region, token: TOKEN }).ok, region).toBe(false);
+    expect(validateCredentials("sesame", { region: "eu1", token: TOKEN }).ok).toBe(true);
+    for (const token of ['tok"en'.padEnd(30, "x"), "tökén".padEnd(30, "x")]) {
+      expect(validateCredentials("trello", { apiKey: KEY, token }).ok, token).toBe(false);
+      expect(validateCredentials("sesame", { region: "eu1", token: token.replace('"', "") === token ? token : "ñ".padEnd(30, "x") }).ok).toBe(false);
+    }
+  });
+});
+

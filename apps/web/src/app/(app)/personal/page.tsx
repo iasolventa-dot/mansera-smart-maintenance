@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Clock, MapPin } from "lucide-react";
-import type { Employee } from "@msm/core";
+import { lastWithDelta, type Employee } from "@msm/core";
 import { Avatar, Badge, BarList, Card, CardTitle, Item, LineChart, Stagger, StatCard } from "@msm/ui";
 import { PageHeader } from "@/components/page-header";
 import { getProvider } from "@/lib/data";
@@ -22,10 +22,7 @@ export default async function PersonalPage() {
   const working = p.employees.filter((e) => e.today === "trabajando").length;
   const away = p.employees.filter((e) => ["ausente", "vacaciones", "baja"].includes(e.today)).length;
   const withoutHours = p.employees.filter((e) => e.hoursMonth === null).length;
-  // Tendencia calculada con los dos últimos meses (antes era un valor fijo).
-  const absNow = p.absenceByMonth.at(-1)?.value ?? null;
-  const absPrev = p.absenceByMonth.at(-2)?.value ?? null;
-  const absDelta = absNow !== null && absPrev !== null ? Math.round((absNow - absPrev) * 10) / 10 : null;
+  const abs = lastWithDelta(p.absenceByMonth);
   return (
     <>
       <PageHeader title="Personal" subtitle="Fichajes y ausencias de Sésame HR, junto a dónde está cada técnico" />
@@ -34,11 +31,7 @@ export default async function PersonalPage() {
         <StatCard label="Presentes hoy" value={working} note={`de ${p.employees.length} en plantilla`} />
         <StatCard label="Ausentes" value={away} status={away > 2 ? "warn" : undefined} note="vacaciones, bajas y permisos" />
         <StatCard label="Horas del mes" value={p.employees.reduce((t, e) => t + (e.hoursMonth ?? 0), 0)} unit="h" note={withoutHours ? `${withoutHours} sin dato de horas` : undefined} />
-        {absNow === null ? (
-          <StatCard label="Absentismo" value={0} unit="%" note="sin dato todavía" />
-        ) : (
-          <StatCard label="Absentismo" value={absNow} unit="%" decimals={1} trend={absDelta === null ? undefined : { delta: absDelta, unit: " puntos", label: "vs. mes anterior", goodWhen: "down" }} />
-        )}
+        <StatCard label="Absentismo" value={abs.value} unit="%" decimals={1} note={abs.value === null ? "sin dato todavía" : undefined} trend={abs.delta === null ? undefined : { delta: abs.delta, unit: " puntos", label: "vs. mes anterior", goodWhen: "down" }} />
       </Stagger>
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
         <Card><CardTitle>Absentismo por mes (%)</CardTitle>{p.absenceByMonth.length ? <LineChart data={p.absenceByMonth} title="Absentismo por mes" height={180} /> : <p className="text-[15px] text-muted">Sin dato todavía: el histórico mensual se calculará con las ausencias de Sésame.</p>}</Card>

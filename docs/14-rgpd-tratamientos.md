@@ -19,7 +19,7 @@
 |---|---|---|---|---|---|---|
 | Acceso a la plataforma | Usuarios de MANSERA | Email, nombre, rol, organización | Alta por TI | Autenticar y aplicar permisos | Ejecución del contrato laboral / interés legítimo | Mientras sea usuario |
 | Auditoría | Usuarios | Quién hizo qué y cuándo (sin valores secretos) | Plataforma | Seguridad y trazabilidad (principio 4) | Interés legítimo / obligación de seguridad (art. 32) | Larga (a definir; inmutable salvo anonimizar el autor al darlo de baja) |
-| Personal y presencia | Empleados | Nombre, puesto, departamento, estado de hoy (trabajando, ausente, **baja**, vacaciones), hora de entrada, centro, horas del mes | Sésame HR | Planificar técnicos y presencia | Ejecución del contrato / obligación legal de registro horario | **Caché de 5 min**, sin histórico (ADR-0014) |
+| Personal y presencia | Empleados | Nombre, puesto, departamento, estado de hoy (trabajando, ausente, **baja**, vacaciones), hora de entrada, centro, horas del mes | Sésame HR | Planificar técnicos y presencia | Ejecución del contrato / obligación legal de registro horario | Caché de 5 min, **máximo 24 h** (purga diaria) y borrada al eliminar la conexión (ADR-0014) |
 | Coste de personal e IT (futuro) | Empleados | Costes **agregados**; tipo de IT | a3innuva Nómina | Rentabilidad por OT/cliente; ausencias oficiales | Interés legítimo (agregados) / obligación legal | Agregados; detalle individual solo RR. HH. (ADR-0013) |
 | Comercial | Contactos de clientes, comerciales | Nombre del responsable de la oferta, cliente | Trello | Seguimiento de ofertas | Interés legítimo | Caché de 10 min |
 | Facturación (futuro) | Clientes (autónomos = persona física) | Código y nombre del cliente, importes | A3ERP vía gateway | Facturación y cobros | Ejecución de contrato / obligación legal | Lectura bajo demanda; **sin NIF** |
@@ -43,7 +43,10 @@ Para Sésame solo (presencia), la necesidad es menor, pero conviene incluirlo en
 
 ## 5. Derechos de los interesados
 - **Acceso / rectificación:** los datos de personal se rectifican en su sistema de origen (Sésame o nómina). La plataforma no es dueña de esos datos y los refresca en minutos.
-- **Supresión:** borrar un usuario de la plataforma anonimiza su autoría en la auditoría (probado). Los datos de personal desaparecen de la caché en el siguiente refresco tras borrarlos en el origen.
+- **Supresión:**
+  - Borrar un usuario de la plataforma anonimiza su autoría en la auditoría (probado).
+  - Los datos de personal salen de la caché en el siguiente refresco tras borrarlos en el origen; como máximo a las 24 h (purga diaria), o al instante si se elimina la conexión (probado).
+- **Datos de salud:** que una persona concreta está «de baja» solo lo ve RR. HH.; para el resto de perfiles se muestra como «ausente» (probado en el núcleo).
 - **Pendiente:** procedimiento escrito, con plazos y quién responde, y aviso de privacidad para los empleados sobre este tratamiento.
 
 ## 6. Pendiente (para MANSERA / asesoría)

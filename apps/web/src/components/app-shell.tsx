@@ -95,7 +95,7 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
   const byPriority = MOBILE_PRIORITY.map((id) => nav.find((n) => n.id === id)).filter((n): n is NavItem => Boolean(n));
-  const primary = (nav.length > 5 ? byPriority.slice(0, 4) : nav).sort((a, b) => nav.indexOf(a) - nav.indexOf(b));
+  const primary = (nav.length > 4 ? byPriority.slice(0, 4) : nav).sort((a, b) => nav.indexOf(a) - nav.indexOf(b));
   const overflow = nav.filter((n) => !primary.includes(n));
   const groups = nav.reduce<Record<string, NavItem[]>>((acc, n) => { (acc[n.group] ??= []).push(n); return acc; }, {});
   const unread = notifications.filter((n) => !n.read).length;
@@ -163,12 +163,12 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
             </button>
           </Tooltip>
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
-            {demo ? <Badge tone="warn" hint={HINT.demo} className="whitespace-nowrap uppercase tracking-wide"><span className="sm:hidden">Demo</span><span className="hidden sm:inline">Datos de ejemplo</span></Badge> : null}
-            <button onClick={() => setPalette(true)} aria-label="Buscar" className="grid size-11 place-items-center rounded-xl text-muted hover:bg-primary-soft sm:hidden"><Search className="size-5" /></button>
+            {demo ? <Badge tone="warn" hint={HINT.demo} className="whitespace-nowrap uppercase tracking-wide"><span className="sm:hidden">Demo</span><span className="hidden sm:inline">Demostración</span></Badge> : null}
+            <button onClick={() => setPalette(true)} aria-label="Buscar" className="grid size-12 place-items-center rounded-xl text-muted hover:bg-primary-soft sm:hidden"><Search className="size-5" /></button>
             <div className="relative">
               <Tooltip hint={bell ? null : { ...HINT.bell, text: unread ? `Tienes ${unread} sin leer. ${HINT.bell.text}` : HINT.bell.text }} side="bottom">
                 <button onClick={() => setBell((b) => !b)} aria-label={`Notificaciones${unread ? `, ${unread} sin leer` : ""}`} aria-expanded={bell}
-                  className="relative grid size-11 place-items-center rounded-xl text-muted hover:bg-primary-soft">
+                  className="relative grid size-12 place-items-center rounded-xl text-muted hover:bg-primary-soft">
                   {unread ? <BellRing className="size-5" /> : <Bell className="size-5" />}
                   {unread ? <span className="absolute right-2 top-2 grid size-4 place-items-center rounded-full bg-bad text-[10px] font-extrabold text-white">{unread}</span> : null}
                 </button>
@@ -176,12 +176,12 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
               <AnimatePresence>{bell ? <NotificationsPanel items={notifications} onClose={() => setBell(false)} /> : null}</AnimatePresence>
             </div>
             <Tooltip hint={HINT.helpHere} side="bottom">
-              <Link href={helpAnchor ? `/manual#${helpAnchor}` : "/manual"} aria-label="Ayuda de esta pantalla (manual)" className="hidden size-11 place-items-center rounded-xl text-muted hover:bg-primary-soft sm:grid">
+              <Link href={helpAnchor ? `/manual#${helpAnchor}` : "/manual"} aria-label="Ayuda de esta pantalla (manual)" className="hidden size-12 place-items-center rounded-xl text-muted hover:bg-primary-soft sm:grid">
                 <CircleHelp className="size-5" aria-hidden="true" />
               </Link>
             </Tooltip>
             <Tooltip hint={{ ...HINT.theme, title: dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro" }} side="bottom">
-              <button onClick={toggleTheme} aria-label={dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"} className="hidden size-11 place-items-center rounded-xl text-muted hover:bg-primary-soft sm:grid">
+              <button onClick={toggleTheme} aria-label={dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"} className="hidden size-12 place-items-center rounded-xl text-muted hover:bg-primary-soft sm:grid">
                 {dark ? <Sun className="size-5" /> : <Moon className="size-5" />}
               </button>
             </Tooltip>
@@ -199,7 +199,7 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
 
       {/* Barra inferior (móvil) */}
       <nav aria-label="Principal" className="print:hidden safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/90 backdrop-blur-xl lg:hidden">
-        <ul className="mx-auto grid max-w-xl" style={{ gridTemplateColumns: `repeat(${primary.length + (overflow.length ? 1 : 0)}, minmax(0, 1fr))` }}>
+        <ul className="mx-auto grid max-w-xl" style={{ gridTemplateColumns: `repeat(${primary.length + 1}, minmax(0, 1fr))` }}>
           {primary.map((n) => {
             const Icon = ICONS[n.id] ?? LayoutDashboard;
             const active = isActive(n.href);
@@ -213,9 +213,8 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
               </li>
             );
           })}
-          {overflow.length ? (
-            <li><button onClick={() => setMore(true)} className="flex min-h-16 w-full flex-col items-center justify-center gap-0.5 text-[12px] font-bold text-muted"><Menu className="size-6" aria-hidden="true" />Más</button></li>
-          ) : null}
+          {/* Siempre: aquí están cerrar sesión, tema y organización (también para perfiles con pocas secciones). */}
+          <li><button onClick={() => setMore(true)} className="flex min-h-16 w-full flex-col items-center justify-center gap-0.5 text-[12px] font-bold text-muted"><Menu className="size-6" aria-hidden="true" />Más</button></li>
         </ul>
       </nav>
 
@@ -283,10 +282,10 @@ function OrgSwitcher({ orgs, switchOrg, dark }: { orgs: Props["orgs"]; switchOrg
     <form action={switchOrg} className="mb-3 grid min-w-0 gap-1.5">
       <label htmlFor={dark ? "org-d" : "org-m"} className={cn("text-xs font-bold uppercase tracking-wider", dark ? "text-cyan" : "text-muted")}>Organización</label>
       <select id={dark ? "org-d" : "org-m"} name="org" defaultValue={orgs.find((o) => o.current)?.id}
-        onChange={(e) => e.currentTarget.form?.requestSubmit()}
-        className={cn("min-h-11 w-full min-w-0 truncate rounded-xl border px-3 text-[15px] font-semibold", dark ? "border-white/20 bg-white/10 text-white [&>option]:text-black" : "border-border bg-bg text-text")}>
+        className={cn("min-h-12 w-full min-w-0 truncate rounded-xl border px-3 text-[15px] font-semibold", dark ? "border-white/20 bg-white/10 text-white [&>option]:text-black" : "border-border bg-bg text-text")}>
         {orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
       </select>
+      <button type="submit" className={cn("min-h-12 rounded-xl px-3 text-[15px] font-bold", dark ? "bg-white/15 text-white hover:bg-white/25" : "bg-primary-soft text-primary-text hover:bg-primary/15")}>Cambiar de organización</button>
     </form>
   );
 }
@@ -297,11 +296,11 @@ function RoleSwitcher({ roles, switchRole, dark }: { roles: Props["roles"]; swit
       <label htmlFor={dark ? "role-d" : "role-m"} className={cn("text-xs font-bold uppercase tracking-wider", dark ? "text-cyan" : "text-muted")}>Vista previa como</label>
       <Tooltip hint={HINT.roleSwitch} side={dark ? "right" : "top"}>
         <select id={dark ? "role-d" : "role-m"} name="role" defaultValue={roles.find((r) => r.current)?.value}
-          onChange={(e) => e.currentTarget.form?.requestSubmit()}
-          className={cn("min-h-11 w-full min-w-0 truncate rounded-xl border px-3 text-[15px] font-semibold", dark ? "border-white/20 bg-white/10 text-white [&>option]:text-black" : "border-border bg-bg text-text")}>
+          className={cn("min-h-12 w-full min-w-0 truncate rounded-xl border px-3 text-[15px] font-semibold", dark ? "border-white/20 bg-white/10 text-white [&>option]:text-black" : "border-border bg-bg text-text")}>
           {roles.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
         </select>
       </Tooltip>
+      <button type="submit" className={cn("min-h-12 rounded-xl px-3 text-[15px] font-bold", dark ? "bg-white/15 text-white hover:bg-white/25" : "bg-primary-soft text-primary-text hover:bg-primary/15")}>Ver como este perfil</button>
     </form>
   );
 }
@@ -321,7 +320,7 @@ function Sheet({ title, onClose, children }: { title: string; onClose: () => voi
         drag="y" dragConstraints={{ top: 0, bottom: 0 }} dragElastic={{ top: 0, bottom: 0.6 }} onDragEnd={(_, i) => i.offset.y > 90 && onClose()}>
         <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-border" aria-hidden="true" />
         <div className="mb-2 flex items-center justify-between"><h2 className="text-lg font-extrabold">{title}</h2>
-          <button onClick={onClose} aria-label="Cerrar" className="grid size-11 place-items-center rounded-xl hover:bg-primary-soft"><X className="size-5" /></button></div>
+          <button onClick={onClose} aria-label="Cerrar" className="grid size-12 place-items-center rounded-xl hover:bg-primary-soft"><X className="size-5" /></button></div>
         {children}
       </motion.div>
     </motion.div>
@@ -343,7 +342,7 @@ function Palette({ nav, searchAll, canCreateOrder, onClose, onGo }: { nav: NavIt
     let live = true;
     const t = setTimeout(async () => {
       setBusy(true);
-      try { const r = await searchAll(q); if (live) setHits(r); } finally { if (live) setBusy(false); }
+      try { const r = await searchAll(q); if (live) setHits(r); } catch { if (live) setHits([]); } finally { if (live) setBusy(false); }
     }, 180);
     return () => { live = false; clearTimeout(t); };
   }, [q, searchAll]);

@@ -5,3 +5,4 @@ export * from "./access";
 export * from "./help";
 export * from "./connectors";
 export * from "./tenancy";
+export * from "./kpis";

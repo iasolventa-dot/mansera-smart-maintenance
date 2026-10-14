@@ -13,5 +13,10 @@ Formato de cada ADR en `memory/adr/NNNN-titulo.md`: Contexto · Decisión · Alt
 | 0007 | n8n solo para orquestación auxiliar no crítica | Propuesto |
 | 0008 | Interfaz primero sobre contrato de datos `DataProvider` (reutilizable, no maqueta) | Aceptado |
 | 0009 | Manual de usuario y asistente de ayuda con IA (fuente única, modo guía, límite diario) | Aceptado |
+| 0010 | Credenciales de conectores en Supabase Vault (solo TI, auditoría sin valores) | Propuesto (implementado) |
+| 0011 | Protocolo del gateway: trabajos firmados, lista blanca, solo salientes | Propuesto (implementado sin transporte) |
+| 0012 | Credenciales de sistemas locales (A3ERP, PGMWin) solo en el gateway | Aceptado (decisión delegada por el usuario) |
+| 0013 | a3innuva Nómina en el ecosistema (OAuth WKA, solo lectura, agregados) | Propuesto (implementado) |
+| 0014 | Caché por organización y capa de datos reales (retención 24 h) | Propuesto (implementado) |
 
 Para crear uno nuevo: copiar `adr/0000-plantilla.md`.
