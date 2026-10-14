@@ -40,11 +40,12 @@ describe("runner del gateway", () => {
     expect(await run(createJob({ orgId: ORG, op: "sql.query" as never }, KEY, T), T + 100)).toEqual({ rejected: "operacion" });
     expect(f).toHaveBeenCalledTimes(1);
   });
+  const FAKE_JWT = "j".repeat(30); // relleno generado, no es un token real
   it("lee facturas: login, Bearer, paginación por cabeceras y filtro construido por el gateway; nunca devuelve el token", async () => {
     const calls: { url: string; init?: RequestInit }[] = [];
     const f = vi.fn(async (url: string, init?: RequestInit) => {
       calls.push({ url, init });
-      if (url.endsWith("/api/login")) return new Response(JSON.stringify({ token: "JWT-SECRETO-1234567890" }), { status: 200 });
+      if (url.endsWith("/api/login")) return new Response(JSON.stringify({ token: FAKE_JWT }), { status: 200 });
       const page = Number((init?.headers as Record<string, string>).Page);
       const docs = page === 1 ? Array.from({ length: 100 }, (_, i) => ({ numdoc: i, fecha: "2026-01-02", totdoc: "10.5", nifcli: "FICTICIO" })) : [{ numdoc: 999, fecha: "2026-01-03", totdoc: 1 }];
       return new Response(JSON.stringify({ Documentos: docs }), { status: 200, headers: { "content-type": "application/json" } });
@@ -55,9 +56,9 @@ describe("runner del gateway", () => {
     expect(docs).toHaveLength(101);
     const get = calls.filter((c) => !c.url.endsWith("/api/login"));
     expect(decodeURIComponent(get[0]!.url)).toBe("http://a3.local:5000/api/documento/FVS/filtro/fecha>='20260101'/order/fecha desc");
-    expect((get[0]!.init!.headers as Record<string, string>).Authorization).toBe("Bearer JWT-SECRETO-1234567890");
+    expect((get[0]!.init!.headers as Record<string, string>).Authorization).toBe(`Bearer ${FAKE_JWT}`);
     expect((get[1]!.init!.headers as Record<string, string>)).toMatchObject({ Page: "2", PageSize: "50" });
-    expect(JSON.stringify(out)).not.toContain("JWT-SECRETO");
+    expect(JSON.stringify(out)).not.toContain(FAKE_JWT);
     expect(JSON.stringify(out)).not.toContain("FICTICIO"); // NIF descartado
   });
   it("un trabajo con un filtro SQL inyectado se descarta antes de tocar A3ERP", async () => {

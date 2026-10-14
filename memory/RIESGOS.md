@@ -27,6 +27,6 @@ Probabilidad/Impacto: B/M/A. Revisar al cierre de cada hito.
 | R-22 | La conexión con a3innuva Nómina depende de una autorización interactiva WKA cuyo refresh token caduca a los 30 días sin uso | M | M | Renovar en cada lectura y guardar el token devuelto; aviso a TI antes de caducar; botón «Reconectar» | Abierto |
 | R-23 | La renovación diaria del token de nómina no se ejecuta si falta CRON_SECRET en Vercel (la ruta responde 503) | M | M | CRON_SECRET configurado (comprobado 2026-10-14, 401 sin credenciales); el estado de la conexión avisa cuando caduca | Mitigado |
 | R-24 | La caché guarda datos personales minimizados de Sésame (nombre, puesto, estado) | B | M | Solo servidor, sin histórico, sobrescritura en cada lectura, borrado al cambiar configuración (ADR-0014) | Mitigado por diseño |
-| R-25 | Funciones de Vercel en EE. UU. (iad1) procesando datos de una base en la UE | M | A | Fijada la región fra1 en vercel.json (2026-10-14); verificar la cabecera x-vercel-id tras el despliegue | Mitigado (pendiente de verificar) |
+| R-25 | Funciones de Vercel en EE. UU. (iad1) procesando datos de una base en la UE | M | A | Fijada la región fra1 en vercel.json; verificado en producción el 2026-10-14 (x-vercel-id: cdg1::fra1::…) | Cerrado |
 | R-26 | Tratamiento de datos de empleados y salud (IT) sin EIPD ni contrato de encargo | M | A | Borrador docs/14; EIPD y art. 28 con la asesoría antes de conectar nómina | Abierto |
 

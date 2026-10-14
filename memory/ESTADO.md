@@ -34,7 +34,7 @@
 - `CRON_SECRET` y clave de servicio configuradas en Vercel (comprobado 2026-10-14: la tarea responde 401 sin credenciales). Dominio principal ahora **https://mansera-smart.vercel.app** (el antiguo redirige).
 
 ## Privacidad
-- Funciones de Vercel fijadas en fra1 (Frankfurt) el 2026-10-14; antes en iad1 (EE. UU.). Verificar tras el despliegue. Borrador RGPD: docs/14 (EIPD recomendada antes de nómina; falta contrato art. 28).
+- Funciones de Vercel fijadas en fra1 (Frankfurt) el 2026-10-14 y verificado en producción (cabecera x-vercel-id con fra1); antes en iad1 (EE. UU.). Borrador RGPD: docs/14 (EIPD recomendada antes de nómina; falta contrato art. 28).
 
 ## Decisiones abiertas
 - a3innuva Nómina (ADR-0013 propuesto): reparto de dueños con Sésame; contratar Conectia y pedir el cliente OAuth con la dirección de retorno https://mansera-smart.vercel.app/api/oauth/a3nomina/callback. Flujo «Conectar» ya construido; clave de servicio configurada por el usuario en Vercel (2026-10-14, no verificable desde aquí). 8 migraciones aplicadas.
