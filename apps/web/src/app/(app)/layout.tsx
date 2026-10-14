@@ -2,7 +2,7 @@ import { NAV_GROUP, NAV_HREF, NAV_LABEL, ROLE_ACCESS, ROLE_ORDER, navFor } from 
 import { AppShell } from "@/components/app-shell";
 import { getProvider } from "@/lib/data";
 import { requireSession } from "@/lib/session";
-import { askAssistant, createWorkOrder, searchAll, signOut, switchRole } from "../actions";
+import { askAssistant, createWorkOrder, searchAll, signOut, switchOrg, switchRole } from "../actions";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await requireSession();
@@ -26,6 +26,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       canPreview={session.canPreview}
       quick={{ clients: clients.map((c) => c.name), assets: assets.map((a) => ({ name: a.name, client: a.client })) }}
       switchRole={switchRole}
+      orgs={session.orgs.map((o) => ({ ...o, current: o.id === session.orgId }))}
+      switchOrg={switchOrg}
       signOut={signOut}
       createWorkOrder={createWorkOrder}
       searchAll={searchAll}

@@ -26,6 +26,8 @@ type Props = {
   canPreview: boolean;
   quick: { clients: string[]; assets: { name: string; client: string }[] };
   switchRole: (formData: FormData) => Promise<void>;
+  orgs: { id: string; name: string; current: boolean }[];
+  switchOrg: (formData: FormData) => Promise<void>;
   signOut: () => Promise<void>;
   createWorkOrder: (input: NewWorkOrderInput) => Promise<CreateOrderResult>;
   searchAll: (q: string) => Promise<SearchHit[]>;
@@ -59,7 +61,7 @@ export function AppShell(props: Props) {
   );
 }
 
-function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switchRole, signOut, createWorkOrder, searchAll, askAssistant, helpKey, role, children }: Props) {
+function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switchRole, orgs, switchOrg, signOut, createWorkOrder, searchAll, askAssistant, helpKey, role, children }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const params = useSearchParams();
@@ -137,6 +139,7 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
           ))}
         </nav>
         <div className="grid gap-2 pt-3">
+          {orgs.length > 1 ? <OrgSwitcher orgs={orgs} switchOrg={switchOrg} dark /> : null}
           {demo && canPreview ? <RoleSwitcher roles={roles} switchRole={switchRole} dark /> : null}
           <form action={signOut}>
             <Tooltip hint={HINT.signOut} side="right">
@@ -230,6 +233,7 @@ function Shell({ nav, user, roles, notifications, demo, canPreview, quick, switc
                 </ul>
               </div>
             ))}
+            {orgs.length > 1 ? <div className="mt-3 border-t border-border pt-4"><OrgSwitcher orgs={orgs} switchOrg={switchOrg} /></div> : null}
             {demo && canPreview ? <div className="mt-3 border-t border-border pt-4"><RoleSwitcher roles={roles} switchRole={switchRole} /></div> : null}
             <button onClick={toggleTheme} className="mt-1 flex min-h-14 w-full items-center gap-3 rounded-xl px-3 text-[17px] font-bold hover:bg-primary-soft">{dark ? <Sun className="size-5 text-primary" aria-hidden="true" /> : <Moon className="size-5 text-primary" aria-hidden="true" />}{dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}</button>
             <form action={signOut} className="mt-2"><button className="flex min-h-14 w-full items-center gap-3 rounded-xl px-3 text-[17px] font-bold text-bad-text hover:bg-bad-soft"><LogOut className="size-5" aria-hidden="true" />Cerrar sesión</button></form>
@@ -271,6 +275,19 @@ function NotificationsPanel({ items, onClose }: { items: NotificationItem[]; onC
         </ul>
       )}
     </motion.div>
+  );
+}
+
+function OrgSwitcher({ orgs, switchOrg, dark }: { orgs: Props["orgs"]; switchOrg: Props["switchOrg"]; dark?: boolean }) {
+  return (
+    <form action={switchOrg} className="mb-3 grid min-w-0 gap-1.5">
+      <label htmlFor={dark ? "org-d" : "org-m"} className={cn("text-xs font-bold uppercase tracking-wider", dark ? "text-cyan" : "text-muted")}>Organización</label>
+      <select id={dark ? "org-d" : "org-m"} name="org" defaultValue={orgs.find((o) => o.current)?.id}
+        onChange={(e) => e.currentTarget.form?.requestSubmit()}
+        className={cn("min-h-11 w-full min-w-0 truncate rounded-xl border px-3 text-[15px] font-semibold", dark ? "border-white/20 bg-white/10 text-white [&>option]:text-black" : "border-border bg-bg text-text")}>
+        {orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+      </select>
+    </form>
   );
 }
 

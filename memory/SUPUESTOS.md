@@ -32,3 +32,4 @@ Estados: **HECHO** (fuente) · **HIPÓTESIS** · **VERIFICADO (spike)** · **REF
 | S-26 | MANSERA tiene (o contratará) la suscripción Conectia y Wolters Kluwer le crea un cliente OAuth propio | HIPÓTESIS: preguntar | — | 2026-10-14 |
 | S-27 | URL base, rutas exactas y paginación de la API de nómina | DESCONOCIDO: el Swagger exige acceso al portal | — | 2026-10-14 |
 | S-28 | Emisor exacto del id_token de WKA, soporte de PKCE (S256) y rotación del refresh token | DESCONOCIDO: hoy se exige el dominio https://login.wolterskluwer.eu/; verificar con /.well-known/openid-configuration en el spike | — | 2026-10-14 |
+| S-29 | A3ERP: campos codcli/nomcli en el maestro de clientes, filtro de fecha 'AAAAMMDD' sobre el campo «fecha», PageSize 100 aceptado, significado de «situacion» | HIPÓTESIS (la documentación no lo detalla); verificar en el spike desde el gateway | a3erpapi.appcloud.es | 2026-10-14 |

@@ -24,7 +24,7 @@ Nunca en el repo (`.gitignore` + `.env.example`). Entornos: variables de Vercel/
 - Roles: MANSERA = responsable; SOLVENTA = encargado → **contrato de encargo (art. 28)**, NDA pendiente, registro de subencargados (Supabase, Vercel, proveedor LLM).
 - Minimización y limitación de finalidad; retención definida (logs de conectores corta; auditoría larga; conversaciones IA configurable).
 - Datos personales de empleados (Sésame) y de técnicos: acceso por rol, sin enviarlos al LLM salvo necesidad.
-- Alojamiento UE (Supabase región UE; Vercel funciones en región UE).
+- Alojamiento UE: Supabase en Frankfurt; funciones de Vercel en **fra1 (Frankfurt)** fijadas en `vercel.json` el 2026-10-14 (antes se ejecutaban en iad1, EE. UU.). Registro de tratamientos y EIPD: `docs/14-rgpd-tratamientos.md`.
 - Derechos (acceso/supresión): proceso documentado.
 - Evaluar con asesoría legal: transferencias internacionales a proveedores LLM, evaluación de impacto si procede.
 

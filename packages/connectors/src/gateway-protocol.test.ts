@@ -43,6 +43,13 @@ describe("protocolo del gateway", () => {
       expect(verifyJob(s, KEY, fresh()), op).toEqual({ ok: false, reason: "operacion" });
     }
   });
+  it("lecturas de A3ERP: solo parámetros tipados, nada de filtros libres", () => {
+    const ok = createJob({ orgId: ORG, op: "a3erp.documentos.list", params: { tipo: "FVS", desde: "2026-01-01", limite: 100 } }, KEY, T);
+    expect(verifyJob(ok, KEY, fresh()).ok).toBe(true);
+    for (const params of [{ tipo: "FVS", limite: 100, filtro: "1=1" }, { tipo: "XX", limite: 1 }, { tipo: "FVS", limite: 5000 }, { tipo: "FVS", desde: "ayer", limite: 1 }]) {
+      expect(verifyJob(createJob({ orgId: ORG, op: "a3erp.documentos.list", params }, KEY, T), KEY, fresh()), JSON.stringify(params)).toEqual({ ok: false, reason: "parametros" });
+    }
+  });
   it("valida los parámetros de cada operación (estrictos)", () => {
     expect(verifyJob(job({ params: { sql: "drop table x" } }), KEY, fresh())).toEqual({ ok: false, reason: "parametros" });
   });

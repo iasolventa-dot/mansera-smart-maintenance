@@ -16,6 +16,7 @@ Lee solo lo que necesite la tarea. Orden recomendado para entender el proyecto d
 | `integraciones/05-scada-iot.md` | SCADA/PLC/IoT (alcance futuro) | Piensas en datos industriales |
 | `05-modelo-datos.md` | Tablas propias de Supabase, enlaces entre entidades, RLS | Migraciones o consultas |
 | `06-seguridad-rgpd.md` | Amenazas, controles, RGPD, IA y privacidad | Cualquier cambio con datos/credenciales |
+| `14-rgpd-tratamientos.md` | Registro de tratamientos, subencargados, EIPD (borrador para asesoría) | Tratas datos de personal, nómina o clientes |
 | `07-ui-ux-design-system.md` | Sistema de diseño premium, animación, móvil, accesibilidad | Cualquier pantalla |
 | `08-ia-copiloto.md` | Copiloto trazable, anomalías, informes, RAG, evaluación | Funciones de IA |
 | `09-testing-calidad.md` | Estrategia de pruebas, DoD, revisión | Antes de dar algo por terminado |

@@ -10,7 +10,7 @@ import { askAssistantServer, type AssistantResult } from "@/lib/assistant";
 import { applyOverlay, recordCreated, recordDecision } from "@/lib/demo-state";
 import { createClient } from "@/lib/supabase/server";
 import { adminConfigured, createAdminClient } from "@/lib/supabase/admin";
-import { endSession, realAuthEnabled, requireSession, setPreviewRole, startDemoSession } from "@/lib/session";
+import { endSession, realAuthEnabled, requireSession, setActiveOrg, setPreviewRole, startDemoSession } from "@/lib/session";
 
 const Credentials = z.object({ email: z.email().max(200), password: z.string().min(1).max(200) });
 
@@ -39,6 +39,14 @@ export async function switchRole(formData: FormData): Promise<void> {
   if (!role.success) return;
   await setPreviewRole(role.data);
   redirect(homeFor(role.data));
+}
+
+/** Cambiar de organización (multi-empresa). Solo a organizaciones de las que el usuario es miembro. */
+export async function switchOrg(formData: FormData): Promise<void> {
+  const id = z.uuid().safeParse(formData.get("org"));
+  if (!id.success || !(await setActiveOrg(id.data))) return;
+  const s = await requireSession();
+  redirect(homeFor(s.role));
 }
 
 export async function signOut(): Promise<void> {
