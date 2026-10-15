@@ -181,13 +181,13 @@ export const CONNECTOR_SPECS: Record<ConnectorApp, ConnectorSpec> = {
     ],
     testEndpoint: "Tras autorizar con WKA: GET de las empresas a las que tiene acceso el usuario (endpoint de «Seguridad»)",
     limits: [
+      "Conectia NO está incluida en la licencia de MANSERA: 45 €/mes (confirmado por el distribuidor el 2026-10-15). MANSERA usa a3innuva Nómina 1.9.29, alojada en Azure.",
       "Suscripción Conectia: 3.000 peticiones/min y 150.000/día (documentado); otros planes: S 100/min, M 1.000/min, L 3.000/min.",
       "Al superar el límite: HTTP 429 con cabecera Retry-After (documentado).",
       "Token de acceso: 60 min; refresh token: 30 días (si no se usa en 30 días hay que volver a autorizar).",
       "Solo TLS 1.2 o superior; la dirección de retorno debe ser https.",
     ],
     unknown: [
-      "Coste de Conectia y si MANSERA ya la tiene (un tercero cita «desde 13,5 €/mes»: sin confirmar).",
       "URL base de la API y rutas exactas: están en un Swagger del portal a3developers que exige acceso.",
       "Paginación (hay una página de paginación en el portal que no se ha podido leer).",
       "Entorno de pruebas (empresa de pruebas) para no tocar la nómina real.",
