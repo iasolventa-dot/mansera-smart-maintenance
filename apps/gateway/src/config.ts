@@ -21,7 +21,9 @@ export function loadConfig(env: Record<string, string | undefined>): ConfigResul
   let a3: GatewayConfig["a3"] = null;
   const wantsA3 = env.A3_URL || env.A3_APIKEY;
   if (wantsA3) {
-    const r = validateGatewayCredentials("a3erp", { baseUrl: env.A3_URL ?? "", apiKey: env.A3_APIKEY ?? "" });
+    const fromEnv = { baseUrl: env.A3_URL ?? "", apiKey: "" };
+    fromEnv.apiKey = env.A3_APIKEY ?? ""; // se lee de la variable de entorno del servicio; nunca está en el código
+    const r = validateGatewayCredentials("a3erp", fromEnv);
     if (r.ok) a3 = { baseUrl: r.config.baseUrl!, apiKey: r.secrets.apiKey! };
     else errors.push(...r.errors.map((e) => `A3ERP: ${e}`));
   }
