@@ -15,7 +15,7 @@ describe("especificaciones de conectores", () => {
     expect(isConfigurable("a3erp")).toBe(false); // ADR-0012: sus credenciales viven solo en el gateway
   });
   it("A3ERP: la plataforma se niega a recibir sus credenciales", () => {
-    const r = validateCredentials("a3erp", { baseUrl: "https://servidor:8443", username: FILL, ["pass" + "word"]: FILL });
+    const r = validateCredentials("a3erp", { baseUrl: "https://servidor:8443", apiKey: FILL });
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.errors[0]).toContain("solo en el gateway");
     expect(validateGatewayCredentials("trello", { apiKey: KEY, token: TOKEN }).ok).toBe(false);
@@ -34,11 +34,11 @@ describe("validación de credenciales", () => {
     expect(r).toMatchObject({ ok: true, config: { apiKey: KEY }, secrets: { token: TOKEN } });
   });
   it("los campos secretos nunca acaban en la configuración visible", () => {
-    const r = validateGatewayCredentials("a3erp", { baseUrl: "https://servidor:8443", username: FILL, ["pass" + "word"]: FILL });
+    const r = validateGatewayCredentials("a3erp", { baseUrl: "https://servidor:8443", apiKey: FILL });
     expect(r.ok).toBe(true);
     if (r.ok) {
       expect(Object.keys(r.config)).toEqual(["baseUrl"]);
-      expect(Object.keys(r.secrets).sort()).toEqual(["pass" + "word", "username"]);
+      expect(Object.keys(r.secrets)).toEqual(["apiKey"]);
     }
   });
   it("rechaza campos desconocidos y valores vacíos o mal formados", () => {
@@ -53,14 +53,14 @@ describe("validación de credenciales", () => {
     }
   });
   it("A3ERP: la URL solo admite servidor y puerto, sin credenciales ni ruta", () => {
-    const base = { username: FILL, ["pass" + "word"]: FILL };
+    const base = { apiKey: FILL };
     expect(validateGatewayCredentials("a3erp", { ...base, baseUrl: "https://servidor:8443" }).ok).toBe(true);
     for (const baseUrl of ["https://u:p@servidor", "https://servidor/api", "https://servidor?x=1", "ftp://servidor", "servidor"]) {
       expect(validateGatewayCredentials("a3erp", { ...base, baseUrl }).ok, baseUrl).toBe(false);
     }
   });
   it("A3ERP: guarda la dirección normalizada, sin barra final", () => {
-    const r = validateGatewayCredentials("a3erp", { baseUrl: "https://Servidor:8443/", username: FILL, ["pass" + "word"]: FILL });
+    const r = validateGatewayCredentials("a3erp", { baseUrl: "https://Servidor:8443/", apiKey: FILL });
     expect(r.ok && r.config.baseUrl).toBe("https://servidor:8443");
   });
   it("a3innuva Nómina: guarda client_id visible y secreto + clave de suscripción cifrados", () => {

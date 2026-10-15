@@ -19,10 +19,10 @@ export function loadConfig(env: Record<string, string | undefined>): ConfigResul
   if (signingKey.length < 32) errors.push("MSM_GATEWAY_KEY debe tener al menos 32 caracteres.");
 
   let a3: GatewayConfig["a3"] = null;
-  const wantsA3 = env.A3_URL || env.A3_USER || env.A3_PASS;
+  const wantsA3 = env.A3_URL || env.A3_APIKEY;
   if (wantsA3) {
-    const r = validateGatewayCredentials("a3erp", { baseUrl: env.A3_URL ?? "", username: env.A3_USER ?? "", password: env.A3_PASS ?? "" });
-    if (r.ok) a3 = { baseUrl: r.config.baseUrl!, username: r.secrets.username!, password: r.secrets.password! };
+    const r = validateGatewayCredentials("a3erp", { baseUrl: env.A3_URL ?? "", apiKey: env.A3_APIKEY ?? "" });
+    if (r.ok) a3 = { baseUrl: r.config.baseUrl!, apiKey: r.secrets.apiKey! };
     else errors.push(...r.errors.map((e) => `A3ERP: ${e}`));
   }
   return errors.length ? { ok: false, errors } : { ok: true, config: { orgId, signingKey, a3 } };

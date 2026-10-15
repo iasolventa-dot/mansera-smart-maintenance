@@ -19,5 +19,6 @@ Formato de cada ADR en `memory/adr/NNNN-titulo.md`: Contexto · Decisión · Alt
 | 0013 | a3innuva Nómina en el ecosistema (OAuth WKA, solo lectura, agregados) | Propuesto (implementado) |
 | 0014 | Caché por organización y capa de datos reales (retención 24 h) | Propuesto (implementado) |
 | 0015 | Vía de integración con PGMWin: lectura SQL sobre vistas (fase 1), API a medida para escribir | Propuesto (pendiente de MANSERA) |
+| 0016 | Plan de costes de terceros por fases | Propuesto (pendiente de MANSERA) |
 
 Para crear uno nuevo: copiar `adr/0000-plantilla.md`.

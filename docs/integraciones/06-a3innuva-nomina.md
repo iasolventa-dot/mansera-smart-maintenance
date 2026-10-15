@@ -63,3 +63,10 @@ La nómina contiene los datos personales **más sensibles** del proyecto: salari
 - ¿Qué usuario WKA autorizará? Debe tener solo las empresas necesarias.
 - URL base y rutas exactas (Swagger con acceso), paginación, y si existe una empresa de pruebas.
 - ¿Usa MANSERA el módulo de formación? ¿Qué centros de trabajo y empresas hay en nómina? ¿Cuadran con los de PGMWin y Sésame?
+
+## Respuesta del distribuidor (vía Cristina, 2026-10-15) [HECHO — declarado por el proveedor]
+- **Versión:** a3innuva Nómina **1.9.29**, siempre en la nube de Wolters Kluwer (**Azure**).
+- **API Conectia:** existe y **no está incluida** en la licencia: **45 €/mes**. Documentación: a3developers (ya analizada).
+- **Datos agregados** (coste por centro o mes) sin acceder a datos individuales: «revisar documentación». Pendiente de verificar en la especificación con acceso; si no existe, se agrega en la plataforma (ADR-0013).
+- **Integración Sésame ↔ a3innuva:** existe en el marketplace de Wolters Kluwer (app de Sésame, la soporta Sésame, no el distribuidor). Es independiente de esta plataforma: puede servir a MANSERA para pasar fichajes y ausencias a la nómina.
+- **Enlace contable nómina → A3ERP:** hoy por fichero `suenlace.dat` (exportación e importación). Fuera del alcance inicial; candidato a automatizar más adelante.

@@ -1,6 +1,6 @@
 # ESTADO ACTUAL DEL PROYECTO  (se imprime al iniciar/compactar sesión — mantener < 80 líneas)
 
-**Última actualización:** 2026-10-15 · respuestas de MANSERA sobre PGMWin (nube de EGEOtec, ADR-0015) y Sésame (54 €/mes, 600/min, sin tokens de solo lectura)
+**Última actualización:** 2026-10-15 · respuestas de MANSERA sobre los 4 sistemas; A3ERP reescrito para la API de Link Soluciones; plan de costes (docs/15)
 **Fase/hito en curso:** M0 cerrado salvo confirmación del usuario · trabajo de M1/M2 adelantado sin G1 a petición del usuario («todo lo que se pueda preparar»)
 **Puertas:** G0 técnicamente cumplida, **sin confirmación expresa** del usuario (ADR-0002/0004). G1 no superada: ningún spike contra APIs reales (R-17). ADR-0010/0011/0013/0014 «propuesto (implementado)»: falta aceptación expresa.
 
@@ -8,7 +8,7 @@
 - Monorepo pnpm + Turborepo: `apps/web` (Next 16, React 19, Tailwind 4, Motion), `apps/gateway`, `packages/{core,ui,connectors}`, `supabase/`.
 - `packages/core`: esquemas Zod, `DataProvider`, permisos (`canPerform`, `canUseRealData`: la vista previa nunca abre datos reales; `canSeeSickLeave`: la baja individual solo la ve RR. HH.), organización activa (`tenancy.ts`), indicadores (`kpis.ts`), catálogo de conectores, ayuda, `demo/` FICTICIO.
 - `packages/connectors`: errores tipados, `http.ts` (tiempo límite y tope de tamaño), `policy.ts` (reintentos, cupo), Trello y Sésame (lectura), A3ERP (rutas y mapeo; filtro SQL solo con parámetros tipados), a3innuva Nómina (OAuth WKA), protocolo del gateway.
-- `apps/gateway`: ejecutor con lista blanca: `a3erp.health`, `login_check`, `documentos.list`, `clientes.list` (paginación de tamaño fijo, relogin ante 401). Sin transporte ni servicio de Windows.
+- `apps/gateway`: ejecutor con lista blanca para A3ERP vía la API de Link Soluciones (ApiKey, OData, `$skip`/`$top`): health, comprobación de clave, facturas/albaranes/efectos pendientes y clientes. Sin transporte ni servicio de Windows.
 - 7 paneles por rol y 18 secciones; Personal (Sésame) y Comercial (Trello) con datos reales cuando haya credenciales, origen siempre visible; Conexiones con credenciales (Vault), OAuth de nómina, tablero de Trello y estado real.
 - Pantallas de error, carga y 404 en español; cabeceras de seguridad (anti-clickjacking); menú móvil con «Más» siempre (cerrar sesión, tema, organización).
 
@@ -33,7 +33,7 @@
 3. MANSERA/asesoría: EIPD y contrato de encargo (art. 28) antes de conectar nómina (docs/14).
 
 ## Bloqueos / pendientes de terceros
-- Respondido (2026-10-15): PGMWin (Q2, Q1 parcial) y Sésame (Q4). Pendiente: A3ERP (Q1, Q3), a3innuva (Q8), Trello, ciberseguridad (Q6).
+- Respondido (2026-10-15): PGMWin (nube de EGEOtec), Sésame (54 €/mes), A3ERP (local, API de Link Soluciones no contratada) y a3innuva (Conectia 45 €/mes). Pendiente: Trello, ciberseguridad (Q6), cliente OAuth de Wolters Kluwer.
 - Decisiones de MANSERA: vía PGMWin (ADR-0015: pedir a EGEOtec documentación, entorno de pruebas y usuario SQL de lectura sobre vistas) y contratar la API de Sésame (54 €/mes).
 
 ## Avisos

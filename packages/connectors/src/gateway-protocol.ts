@@ -1,6 +1,6 @@
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
-import { A3_DOC_TYPES } from "./a3erp/read";
+import { A3_LIST_ENTITIES } from "./a3erp/read";
 
 /**
  * Protocolo nube ↔ gateway on-prem (ADR-0011, borrador). Solo definiciones y criptografía puras, sin red.
@@ -14,7 +14,7 @@ export const OPS = {
   "a3erp.health": z.object({}).strict(),
   "a3erp.login_check": z.object({}).strict(),
   /** Solo parámetros tipados: el gateway construye él mismo el filtro SQL de A3ERP (read.ts). */
-  "a3erp.documentos.list": z.object({ tipo: z.enum(A3_DOC_TYPES), desde: DAY.optional(), hasta: DAY.optional(), limite: z.number().int().min(1).max(500) }).strict(),
+  "a3erp.documentos.list": z.object({ entidad: z.enum(A3_LIST_ENTITIES), desde: DAY.optional(), hasta: DAY.optional(), limite: z.number().int().min(1).max(500) }).strict(),
   "a3erp.clientes.list": z.object({ limite: z.number().int().min(1).max(2000) }).strict(),
 } as const;
 export type OpName = keyof typeof OPS;

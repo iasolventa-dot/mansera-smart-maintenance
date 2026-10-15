@@ -44,9 +44,9 @@ describe("protocolo del gateway", () => {
     }
   });
   it("lecturas de A3ERP: solo parámetros tipados, nada de filtros libres", () => {
-    const ok = createJob({ orgId: ORG, op: "a3erp.documentos.list", params: { tipo: "FVS", desde: "2026-01-01", limite: 100 } }, KEY, T);
+    const ok = createJob({ orgId: ORG, op: "a3erp.documentos.list", params: { entidad: "facturaVenta", desde: "2026-01-01", limite: 100 } }, KEY, T);
     expect(verifyJob(ok, KEY, fresh()).ok).toBe(true);
-    for (const params of [{ tipo: "FVS", limite: 100, filtro: "1=1" }, { tipo: "XX", limite: 1 }, { tipo: "FVS", limite: 5000 }, { tipo: "FVS", desde: "ayer", limite: 1 }]) {
+    for (const params of [{ entidad: "facturaVenta", limite: 100, filtro: "1 eq 1" }, { entidad: "cartera", limite: 1 }, { entidad: "facturaVenta", limite: 5000 }, { entidad: "facturaVenta", desde: "ayer", limite: 1 }]) {
       expect(verifyJob(createJob({ orgId: ORG, op: "a3erp.documentos.list", params }, KEY, T), KEY, fresh()), JSON.stringify(params)).toEqual({ ok: false, reason: "parametros" });
     }
   });

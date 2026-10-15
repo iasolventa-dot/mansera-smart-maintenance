@@ -1,40 +1,47 @@
 import { describe, expect, it } from "vitest";
-import { clientesPath, documentosPath, mapClientes, mapDocumentos, pageHeaders } from "./read";
+import { apiKeyHeaders, listPath, mapAlbaranes, mapClientes, mapEfectos, mapFacturas } from "./read";
 
-describe("A3ERP · rutas (sin SQL de fuera)", () => {
-  it("documentos con filtro de fechas construido aquí y ordenación (necesaria para paginar)", () => {
-    const p = documentosPath("FVS", { desde: "2026-01-01", hasta: "2026-03-31" });
-    expect(decodeURIComponent(p)).toBe("/api/documento/FVS/filtro/fecha>='20260101' and fecha<='20260331'/order/fecha desc");
-    expect(decodeURIComponent(documentosPath("AV"))).toBe("/api/documento/AV/order/fecha desc");
+const q = (p: string) => Object.fromEntries(new URL(p, "http://x").searchParams);
+
+describe("A3ERP (Link Soluciones) · rutas con OData construido aquí", () => {
+  it("facturas con filtro de fechas OData, orden y página", () => {
+    const p = listPath("facturaVenta", { desde: "2026-01-01", hasta: "2026-03-31", skip: 100, top: 100 });
+    expect(p.startsWith("/api/facturaVenta/?")).toBe(true);
+    expect(q(p)).toEqual({ $filter: "Fecha ge datetime'2026-01-01' and Fecha le datetime'2026-03-31'", $orderby: "Fecha desc", $skip: "100", $top: "100" });
   });
-  it("rechaza tipos fuera de la lista y fechas con cualquier cosa que no sea una fecha real (anti-inyección SQL)", () => {
-    expect(() => documentosPath("FVS' or 1=1--" as never)).toThrow();
-    for (const desde of ["2026-01-01' or '1'='1", "2026-13-01", "2026-02-30", "20260101", "hoy"]) {
-      expect(() => documentosPath("FVS", { desde }), desde).toThrow();
+  it("efectos pendientes filtran por FechaFactura; clientes sin filtro y ordenados por código", () => {
+    expect(q(listPath("efectoPendiente", { desde: "2026-01-01", skip: 0, top: 50 })).$filter).toBe("FechaFactura ge datetime'2026-01-01'");
+    expect(q(listPath("cliente", { skip: 0, top: 100 }))).toEqual({ $orderby: "Codigo asc", $skip: "0", $top: "100" });
+  });
+  it("rechaza entidades fuera de la lista, fechas que no son fechas reales y paginación fuera de rango (anti-inyección)", () => {
+    expect(() => listPath("cartera" as never, { skip: 0, top: 1 })).toThrow();
+    for (const desde of ["2026-01-01' or 1 eq 1 or Fecha ge datetime'2000-01-01", "2026-13-01", "2026-02-30", "hoy"]) {
+      expect(() => listPath("facturaVenta", { desde, skip: 0, top: 1 }), desde).toThrow();
     }
+    for (const [skip, top] of [[-1, 10], [0, 0], [0, 1000], [1.5, 10]]) expect(() => listPath("albaranVenta", { skip: skip!, top: top! })).toThrow();
   });
-  it("clientes ordenados y cabeceras de paginación documentadas", () => {
-    expect(decodeURIComponent(clientesPath())).toBe("/api/maestro/clientes/order/nomcli asc");
-    expect(pageHeaders(2, 50)).toEqual({ Page: "2", PageSize: "50" });
+  it("la ApiKey va en cabecera y con formato seguro", () => {
+    expect(apiKeyHeaders("k".repeat(20))).toEqual({ ApiKey: "k".repeat(20), Accept: "application/json" });
+    expect(() => apiKeyHeaders("con espacio dentro")).toThrow();
+    expect(() => apiKeyHeaders("x".repeat(20) + String.fromCharCode(10) + "Inyectada: 1")).toThrow();
   });
 });
 
-describe("A3ERP · mapeo (minimizado, sin inventar)", () => {
-  it("acepta importes como número o texto y descarta NIF y líneas", () => {
-    const raw = { Documentos: [
-      { idfacv: 7, serie: "A", numdoc: 125, codcli: "  43", nomcli: "Cliente Ejemplo", nifcli: "FICTICIO-NIF", fecha: "2026-03-02T00:00:00", basemoneda: "100,50", totivamoneda: 21.1, totdoc: "121.60", situacion: "X", Lineas: [{ desclin: "L" }] },
-    ] };
-    const [d] = mapDocumentos("FVS", raw);
-    expect(d).toEqual({ id: "FVS-A-125", tipo: "FVS", serie: "A", numero: "125", codCliente: "43", cliente: "Cliente Ejemplo", fecha: "2026-03-02", base: 100.5, iva: 21.1, total: 121.6, situacion: "X" });
-    expect(JSON.stringify(d)).not.toContain("FICTICIO-NIF");
+describe("A3ERP · mapeo minimizado y sin inventar", () => {
+  it("facturas: sin NIF ni dirección; estado y fechas de cobro tal cual", () => {
+    const r = mapFacturas({ PageData: [{ IdFacturaVenta: 7, Serie: "A", Numero: 125, CodigoCliente: "43", NombreCliente: "Cliente Ejemplo", NifCliente: "FICTICIO-NIF", Direccion: "FICTICIA", Fecha: "2026-03-02T00:00:00", BaseTotal: 100.5, CuotaTotal: "21,1", TotalDoc: 121.6, EstadoFactura: "2", FechaPrevistaCobro: "2026-04-02T00:00:00", FechaCobro: null }], TotalCount: 1 });
+    expect(r).toEqual({ total: 1, items: [{ id: "7", serie: "A", numero: "125", codCliente: "43", cliente: "Cliente Ejemplo", fecha: "2026-03-02", base: 100.5, iva: 21.1, total: 121.6, estado: "2", previstoCobro: "2026-04-02", cobro: null }] });
+    expect(JSON.stringify(r)).not.toMatch(/FICTICI/);
   });
-  it("un importe ilegible queda en null (no se inventa 0)", () => {
-    const [d] = mapDocumentos("AV", { Documentos: [{ numdoc: "1", fecha: "2026-01-01", totdoc: "n/d" }] });
-    expect(d?.total).toBeNull();
+  it("albaranes, efectos pendientes y clientes", () => {
+    expect(mapAlbaranes({ PageData: [{ IdAlbaranVentas: 3, Numero: "9", Cliente: "43", NombreCliente: "C", Fecha: "2026-01-05", NifCliente: "FICTICIO" }], TotalCount: 1 }).items[0]).toEqual({ id: "3", serie: "", numero: "9", codCliente: "43", cliente: "C", fecha: "2026-01-05" });
+    expect(mapEfectos({ PageData: [{ IdCobroERP: 1, IdClienteERP: 43, NumFac: "A-125", ImpPagar: 121.6, Debe: 60, FechaFactura: "2026-03-02T00:00:00", FechaPago: "2026-04-02T00:00:00" }], TotalCount: 1 }).items[0]).toEqual({ id: "1", codCliente: "43", factura: "A-125", importe: 121.6, pendiente: 60, fechaFactura: "2026-03-02", vencimiento: "2026-04-02" });
+    const c = mapClientes({ PageData: [{ Codigo: " 43", Nombre: "Nombre comercial", RazonSocial: "Razón Social S.L.", NIF: "FICTICIO", Telefono: "FICTICIO", Email: "x@example.invalid" }], TotalCount: 1 });
+    expect(c.items).toEqual([{ codigo: "43", nombre: "Razón Social S.L." }]);
+    expect(JSON.stringify(c)).not.toMatch(/FICTICIO|example/);
   });
-  it("formato inesperado = error controlado", () => {
-    expect(() => mapDocumentos("FVS", { otra: [] })).toThrow(/formato inesperado/);
-    expect(() => mapClientes([{ codigo: "1" }])).toThrow(/formato inesperado/);
-    expect(mapClientes([{ codcli: " 1", nomcli: "Ejemplo" }])).toEqual([{ codigo: "1", nombre: "Ejemplo" }]);
+  it("formato inesperado = error controlado; importe ilegible = null", () => {
+    expect(() => mapFacturas({ Documentos: [] })).toThrow(/formato inesperado/);
+    expect(mapFacturas({ PageData: [{ IdFacturaVenta: 1, Numero: 1, Fecha: "2026-01-01", TotalDoc: "n/d" }], TotalCount: 1 }).items[0]?.total).toBeNull();
   });
 });

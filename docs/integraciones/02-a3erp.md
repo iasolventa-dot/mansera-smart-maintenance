@@ -42,3 +42,25 @@ Coste de licencia no previsto · escritura contable = alto impacto → **solo co
   - formato de fecha que acepta el filtro;
   - máximo de `PageSize`;
   - significado de `situacion`. Por eso **no se traduce a «cobrada/pendiente»**: el cobro está en «Cartera avanzada», aún sin leer.
+
+## Respuesta del distribuidor (vía Cristina, 2026-10-15) [HECHO — declarado por el proveedor] · SUSTITUYE lo anterior
+- **Instalación:** A3ERP 15.0.0.0 en el **servidor local de MANSERA**. Se mantiene el gateway (ADR-0012).
+- **No hay API en el estándar.** Existe el objeto `A3erpActiveXRuntime.dll` (requiere programación). Las APIs son de pago:
+  - la del fabricante (a3ERP Link API);
+  - la del distribuidor, **«Integrador API ERP» de Link Soluciones** (PDF v2.31.3.1), que es la que ofrecen a MANSERA.
+- **No está contratada.** Precio: **75 €/mes (1.000 llamadas)** o **100 €/mes (ilimitadas)** + **1.800 €** de configuración e integración multiempresa. Compatible con la 15.0.0.0.
+- **Permite leer y escribir**, incluida la conversión de albarán a factura si la API contratada lo implementa.
+- **Seguridad:** se puede crear un **usuario limitado, solo lectura** al principio, y **empresas de prueba** en A3ERP. «https solo si se programan servicios web» ⇒ confirmar que el servicio se publica en https en la red local (R-18).
+- **Cambios:** no avisa a otros programas; hay que consultar periódicamente.
+- **Actualizaciones:** algunas exigen actualizar el componente ActiveX; las integraciones «pueden dejar de funcionar hasta que se adapten» (R-29).
+- **Lo que dice el PDF (Link Soluciones):**
+  - cabecera `ApiKey`;
+  - `GET /api/{entidad}/` con OData (`$filter` solo con operadores binarios, `$orderby`, `$skip`, `$top`) → `{ PageData, TotalCount }`;
+  - endpoints `/updated` para traer los cambios desde una fecha;
+  - entidades: clientes, artículos, facturas y albaranes de venta y compra, pedidos, cartera, efectos pendientes de cobro, cobros, asientos, stock;
+  - registros (logs) en CSV de cada petición con su contenido (RGPD: revisar).
+- **Hecho en la plataforma:**
+  - `packages/connectors/src/a3erp/read.ts` reescrito para esta API: facturas, albaranes, efectos pendientes y clientes, con OData construido solo con valores tipados y datos minimizados (sin NIF ni direcciones).
+  - El gateway lee con `$skip`/`$top` y avisa si hay más registros.
+  - Spike `scripts/spikes/a3erp.mjs` actualizado (ApiKey).
+  - La documentación anterior (a3erpapi.appcloud.es, de otro proveedor) **deja de aplicar**.
