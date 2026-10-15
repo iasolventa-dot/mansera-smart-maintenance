@@ -68,7 +68,8 @@ export async function withRetry<T>(fn: () => Promise<T>, o: RetryOptions = {}): 
 /** Cupos por sistema, por debajo de los límites documentados (margen para otros usos de la misma cuenta). */
 export const LIMITS = {
   trello: { capacity: 80, perMs: 10_000 }, // documentado: 100 / 10 s por token
-  sesame: { capacity: 600, perMs: 60_000 }, // documentado: 1.000 / min por EMPRESA, compartido
+  // Sésame confirmó a MANSERA (2026-10-15) 600 / min por EMPRESA, compartido entre tokens (su web decía 1.000).
+  sesame: { capacity: 400, perMs: 60_000 },
   a3nomina: { capacity: 1_000, perMs: 60_000 }, // documentado (Conectia): 3.000 / min
 } as const;
 

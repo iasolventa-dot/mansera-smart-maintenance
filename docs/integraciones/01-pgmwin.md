@@ -35,3 +35,13 @@ Crear OT desde oferta ganada de Trello · consultar historial de un activo · pa
 
 ## Estado de la documentación (2026-10-13): **Pendiente de documentar**
 Búsquedas públicas sin resultados sobre API, webservice o integración de PGMWin. En **Conexiones** aparece como «Pendiente de documentar» y no se piden credenciales hasta conocer el formato (la base segura —Vault, RLS, auditoría— es la misma de los demás, ADR-0010, y solo falta añadir su catálogo de campos). Acción: Q2 a EGEOtec.
+
+## Respuesta de EGEOtec (vía Cristina, 2026-10-15) [HECHO — declarado por el fabricante; pendiente de documentación técnica]
+- **Instalación:** en la **nube de EGEOtec**. Base de datos **SQL Server**. MANSERA tiene PGMWin y PGMweb.
+- **API:**
+  - Existe (es la que usan para integraciones con ERP), pero «seguro que habría que hacer modificaciones para cada cliente».
+  - Permite consultar y también crear o modificar.
+  - Es un **módulo aparte**: punto de partida ~**1.150 €** sin contar desarrollos, que serían a medida.
+- **Lectura directa de la base de datos:** autorizada «sin problema» («los datos son de MANSERA»), sin afectar a garantía ni soporte. Pueden crear un **usuario de integración con permisos limitados** (en el caso de acceso a la base de datos).
+- **Facilitan** documentación técnica y un **entorno de pruebas** sin datos reales. En las actualizaciones la conexión se mantiene y avisan de los cambios.
+- **Decisión propuesta:** ADR-0015. Fase 1 de lectura por SQL sobre vistas acordadas, desde el gateway; la escritura, por la API a medida cuando se presupueste. Nunca escribir directamente en su base de datos.

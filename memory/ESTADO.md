@@ -1,6 +1,6 @@
 # ESTADO ACTUAL DEL PROYECTO  (se imprime al iniciar/compactar sesión — mantener < 80 líneas)
 
-**Última actualización:** 2026-10-14 · revisión completa (3 revisores) corregida: bloqueante de vista previa con datos reales resuelto
+**Última actualización:** 2026-10-15 · respuestas de MANSERA sobre PGMWin (nube de EGEOtec, ADR-0015) y Sésame (54 €/mes, 600/min, sin tokens de solo lectura)
 **Fase/hito en curso:** M0 cerrado salvo confirmación del usuario · trabajo de M1/M2 adelantado sin G1 a petición del usuario («todo lo que se pueda preparar»)
 **Puertas:** G0 técnicamente cumplida, **sin confirmación expresa** del usuario (ADR-0002/0004). G1 no superada: ningún spike contra APIs reales (R-17). ADR-0010/0011/0013/0014 «propuesto (implementado)»: falta aceptación expresa.
 
@@ -33,11 +33,12 @@
 3. MANSERA/asesoría: EIPD y contrato de encargo (art. 28) antes de conectar nómina (docs/14).
 
 ## Bloqueos / pendientes de terceros
-- Cuestionario de integración (Q1–Q8). Bloquea M1 real, no la UI.
+- Respondido (2026-10-15): PGMWin (Q2, Q1 parcial) y Sésame (Q4). Pendiente: A3ERP (Q1, Q3), a3innuva (Q8), Trello, ciberseguridad (Q6).
+- Decisiones de MANSERA: vía PGMWin (ADR-0015: pedir a EGEOtec documentación, entorno de pruebas y usuario SQL de lectura sobre vistas) y contratar la API de Sésame (54 €/mes).
 
 ## Avisos
 - Datos demo ficticios. El login demo solo existe sin Supabase y fuera de producción.
 - Todo lo de conectores está probado con respuestas SIMULADAS (R-17); la vista previa ya no abre datos reales.
 
 ## Riesgos activos top-3
-R-02 PGMWin sin API utilizable · R-26 datos de empleados/salud sin EIPD ni art. 28 · R-04 informe de ciberseguridad pendiente.
+R-26 datos de empleados/salud sin EIPD ni art. 28 · R-04 informe de ciberseguridad pendiente · R-27 token de Sésame sin modo solo lectura.

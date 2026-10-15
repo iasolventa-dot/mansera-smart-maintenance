@@ -7,7 +7,9 @@ import { withRetry, type CallPolicy } from "../policy";
  * Cliente de SOLO LECTURA de la API pública de Sésame HR (especificación OpenAPI oficial «Sesame Public API 3.0.0»,
  * https://apidocs.sesametime.com/openapi.json, consultada el 2026-10-14).
  * - Autenticación: `Authorization: Bearer <token>` (documentado). Base: https://api-{región}.sesametime.com (región por defecto: eu1).
- * - Límite documentado: 1.000 peticiones/minuto por EMPRESA, compartido entre todos los tokens.
+ * - Límite: 600 peticiones/minuto por EMPRESA, compartido entre todos los tokens (confirmado por Sésame a MANSERA el
+ *   2026-10-15; su documentación web decía 1.000). Cupo propio: 400/min.
+ * - El token de Sésame NO puede limitarse a lectura (confirmado por Sésame): este cliente solo hace GET (probado).
  * - Paginación documentada: `page` + `limit`, respuesta con `meta.currentPage/lastPage/total/perPage`.
  * - Comprobado en real (2026-10-14): una región inexistente responde 200 con HTML → se exige JSON.
  *

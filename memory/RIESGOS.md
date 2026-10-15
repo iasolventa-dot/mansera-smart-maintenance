@@ -4,7 +4,7 @@ Probabilidad/Impacto: B/M/A. Revisar al cierre de cada hito.
 | ID | Riesgo | P | I | Mitigación | Estado |
 |---|---|---|---|---|---|
 | R-01 | Presupuesto remanente (8–9 k€) < propuesta (13,5 k€ + cuotas) | A | A | Fases; Mi PRL como gancho; MVP acotado; decisión del usuario | Abierto |
-| R-02 | PGMWin sin API/acceso soportado para lectura-escritura | M | A | Spike S-PGM; plan B por ficheros vía gateway; escritura solo vía enlace directo | Abierto |
+| R-02 | PGMWin sin API/acceso soportado para lectura-escritura | B | A | EGEOtec confirma (2026-10-15) API a medida o lectura SQL autorizada con usuario limitado, documentación y entorno de pruebas; ADR-0015: lectura SQL sobre vistas, escritura por API cuando se presupueste | Mitigado parcialmente |
 | R-03 | Licencias API no contratadas (A3 Link, Sésame Add On) → costes | M | M | Preguntar pronto (Q3, Q4); reflejar en presupuesto | Abierto |
 | R-04 | Informe de ciberseguridad impone restricciones (gateway, nube, IA) | M | A | Obtenerlo pronto (Q6); diseño modular de transporte | Abierto |
 | R-05 | Escritura errónea en ERP/GMAO | B | A | ADR-0005, entornos de prueba, auditoría | Mitigado por diseño |
@@ -29,4 +29,5 @@ Probabilidad/Impacto: B/M/A. Revisar al cierre de cada hito.
 | R-24 | La caché guarda datos personales minimizados de Sésame (nombre, puesto, estado) | B | M | Solo servidor, sin histórico, sobrescritura en cada lectura, borrado al cambiar configuración (ADR-0014) | Mitigado por diseño |
 | R-25 | Funciones de Vercel en EE. UU. (iad1) procesando datos de una base en la UE | M | A | Fijada la región fra1 en vercel.json; verificado en producción el 2026-10-14 (x-vercel-id: cdg1::fra1::…) | Cerrado |
 | R-26 | Tratamiento de datos de empleados y salud (IT) sin EIPD ni contrato de encargo | M | A | Borrador docs/14; EIPD y art. 28 con la asesoría antes de conectar nómina | Abierto |
-
+| R-27 | El token de Sésame no puede limitarse a lectura: si se filtra, permite escribir (crear fichajes, aprobar ausencias…) | B | A | Token exclusivo; cifrado en Vault; el cliente solo hace GET (probado); revocación inmediata; nunca en el navegador | Abierto |
+| R-28 | La escritura en PGMWin (crear OT) exige el módulo API (~1.150 €) más un desarrollo a medida sin presupuesto | M | M | Fase 1 solo lectura (ADR-0015); escritura cuando se presupueste; mientras, propuesta + enlace directo a PGMWin | Abierto |

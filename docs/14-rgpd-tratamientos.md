@@ -12,6 +12,7 @@
 | Supabase | Base de datos, autenticación, Vault de credenciales, caché | eu-central-1 (Frankfurt) | Proyecto `synwtbopxwvggicrfjjj` |
 | Vercel | Servidor web y funciones | **fra1 (Frankfurt) desde 2026-10-14, verificado en producción** (antes iad1, EE. UU.: medido en las cabeceras `x-vercel-id`) | Ajuste en `vercel.json`. La CDN de estáticos es global |
 | Anthropic | Asistente de ayuda (solo si se activa `ANTHROPIC_API_KEY`) | EE. UU. | Solo recibe la pregunta y el manual. **Nunca** datos de personal ni de nómina (ADR-0009, R-21) |
+| Sésame HR (encargado de MANSERA, no nuestro) | Origen de los datos de personal | OVH y AWS en Francia y Alemania; copias en Francia y Polonia; **algunos subencargados fuera de la UE** (Sésame, 2026-10-15) | Contrato en Configuración → Empresa → Legal; confirmación formal: legal@sesametime.com |
 | GitHub | Código fuente e integración continua | EE. UU. | Sin datos personales de MANSERA (datos de ejemplo inventados) |
 
 ## 2. Registro de actividades de tratamiento (propuesta)

@@ -30,3 +30,14 @@ Disponibilidad de técnicos para planificación · horas por OT (cruce fichajes 
 - Endpoints de lectura usados por el conector: `/core/v3/info`, `/core/v3/employees?status=active`, `/core/v3/employee-department-assignations`, `/core/v3/offices`, `/schedule/v1/absence-day-off`, `/schedule/v1/vacation-day-off`, `/schedule/v1/work-entries`, `/schedule/v1/reports/worked-hours`.
 - **Minimización (RGPD):** la ficha de empleado trae DNI, nº SS, cuenta bancaria, salario, fecha de nacimiento, dirección… El conector (`packages/connectors/src/sesame/`) solo declara id, nombre, puesto, estado de fichaje y estado; Zod descarta el resto al recibirlo (prueba dedicada).
 - **No documentado:** si la API es de pago, cómo se asignan permisos al token, lista completa de regiones.
+
+## Respuesta de Sésame a MANSERA (vía Cristina, 2026-10-15) [HECHO — declarado por el proveedor]
+- **La API no está incluida en el plan: complemento de pago de 54 €/mes.** Cierra S-05.
+- **Límite real: 600 peticiones/min por empresa**, compartido entre tokens (su web decía 1.000). El cupo de la plataforma baja a 400/min.
+- **No hay tokens de solo lectura** ni permisos por token: el token permite también escribir. Mitigación: token exclusivo para la integración, el cliente solo hace GET (probado), custodia en Vault y revocación si se compromete (R-27).
+- **Webhooks:** existen para empleados y fichajes; **no para ausencias** (hay que consultar periódicamente). Se activan pidiéndolo a soporte.
+- **Datos que ofrece:** confirma los endpoints de la especificación. Hay endpoints recientes de justificantes de ausencia y **días de absentismo**, que podrían alimentar el histórico de absentismo, hoy «sin dato».
+- **Alojamiento y RGPD:**
+  - Sésame es encargado del tratamiento de MANSERA. El contrato está en Configuración → Empresa → Legal.
+  - Alojamiento en OVH y AWS, con tratamiento en Francia y Alemania y copias en Francia con redundancia en Polonia. **Algunos subencargados están fuera de la UE.** Para la confirmación formal: legal@sesametime.com.
+- **Es estándar:** el conector lo desarrollamos nosotros (ya hecho, pendiente de token).

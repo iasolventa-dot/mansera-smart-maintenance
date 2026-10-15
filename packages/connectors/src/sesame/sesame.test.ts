@@ -16,7 +16,7 @@ function fakeSesame(over: Partial<Record<string, unknown>> = {}) {
     const u = new URL(url);
     const routes: Record<string, unknown> = {
       "/core/v3/info": R.info, "/core/v3/employees": R.employees, "/core/v3/employee-department-assignations": R.departments,
-      "/schedule/v1/absence-day-off": R.absences, "/schedule/v1/absence-types": R.absenceTypes, "/schedule/v1/vacation-day-off": R.vacations, "/schedule/v1/work-entries": R.workEntries,
+      "/schedule/v1/absence-day-off": R.absences, "/schedule/v1/absence-types": R.absenceTypes, "/core/v3/departments": { data: [{ id: "d1", name: "Campo" }], meta: { currentPage: 1, lastPage: 1 } }, "/schedule/v1/vacation-day-off": R.vacations, "/schedule/v1/work-entries": R.workEntries,
       "/core/v3/offices": R.offices, "/schedule/v1/reports/worked-hours": R.workedHours, ...over,
     };
     const body = routes[u.pathname];
@@ -46,6 +46,16 @@ describe("cliente de Sésame HR (solo lectura)", () => {
     expect(n).toBe(2);
     expect(taken).toBe(2); // cada intento consume cupo
     expect(slept).toHaveLength(1);
+  });
+  it("el token de Sésame no se puede limitar a lectura: el cliente SOLO hace peticiones GET", async () => {
+    const f = fakeSesame();
+    const c = createSesameClient(creds, f);
+    await c.info();
+    await c.snapshot(R.date);
+    await c.absenceTypes();
+    await c.departments();
+    expect(f.mock.calls.length).toBeGreaterThan(5);
+    for (const [, init] of f.mock.calls) expect(init?.method ?? "GET").toBe("GET");
   });
   it("una región maliciosa se rechaza antes de llamar a nadie", () => {
     for (const region of ["eu1.evil.com", "eu1/x", "-eu1", "EU1"]) {
